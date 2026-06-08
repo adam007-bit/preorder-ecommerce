@@ -1,7 +1,6 @@
 const express = require('express');
 const admin = require('firebase-admin');
 const path = require('path');
-const { v4: uuidv4 } = require('uuid');
 
 const app = express();
 app.use(express.json({ limit: '10mb' }));
@@ -14,22 +13,20 @@ app.use((req, res, next) => {
   next();
 });
 
-// Init Firebase Admin
+// Init Firebase Admin (tanpa Storage)
 let serviceAccount;
 if (process.env.FIREBASE_SERVICE_ACCOUNT) {
   serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 } else {
-  // guna fail hanya untuk local testing
   serviceAccount = require("./serviceAccountKey.json");
 }
 if (!admin.apps.length) {
   admin.initializeApp({ 
-    credential: admin.credential.cert(serviceAccount),
-    storageBucket: process.env.FIREBASE_STORAGE_BUCKET || `${serviceAccount.project_id}.appspot.com`
+    credential: admin.credential.cert(serviceAccount)
+    // Tiada storage bucket
   });
 }
 const db = admin.firestore();
-const bucket = admin.storage().bucket();
 
 // Serve static
 app.use(express.static(path.join(__dirname, 'public')));
@@ -63,34 +60,12 @@ app.get('/api/stock', async (req, res) => {
   }
 });
 
-// Fungsi upload resit
-async function uploadReceipt(base64Data) {
-  const matches = base64Data.match(/^data:(image\/\w+);base64,(.+)$/);
-  if (!matches) throw new Error("Invalid base64");
-  const mimeType = matches[1];
-  const ext = mimeType.split('/')[1];
-  const fileName = `receipts/${uuidv4()}.${ext}`;
-  const buffer = Buffer.from(matches[2], 'base64');
-  const file = bucket.file(fileName);
-  await file.save(buffer, { metadata: { contentType: mimeType }, public: true });
-  return `https://storage.googleapis.com/${bucket.name}/${fileName}`;
-}
-
-// API orders + upload resit + tolak stok
+// API orders + tolak stok (tanpa upload resit)
 app.post('/api/orders', async (req, res) => {
   try {
     const { customer, items, totalAmount, paymentDetails, shipping } = req.body;
     if (!customer || !items || !totalAmount) {
       return res.status(400).json({ success: false, message: "Data tidak lengkap" });
-    }
-
-    let receiptUrl = null;
-    if (paymentDetails?.receiptData && paymentDetails.receiptData !== 'N/A' && !paymentDetails.payLater) {
-      try {
-        receiptUrl = await uploadReceipt(paymentDetails.receiptData);
-      } catch (err) {
-        console.error("Gagal upload resit:", err);
-      }
     }
 
     // Transaction to reduce stock and save order
@@ -117,13 +92,13 @@ app.post('/api/orders', async (req, res) => {
         orderId, customer, items, totalAmount: parseFloat(totalAmount),
         status: paymentDetails?.payLater ? 'Pay Later' : 'Pending Verification',
         delivery_status: 'Unfulfilled', shipping: shipping || {},
-        paymentDetails: { ...paymentDetails, receiptUrl, receiptData: null },
+        paymentDetails: { ...paymentDetails, receiptData: null },
         createdAt: admin.firestore.FieldValue.serverTimestamp()
       };
       transaction.set(db.collection('orders').doc(orderId), newOrder);
     });
 
-    res.status(201).json({ success: true, receiptUrl });
+    res.status(201).json({ success: true });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   }
