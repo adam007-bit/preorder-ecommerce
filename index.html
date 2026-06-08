@@ -529,14 +529,15 @@
         } else if (!payLater && !receiptFile) { alert("Sila muat naik resit pembayaran atau pilih 'Bayar Kemudian'."); return; }
 
         // Prepare order data
-        let productTotal = 0, itemsText = '', stockUpdateText = '';
-        for (let i of itemsArray) {
-            productTotal += i.price * i.qty;
-            itemsText += `${i.prodName} (${i.size} - ${i.type}) x ${i.qty} = RM ${(i.price*i.qty).toFixed(2)}\n`;
-            const key = getVariationKey(i.prodId, i.size, i.type);
-            const oldStock = stockMap[key];
-            stockUpdateText += `• ${i.prodName} ${i.size} ${i.type}: Stok sebelum ${oldStock}, selepas = ${oldStock - i.qty}\n`;
-        }
+       let productTotal = 0, itemsText = '', stockUpdateText = '';
+for (let i of itemsArray) {
+    productTotal += i.price * i.qty;
+    itemsText += `${i.prodName} (${i.size} - ${i.type}) x ${i.qty} = RM ${(i.price*i.qty).toFixed(2)}\n`;
+    const key = getVariationKey(i.prodId, i.size, i.type);
+    const oldStock = stockMap[key] !== undefined ? stockMap[key] : 100;   // FIX: default 100
+    const newStock = oldStock - i.qty;
+    stockUpdateText += `• ${i.prodName} ${i.size} ${i.type}: Stok sebelum ${oldStock}, selepas = ${newStock}\n`;
+}
         const shippingCost = currentShipping.cost;
         const shippingRegion = currentShipping.code === 'SM' ? 'Semenanjung Malaysia' : (currentShipping.code === 'SS' ? 'Sabah/Sarawak' : 'Singapura');
         const grandTotal = productTotal + shippingCost;
