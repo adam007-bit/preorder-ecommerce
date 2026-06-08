@@ -1,12 +1,26 @@
-// test.js
-const express = require('express');
-const app = express();
-const port = process.env.PORT || 3000;
+// ----------------------------------------------------
+// API 1: Ambil Semua Data Produk dari Firestore
+// ----------------------------------------------------
+app.get('/api/products', async (req, res) => {
+  try {
+    console.log("📥 Menerima permintaan untuk senarai produk...");
+    const productsSnapshot = await db.collection('products').get();
+    
+    if (productsSnapshot.empty) {
+      return res.status(200).json([]); // Pulangkan array kosong jika tiada produk
+    }
 
-app.get('/api/products', (req, res) => {
-  res.json({ message: 'Success! The API route is working.' });
-});
+    const products = [];
+    productsSnapshot.forEach(doc => {
+      products.push({
+        id: doc.id,
+        ...doc.data()
+      });
+    });
 
-app.listen(port, () => {
-  console.log(`Test server listening on port ${port}`);
+    return res.status(200).json(products);
+  } catch (error) {
+    console.error("❌ Ralat mengambil data produk:", error);
+    return res.status(500).json({ success: false, message: "Gagal mengambil data produk." });
+  }
 });
