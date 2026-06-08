@@ -376,12 +376,12 @@
 
     // ---------- IMGBB UPLOAD FUNCTION (free image hosting) ----------
     // 🔐 REPLACE 'YOUR_IMGBB_API_KEY' WITH YOUR ACTUAL API KEY FROM https://imgbb.com
-    const IMGBB_API_KEY = 'YOUR_IMGBB_API_KEY';  // <-- GANTI DENGAN API KEY ANDA
+    const IMGBB_API_KEY = '8b4d34f1c329684356d506ef8d67105e';  // <-- GANTI DENGAN API KEY ANDA
 
     async function uploadReceiptToImgBB(base64Image) {
         // base64Image format: "data:image/jpeg;base64,..." or similar
         const formData = new FormData();
-        formData.append('key', 8b4d34f1c329684356d506ef8d67105e);
+        formData.append('key', IMGBB_API_KEY);
         formData.append('image', base64Image.split(',')[1]); // remove metadata
         // optionally set expiration (never)
         formData.append('expiration', '0');
