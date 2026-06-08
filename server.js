@@ -1,9 +1,12 @@
+// test.js
 const express = require('express');
 const app = express();
+const port = process.env.PORT || 3000;
 
 app.get('/api/products', (req, res) => {
-  res.json([{ id: "test", name: "Test Product" }]);
+  res.json({ message: 'Success! The API route is working.' });
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, '0.0.0.0', () => console.log(`Running on port ${PORT}`));
+app.listen(port, () => {
+  console.log(`Test server listening on port ${port}`);
+});
