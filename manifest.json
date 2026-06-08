@@ -1,17 +1,21 @@
 {
-  "short_name": "PreOrder Hub",
-  "name": "Premium Pre-Order & Groupbuy Hub",
+  "short_name": "Velxera",
+  "name": "VELXERA VENTURES",
   "icons": [
     {
-      "src": "icon.png",
-      "type": "image/png",
+      "src": "icon.jpg",
+      "type": "image/jpeg",
       "sizes": "512x512",
       "purpose": "any maskable"
+    },
+    {
+      "src": "icon.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg"
     }
   ],
-  "start_url": "/index.html",
-  "background_color": "#0f172a",
-  "theme_color": "#0f172a",
+  "start_url": "/",
   "display": "standalone",
-  "orientation": "portrait"
+  "theme_color": "#10b981",
+  "background_color": "#ffffff"
 }

@@ -2,7 +2,8 @@
   "name": "preorder-ecommerce",
   "version": "1.0.0",
   "dependencies": {
-    "firebase-admin": "^11.8.0"
+    "firebase-admin": "^11.11.1",
+    "protobufjs": "^7.6.2"
   },
   "engines": {
     "node": "18.x"
