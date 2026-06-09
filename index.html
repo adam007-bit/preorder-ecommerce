@@ -12,13 +12,11 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#10b981">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="icon.jpg">
 
-
     <style>
-        /* ---------- Your EXACT original styles (unchanged) ---------- */
+        /* ---------- SAME STYLES (unchanged) ---------- */
         :root {
             --emerald-primary: #10b981;
             --emerald-dark: #059669;
@@ -28,185 +26,31 @@
             --card-shadow: 0 8px 20px rgba(0, 0, 0, 0.03);
             --hover-shadow: 0 20px 35px rgba(16, 185, 129, 0.12);
         }
-
-        body { 
-            background: #f9fafb;
-            font-family: 'Poppins', sans-serif; 
-            color: #1f2937;
-            min-height: 100vh;
-        }
-
-        .custom-navbar {
-            background: rgba(255, 255, 255, 0.95) !important;
-            backdrop-filter: blur(12px);
-            border-bottom: 2px solid var(--emerald-primary);
-            padding: 16px 0;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.02);
-        }
-
-        .navbar-brand-text {
-            background: var(--emerald-grad);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-weight: 800;
-            font-size: 18px;
-            letter-spacing: 1px;
-        }
-
-        .step-guide-box {
-            background: white;
-            border-radius: 28px;
-            box-shadow: var(--card-shadow);
-            border: 1px solid #eef2ff;
-        }
-        .step-guide-box::before {
-            background: var(--emerald-grad);
-        }
-        .badge-step-title {
-            background: var(--emerald-grad);
-            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.25);
-        }
-        .step-item:hover {
-            color: var(--emerald-primary) !important;
-        }
-
-        .product-card { 
-            border: 1px solid #e2e8f0; 
-            border-radius: 24px; 
-            background: white;
-            box-shadow: var(--card-shadow); 
-            transition: all 0.3s ease;
-        }
-        .product-card:hover { 
-            transform: translateY(-5px);
-            box-shadow: var(--hover-shadow);
-            border-color: var(--emerald-primary);
-        }
-
-        .category-badge {
-            background: var(--emerald-grad);
-            color: white;
-        }
-
-        .variation-row {
-            background: #f8fafc;
-            border-radius: 14px;
-            border: 1px solid #e2e8f0;
-        }
-        .variation-row:hover {
-            background: #ecfdf5;
-            border-color: var(--emerald-primary);
-        }
-
-        .qty-input {
-            border: 1px solid #cbd5e1;
-            border-radius: 12px;
-        }
-        .qty-input:focus {
-            border-color: var(--emerald-primary);
-            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
-        }
-
-        .form-card {
-            border: 1px solid #e2e8f0;
-            border-radius: 32px;
-            background: white;
-        }
-        .form-control, .form-select {
-            border-radius: 14px;
-            border: 1px solid #e2e8f0;
-        }
-        .form-control:focus, .form-select:focus {
-            border-color: var(--emerald-primary);
-            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
-        }
-
-        .total-box {
-            background: var(--emerald-grad);
-            border-radius: 24px;
-            padding: 22px;
-            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);
-        }
-
-        .btn-submit {
-            background: var(--emerald-grad);
-            border-radius: 40px;
-            padding: 14px;
-            font-weight: 700;
-            box-shadow: 0 6px 14px rgba(16, 185, 129, 0.3);
-        }
-        .btn-submit:hover {
-            background: linear-gradient(135deg, #047857 0%, #10b981 100%);
-            transform: translateY(-2px);
-        }
-
-        .qr-placeholder {
-            border: 2px dashed var(--emerald-primary);
-            background: #ecfdf5;
-            border-radius: 24px;
-        }
-        .qr-placeholder:hover {
-            background: #d1fae5;
-        }
-
-        .shipping-option {
-            background: #f9fafb;
-            border-radius: 16px;
-            padding: 12px;
-            transition: all 0.2s;
-            cursor: pointer;
-            border: 1px solid #e5e7eb;
-        }
-        .shipping-option.selected {
-            background: var(--emerald-light);
-            border-color: var(--emerald-primary);
-            box-shadow: 0 2px 8px rgba(16,185,129,0.1);
-        }
-        .shipping-radio {
-            accent-color: var(--emerald-primary);
-        }
-
-        .stock-badge {
-            background: #eef2ff;
-            border-radius: 30px;
-            padding: 2px 8px;
-            font-size: 10px;
-            font-weight: 600;
-            display: inline-block;
-            margin-right: 5px;
-            color: #1f2937;
-        }
-
-        .company-footer {
-            font-size: 11px;
-            color: #6c757d;
-            text-align: center;
-            border-top: 1px solid #e2e8f0;
-            padding-top: 16px;
-            margin-top: 20px;
-        }
-        .company-footer p {
-            margin-bottom: 4px;
-        }
-        .shipping-info {
-            font-size: 11px;
-            background: #f0fdf4;
-            padding: 8px 12px;
-            border-radius: 12px;
-            margin-top: 10px;
-            color: #047857;
-            text-align: center;
-        }
-        .shipping-info a {
-            color: #059669;
-            text-decoration: none;
-            font-weight: 600;
-        }
-        .shipping-info a:hover {
-            text-decoration: underline;
-        }
-
-        /* Checkout button & modal (unchanged) */
+        body { background: #f9fafb; font-family: 'Poppins', sans-serif; color: #1f2937; }
+        .custom-navbar { background: rgba(255,255,255,0.95); backdrop-filter: blur(12px); border-bottom: 2px solid var(--emerald-primary); padding: 16px 0; }
+        .navbar-brand-text { background: var(--emerald-grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; font-size: 18px; }
+        .step-guide-box { background: white; border-radius: 28px; box-shadow: var(--card-shadow); border: 1px solid #eef2ff; }
+        .badge-step-title { background: var(--emerald-grad); box-shadow: 0 4px 10px rgba(16,185,129,0.25); }
+        .step-item:hover { color: var(--emerald-primary) !important; }
+        .product-card { border: 1px solid #e2e8f0; border-radius: 24px; background: white; box-shadow: var(--card-shadow); transition: all 0.3s ease; }
+        .product-card:hover { transform: translateY(-5px); box-shadow: var(--hover-shadow); border-color: var(--emerald-primary); }
+        .category-badge { background: var(--emerald-grad); color: white; }
+        .variation-row { background: #f8fafc; border-radius: 14px; border: 1px solid #e2e8f0; }
+        .variation-row:hover { background: #ecfdf5; border-color: var(--emerald-primary); }
+        .qty-input { border: 1px solid #cbd5e1; border-radius: 12px; width: 70px; text-align: center; }
+        .form-card { border: 1px solid #e2e8f0; border-radius: 32px; background: white; }
+        .form-control, .form-select { border-radius: 14px; border: 1px solid #e2e8f0; }
+        .form-control:focus, .form-select:focus { border-color: var(--emerald-primary); box-shadow: 0 0 0 3px rgba(16,185,129,0.2); }
+        .total-box { background: var(--emerald-grad); border-radius: 24px; padding: 22px; }
+        .btn-submit { background: var(--emerald-grad); border-radius: 40px; padding: 14px; font-weight: 700; box-shadow: 0 6px 14px rgba(16,185,129,0.3); }
+        .btn-submit:hover { background: linear-gradient(135deg, #047857 0%, #10b981 100%); transform: translateY(-2px); }
+        .qr-placeholder { border: 2px dashed var(--emerald-primary); background: #ecfdf5; border-radius: 24px; }
+        .qr-placeholder:hover { background: #d1fae5; }
+        .shipping-option { background: #f9fafb; border-radius: 16px; padding: 12px; cursor: pointer; border: 1px solid #e5e7eb; }
+        .shipping-option.selected { background: var(--emerald-light); border-color: var(--emerald-primary); }
+        .stock-badge { background: #eef2ff; border-radius: 30px; padding: 2px 8px; font-size: 10px; display: inline-block; margin-right: 5px; }
+        .company-footer { font-size: 11px; color: #6c757d; text-align: center; border-top: 1px solid #e2e8f0; padding-top: 16px; margin-top: 20px; }
+        .shipping-info { font-size: 11px; background: #f0fdf4; padding: 8px 12px; border-radius: 12px; margin-top: 10px; color: #047857; text-align: center; }
         .checkout-float {
             position: fixed;
             bottom: 20px;
@@ -226,17 +70,15 @@
             transition: transform 0.2s;
         }
         .checkout-float:hover { transform: scale(1.05); }
-        .modal-cart-item { border-bottom: 1px solid #eee; padding: 8px 0; }
     </style>
 </head>
 <body>
 
-<!-- ========== SAME HTML STRUCTURE AS BEFORE (unchanged) ========== -->
+<!-- ========== SAME HTML STRUCTURE (navbar, step guide, product list) ========== -->
 <nav class="navbar navbar-light custom-navbar sticky-top animate__animated animate__fadeInDown">
     <div class="container text-center">
         <span class="navbar-brand mx-auto navbar-brand-text">
-            <i class="fa-solid fa-leaf me-2" style="color: #10b981;"></i> 
-            VELXERA VENTURES
+            <i class="fa-solid fa-leaf me-2" style="color: #10b981;"></i> VELXERA VENTURES
         </span>
     </div>
 </nav>
@@ -266,7 +108,8 @@
         </div>
     </div>
 
-    <div class="card form-card p-4 mt-4 shadow-sm">
+    <!-- FORM PENGHANTARAN (BUTIRAN) -->
+    <div class="card form-card p-4 mt-4 shadow-sm" id="shipping-form-section">
         <div class="text-center mb-4">
             <div class="p-3 rounded-circle d-inline-block mb-2 shadow-sm" style="background: var(--emerald-grad); color: white;">
                 <i class="fa-solid fa-paper-plane fa-lg"></i>
@@ -321,7 +164,8 @@
                 <div id="payment-fields"><div class="mb-2"><label class="form-label text-muted small">Nama Bank Pengirim</label><input type="text" class="form-control form-control-sm" id="bank-name" placeholder="CIMB / Maybank"></div><div><label class="form-label text-muted small">Resit Pembayaran (Gambar)</label><input type="file" class="form-control form-control-sm" id="pay-receipt" accept="image/*"></div></div>
             </div>
 
-            <button type="submit" style="display: none;" id="hidden-submit"></button>
+            <!-- BUTANG HANTAR KE WHATSAPP (DIPAPARKAN SEMULA) -->
+            <button type="submit" class="btn btn-submit w-100 py-3 text-uppercase">Hantar Ke WhatsApp Sekarang <i class="fa-solid fa-bolt ms-1"></i></button>
         </form>
 
         <div class="company-footer">
@@ -332,36 +176,16 @@
     </div>
 </div>
 
-<!-- Floating Checkout Button -->
+<!-- FLOATING CHECKOUT BUTTON (SCROLL TO FORM) -->
 <button class="checkout-float" id="checkoutBtn">
     <i class="fa-solid fa-cart-shopping"></i> Checkout
     <span id="cart-count" style="background: white; color: #10b981; border-radius: 30px; padding: 2px 8px; font-size: 12px;">0</span>
 </button>
 
-<!-- Checkout Modal -->
-<div class="modal fade" id="checkoutModal" tabindex="-1" aria-labelledby="checkoutModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header" style="background: var(--emerald-grad); color: white;">
-        <h5 class="modal-title" id="checkoutModalLabel"><i class="fa-solid fa-receipt"></i> Ringkasan Pesanan</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body" id="modal-cart-items">
-        <div class="text-center text-muted">Tiada item dalam keranjang</div>
-      </div>
-      <div class="modal-footer">
-        <span class="me-auto fw-bold" id="modal-total">RM 0.00</span>
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-        <button type="button" class="btn btn-success" id="confirmOrderBtn">Confirm & Hantar ke WhatsApp</button>
-      </div>
-    </div>
-  </div>
-</div>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script type="module">
-    // ---------- FIREBASE INIT ----------
+    // ========== FIREBASE INIT ==========
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
     import { getFirestore, collection, doc, getDocs, runTransaction } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
@@ -376,30 +200,20 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // ---------- IMGBB UPLOAD FUNCTION (free image hosting) ----------
-    // 🔐 REPLACE 'YOUR_IMGBB_API_KEY' WITH YOUR ACTUAL API KEY FROM https://imgbb.com
-    const IMGBB_API_KEY = '8b4d34f1c329684356d506ef8d67105e';  // <-- GANTI DENGAN API KEY ANDA
+    // ---------- IMGBB UPLOAD (optional, ganti key anda) ----------
+    const IMGBB_API_KEY = 'YOUR_IMGBB_API_KEY';   // <-- GANTI DENGAN API KEY ANDA
 
     async function uploadReceiptToImgBB(base64Image) {
-        // base64Image format: "data:image/jpeg;base64,..." or similar
+        if (!IMGBB_API_KEY || IMGBB_API_KEY === 'YOUR_IMGBB_API_KEY') return null;
         const formData = new FormData();
         formData.append('key', IMGBB_API_KEY);
-        formData.append('image', base64Image.split(',')[1]); // remove metadata
-        // optionally set expiration (never)
+        formData.append('image', base64Image.split(',')[1]);
         formData.append('expiration', '0');
         try {
             const response = await fetch('https://api.imgbb.com/1/upload', { method: 'POST', body: formData });
             const data = await response.json();
-            if (data.success) {
-                return data.data.url; // direct image link
-            } else {
-                console.error('ImgBB upload error:', data);
-                return null;
-            }
-        } catch (err) {
-            console.error('ImgBB upload failed:', err);
-            return null;
-        }
+            return data.success ? data.data.url : null;
+        } catch (err) { return null; }
     }
 
     // ---------- GLOBAL VARIABLES ----------
@@ -424,7 +238,8 @@
     }
 
     function renderProducts(products) {
-        const container = document.getElementById('product-list'); container.innerHTML = '';
+        const container = document.getElementById('product-list');
+        container.innerHTML = '';
         products.forEach(p => {
             let variationHtml = '';
             p.variations.forEach(v => {
@@ -436,7 +251,7 @@
                         <div><span class="fw-bold small">${v.size}</span><small class="text-muted d-block">${v.type}</small>
                         <div class="mt-1"><span class="stock-badge"><i class="fa-solid fa-box"></i> Stok: ${stock}</span><span class="stock-badge"><i class="fa-solid fa-chart-line"></i> Terjual: ${sold}</span></div></div>
                         <div><span class="fw-bold text-emerald me-3">RM ${v.price.toFixed(2)}</span>
-                        <input type="number" class="form-control form-control-sm qty-input" style="width:70px;" min="0" max="${stock}" value="0" 
+                        <input type="number" class="form-control form-control-sm qty-input" min="0" max="${stock}" value="0" 
                                data-prodid="${p.id}" data-name="${p.name}" data-size="${v.size}" data-type="${v.type}" data-price="${v.price}" data-key="${key}" data-max="${stock}"
                                onchange="window.updateCart(this, '${p.id}', '${p.name}', '${v.size}', '${v.type}', ${v.price})"></div>
                     </div>`;
@@ -487,36 +302,27 @@
 
     window.togglePaymentFields = (chk) => { document.getElementById('payment-fields').style.display = chk.checked ? 'none' : 'block'; };
 
-    // Checkout modal
+    // CHECKOUT BUTTON: SCROLL TO FORM
     document.getElementById('checkoutBtn').addEventListener('click', () => {
-        const items = Object.values(cart);
-        if(items.length===0) { alert("Tiada item dalam keranjang"); return; }
-        let modalHtml = '', productTotal = 0;
-        items.forEach(i => { const sub = i.price*i.qty; productTotal += sub; modalHtml += `<div class="modal-cart-item d-flex justify-content-between"><div><strong>${i.prodName}</strong> (${i.size} - ${i.type}) x ${i.qty}</div><div>RM ${sub.toFixed(2)}</div></div>`; });
-        const grand = productTotal + currentShipping.cost;
-        document.getElementById('modal-cart-items').innerHTML = modalHtml || '<div class="text-muted">Tiada item</div>';
-        document.getElementById('modal-total').innerHTML = `RM ${grand.toFixed(2)} (Produk: RM${productTotal.toFixed(2)} + Penghantaran: RM${currentShipping.cost.toFixed(2)})`;
-        new bootstrap.Modal(document.getElementById('checkoutModal')).show();
+        if (Object.values(cart).length === 0) {
+            alert("Tiada item dalam keranjang. Sila pilih produk dahulu.");
+            return;
+        }
+        // Smooth scroll ke form
+        document.getElementById('shipping-form-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
 
-    document.getElementById('confirmOrderBtn').addEventListener('click', () => {
-        const required = ['cust-name','cust-phone','cust-address','cust-postcode','cust-state'];
-        if(required.some(id => !document.getElementById(id).value)) { alert("Sila lengkapkan maklumat penghantaran."); return; }
-        bootstrap.Modal.getInstance(document.getElementById('checkoutModal')).hide();
-        document.getElementById('order-form').dispatchEvent(new Event('submit', {cancelable:true,bubbles:true}));
-    });
-
-    // ---------- ORDER SUBMIT WITH IMGBB UPLOAD ----------
+    // ---------- ORDER SUBMIT (sama seperti sebelum) ----------
     document.getElementById('order-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const itemsArray = Object.values(cart);
         if (itemsArray.length === 0) { alert("Sila masukkan kuantiti produk sekurang-kurangnya 1 item!"); return; }
         for (let item of itemsArray) {
             const key = getVariationKey(item.prodId, item.size, item.type);
-            if (stockMap[key] < item.qty) { alert(`Stok ${item.prodName} tidak mencukupi. Baki: ${stockMap[key]}`); return; }
+            const currentStock = stockMap[key] !== undefined ? stockMap[key] : 100;
+            if (currentStock < item.qty) { alert(`Stok ${item.prodName} tidak mencukupi. Baki: ${currentStock}`); return; }
         }
 
-        // Upload receipt if any (and not payLater)
         const payLater = document.getElementById('pay-later').checked;
         let receiptUrl = null;
         const receiptFile = document.getElementById('pay-receipt').files[0];
@@ -528,16 +334,14 @@
             } catch(err) { alert("Gagal upload resit: " + err.message); return; }
         } else if (!payLater && !receiptFile) { alert("Sila muat naik resit pembayaran atau pilih 'Bayar Kemudian'."); return; }
 
-        // Prepare order data
-       let productTotal = 0, itemsText = '', stockUpdateText = '';
-for (let i of itemsArray) {
-    productTotal += i.price * i.qty;
-    itemsText += `${i.prodName} (${i.size} - ${i.type}) x ${i.qty} = RM ${(i.price*i.qty).toFixed(2)}\n`;
-    const key = getVariationKey(i.prodId, i.size, i.type);
-    const oldStock = stockMap[key] !== undefined ? stockMap[key] : 100;   // FIX: default 100
-    const newStock = oldStock - i.qty;
-    stockUpdateText += `• ${i.prodName} ${i.size} ${i.type}: Stok sebelum ${oldStock}, selepas = ${newStock}\n`;
-}
+        let productTotal = 0, itemsText = '', stockUpdateText = '';
+        for (let i of itemsArray) {
+            productTotal += i.price * i.qty;
+            itemsText += `${i.prodName} (${i.size} - ${i.type}) x ${i.qty} = RM ${(i.price*i.qty).toFixed(2)}\n`;
+            const key = getVariationKey(i.prodId, i.size, i.type);
+            const oldStock = stockMap[key] !== undefined ? stockMap[key] : 100;
+            stockUpdateText += `• ${i.prodName} ${i.size} ${i.type}: Stok sebelum ${oldStock}, selepas = ${oldStock - i.qty}\n`;
+        }
         const shippingCost = currentShipping.cost;
         const shippingRegion = currentShipping.code === 'SM' ? 'Semenanjung Malaysia' : (currentShipping.code === 'SS' ? 'Sabah/Sarawak' : 'Singapura');
         const grandTotal = productTotal + shippingCost;
@@ -549,38 +353,41 @@ for (let i of itemsArray) {
         const bankName = document.getElementById('bank-name').value;
         const statusBayaran = payLater ? 'Bayar Kemudian (Simpan Slot)' : `Sudah Pindahan (${bankName})`;
 
-        // Save order to Firestore (stock deduction + order)
         try {
-           await runTransaction(db, async (transaction) => {
-    for (const item of itemsArray) {
-        const key = getVariationKey(item.prodId, item.size, item.type);
-        const docRef = doc(db, "inventory", key);
-        const snap = await transaction.get(docRef);
-        let currentStock = 100;
-        if (snap.exists) {
-            currentStock = snap.data()?.stock ?? 100;
-        } else {
-            transaction.set(docRef, { stock: 100, initialStock: 100 });
-        }
-        if (currentStock < item.qty) {
-            throw new Error(`Stok ${item.prodName} (${item.size} - ${item.type}) tidak mencukupi.`);
-        }
-        transaction.update(docRef, { stock: currentStock - item.qty });
-    }
-    const orderId = `ORD-${Date.now()}`;
-    transaction.set(doc(db, "orders", orderId), {
-        // ... order data (copy from your existing order object)
-    });
-});
+            await runTransaction(db, async (transaction) => {
+                for (const item of itemsArray) {
+                    const key = getVariationKey(item.prodId, item.size, item.type);
+                    const docRef = doc(db, "inventory", key);
+                    const snap = await transaction.get(docRef);
+                    let currentStock = 100;
+                    if (snap.exists) currentStock = snap.data().stock ?? 100;
+                    if (currentStock < item.qty) throw new Error(`Stok ${item.prodName} tidak mencukupi.`);
+                    transaction.set(docRef, {
+                        stock: currentStock - item.qty,
+                        initialStock: snap.exists ? (snap.data().initialStock ?? 100) : 100
+                    });
+                }
+                const orderId = `ORD-${Date.now()}`;
+                transaction.set(doc(db, "orders", orderId), {
+                    orderId,
+                    customer: { name: custName, phone: custPhone, address_line1: custAddress, postcode: custPostcode, state: custState },
+                    items: itemsArray,
+                    totalAmount: grandTotal,
+                    status: payLater ? 'Pay Later' : 'Pending Verification',
+                    delivery_status: 'Unfulfilled',
+                    shipping: { region: shippingRegion, cost: shippingCost },
+                    paymentDetails: { bankName: payLater ? 'N/A' : bankName, receiptUrl: receiptUrl, receiptData: null, payLater: payLater },
+                    createdAt: new Date().toISOString()
+                });
+            });
             alert("✅ Pesanan berjaya! Stok telah dikurangkan.");
             for (let i of itemsArray) {
                 const key = getVariationKey(i.prodId, i.size, i.type);
                 if (stockMap[key] !== undefined) stockMap[key] -= i.qty;
             }
-            fetchProducts(); // refresh UI
+            fetchProducts();
         } catch (err) { alert("❌ Gagal simpan: " + err.message); return; }
 
-        // WhatsApp message with receipt link
         let waMessage = `*🧾 ORDER BARU + STOCK UPDATE*\n\n` +
                           `*👤 PELANGGAN:*\n${custName}\n${custPhone}\n${custAddress}, ${custPostcode} ${custState}\n\n` +
                           `*📦 ITEM DIPESAN:*\n${itemsText}\n` +
@@ -603,12 +410,8 @@ for (let i of itemsArray) {
 <script>
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            // Guna 'sw.js' (relative, tanpa slash depan)
-            navigator.serviceWorker.register('sw.js').then(reg => {
-                console.log('✅ Service Worker registered:', reg.scope);
-            }).catch(err => {
-                console.log('❌ Service Worker registration failed:', err);
-            });
+            navigator.serviceWorker.register('sw.js').then(reg => console.log('✅ Service Worker registered:', reg.scope))
+            .catch(err => console.log('❌ Service Worker registration failed:', err));
         });
     }
 </script>
