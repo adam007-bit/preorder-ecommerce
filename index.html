@@ -2,7 +2,9 @@
 <html lang="ms">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#10b981">
     <title>VELXERA VENTURES | Pre-Order Hub</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -10,9 +12,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#10b981">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="icon.jpg">
 
     <style>
@@ -25,7 +24,7 @@
             --card-shadow: 0 8px 20px rgba(0, 0, 0, 0.03);
             --hover-shadow: 0 20px 35px rgba(16, 185, 129, 0.12);
         }
-        body { background: #f9fafb; font-family: 'Poppins', sans-serif; color: #1f2937; }
+        body { background: #f9fafb; font-family: 'Poppins', sans-serif; color: #1f2937; padding-bottom: 20px; }
         .custom-navbar { background: rgba(255,255,255,0.95); backdrop-filter: blur(12px); border-bottom: 2px solid var(--emerald-primary); padding: 16px 0; }
         .navbar-brand-text { background: var(--emerald-grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; font-size: 18px; }
         .step-guide-box { background: white; border-radius: 28px; box-shadow: var(--card-shadow); border: 1px solid #eef2ff; }
@@ -69,6 +68,7 @@
             transition: transform 0.2s;
         }
         .checkout-float:hover { transform: scale(1.05); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
     </style>
 </head>
 <body>
@@ -162,7 +162,7 @@
                 <div id="payment-fields"><div class="mb-2"><label class="form-label text-muted small">Nama Bank Pengirim</label><input type="text" class="form-control form-control-sm" id="bank-name" placeholder="CIMB / Maybank"></div><div><label class="form-label text-muted small">Resit Pembayaran (Gambar)</label><input type="file" class="form-control form-control-sm" id="pay-receipt" accept="image/*"></div></div>
             </div>
 
-            <button type="submit" class="btn btn-submit w-100 py-3 text-uppercase">Hantar Ke WhatsApp Sekarang <i class="fa-solid fa-bolt ms-1"></i></button>
+            <button type="submit" class="btn btn-submit w-100 py-3 text-uppercase" id="submitOrderBtn">Hantar Ke WhatsApp Sekarang <i class="fa-solid fa-bolt ms-1"></i></button>
         </form>
 
         <div class="company-footer">
@@ -195,13 +195,15 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// Global helper for pay-later toggle
 window.togglePaymentFields = function(chk) { 
-    document.getElementById('payment-fields').style.display = chk.checked ? 'none' : 'block'; 
+    const fieldsDiv = document.getElementById('payment-fields');
+    if (fieldsDiv) fieldsDiv.style.display = chk.checked ? 'none' : 'block'; 
 };
 
 let cart = {};
 let currentShipping = { code: 'SM', cost: 10 };
-let stockMap = {};
+let stockMap = new Map(); // use Map for better safety
 
 function getVariationKey(prodId, size, type) { 
     return `${prodId}_${size}_${type}`.replace(/\s/g, '_'); 
@@ -210,10 +212,12 @@ function getVariationKey(prodId, size, type) {
 async function fetchStock() {
     try { 
         const snapshot = await getDocs(collection(db, "inventory")); 
-        stockMap = {}; 
-        snapshot.forEach(doc => { stockMap[doc.id] = doc.data(); }); 
+        stockMap.clear();
+        snapshot.forEach(doc => { 
+            stockMap.set(doc.id, doc.data()); 
+        });
     } catch(err) { 
-        console.warn("Stok offline/gagal dimuatkan"); 
+        console.warn("Stok tidak dapat dimuatkan, gunakan stok lalai 100"); 
     }
 }
 
@@ -227,24 +231,30 @@ async function fetchProducts() {
         initShippingSelector();
     } catch (err) { 
         console.error("Gagal memuatkan produk:", err); 
+        document.getElementById('product-list').innerHTML = '<div class="alert alert-danger">Gagal muat naik produk. Sila refresh.</div>';
     }
 }
 
 function renderProducts(products) {
     const container = document.getElementById('product-list');
     container.innerHTML = '';
+    if (!products.length) {
+        container.innerHTML = '<div class="text-center">Tiada produk buat masa ini.</div>';
+        return;
+    }
     products.forEach(p => {
+        if (!p.variations || !p.variations.length) return;
         let variationHtml = '';
         p.variations.forEach(v => {
             const key = getVariationKey(p.id, v.size, v.type);
-            const stockData = stockMap[key] || {};
-            const stock = stockData.stock !== undefined ? stockData.stock : 100;
-            const initialStock = stockData.initialStock !== undefined ? stockData.initialStock : 100;
-            const sold = initialStock - stock;
+            const stockData = stockMap.get(key) || {};
+            const stock = (stockData.stock !== undefined && stockData.stock !== null) ? stockData.stock : 100;
+            const initialStock = (stockData.initialStock !== undefined && stockData.initialStock !== null) ? stockData.initialStock : 100;
+            const sold = Math.max(0, initialStock - stock);
             variationHtml += `
                 <div class="d-flex justify-content-between align-items-center variation-row p-2 mb-2">
                     <div>
-                        <span class="fw-bold small">${v.size}</span><small class="text-muted d-block">${v.type}</small>
+                        <span class="fw-bold small">${escapeHtml(v.size)}</span><small class="text-muted d-block">${escapeHtml(v.type)}</small>
                         <div class="mt-1">
                             <span class="stock-badge"><i class="fa-solid fa-box"></i> Stok: ${stock}</span>
                             <span class="stock-badge"><i class="fa-solid fa-chart-line"></i> Terjual: ${sold}</span>
@@ -253,19 +263,21 @@ function renderProducts(products) {
                     <div>
                         <span class="fw-bold text-emerald me-3">RM ${v.price.toFixed(2)}</span>
                         <input type="number" class="form-control form-control-sm qty-input" min="0" max="${stock}" value="0" 
-                               data-prodid="${p.id}" data-name="${p.name}" data-size="${v.size}" data-type="${v.type}" data-price="${v.price}" data-key="${key}" data-max="${stock}"
-                               onchange="window.updateCart(this, '${p.id}', '${p.name}', '${v.size}', '${v.type}', ${v.price})">
+                               data-prodid="${p.id}" data-name="${escapeHtml(p.name)}" data-size="${escapeHtml(v.size)}" data-type="${escapeHtml(v.type)}" data-price="${v.price}" data-key="${key}" data-max="${stock}"
+                               onchange="window.updateCart(this, '${p.id}', '${escapeHtml(p.name)}', '${escapeHtml(v.size)}', '${escapeHtml(v.type)}', ${v.price})">
                     </div>
                 </div>`;
         });
         container.innerHTML += `
             <div class="col-12"><div class="card product-card p-3">
-                <div class="d-flex justify-content-between mb-2"><span class="category-badge badge">${p.category}</span><span class="badge bg-warning text-dark"><i class="fa-solid fa-fire"></i> Hot</span></div>
-                <h6 class="fw-bold">${p.name}</h6>${p.description ? `<p class="small text-muted">${p.description}</p>` : ''}
+                <div class="d-flex justify-content-between mb-2"><span class="category-badge badge">${escapeHtml(p.category)}</span><span class="badge bg-warning text-dark"><i class="fa-solid fa-fire"></i> Hot</span></div>
+                <h6 class="fw-bold">${escapeHtml(p.name)}</h6>${p.description ? `<p class="small text-muted">${escapeHtml(p.description)}</p>` : ''}
                 <div>${variationHtml}</div>
             </div></div>`;
     });
 }
+
+function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
 
 window.updateCart = function(input, prodId, prodName, size, type, price) {
     const key = getVariationKey(prodId, size, type);
@@ -276,28 +288,32 @@ window.updateCart = function(input, prodId, prodName, size, type, price) {
     if (qty < 0) { input.value = 0; qty = 0; }
     if (qty > 0) cart[key] = { prodId, prodName, size, type, price, qty }; else delete cart[key];
     calculateTotal();
-    document.getElementById('cart-count').innerText = Object.values(cart).reduce((a,b)=>a+b.qty,0);
+    const totalItems = Object.values(cart).reduce((a,b)=>a+b.qty,0);
+    document.getElementById('cart-count').innerText = totalItems;
 };
 
 function calculateTotal() {
-    let productTotal = 0; for (let k in cart) productTotal += cart[k].price * cart[k].qty;
+    let productTotal = 0; 
+    for (let k in cart) productTotal += cart[k].price * cart[k].qty;
     let grand = productTotal + currentShipping.cost;
     document.getElementById('grand-total').innerText = `RM ${grand.toFixed(2)}`;
     document.getElementById('breakdown-text').innerHTML = `(Produk: RM${productTotal.toFixed(2)} + Penghantaran: RM${currentShipping.cost.toFixed(2)})`;
-    document.querySelector('.total-box').classList.add('animate__rubberBand');
-    setTimeout(() => document.querySelector('.total-box').classList.remove('animate__rubberBand'), 500);
 }
 
 function initShippingSelector() {
     const opts = document.querySelectorAll('.shipping-option');
     opts.forEach(opt => {
-        opt.addEventListener('click', () => {
+        opt.addEventListener('click', (e) => {
             const radio = opt.querySelector('input[type="radio"]'); if(radio) radio.checked = true;
             currentShipping = { code: opt.dataset.shipping, cost: parseFloat(opt.dataset.cost) };
             document.querySelectorAll('.shipping-option').forEach(o=>o.classList.remove('selected'));
-            opt.classList.add('selected'); calculateTotal();
+            opt.classList.add('selected'); 
+            calculateTotal();
         });
-        if(opt.querySelector('input:checked')) { opt.classList.add('selected'); currentShipping = { code: opt.dataset.shipping, cost: parseFloat(opt.dataset.cost) }; }
+        if(opt.querySelector('input:checked')) { 
+            opt.classList.add('selected'); 
+            currentShipping = { code: opt.dataset.shipping, cost: parseFloat(opt.dataset.cost) }; 
+        }
     });
 }
 
@@ -306,125 +322,178 @@ document.getElementById('checkoutBtn').addEventListener('click', () => {
         alert("Tiada item dalam keranjang. Sila pilih produk dahulu.");
         return;
     }
-    document.getElementById('shipping-form-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById('shipping-form-section').scrollIntoView({ behavior: 'smooth', block: 'center' });
 });
 
-// ========== FIXED WHATSAPP BUTTON ==========
-document.getElementById('order-form').addEventListener('submit', async (e) => {
+// ---------- FIXED WHATSAPP SUBMIT HANDLER ----------
+const submitBtn = document.getElementById('submitOrderBtn');
+const orderForm = document.getElementById('order-form');
+
+orderForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const itemsArray = Object.values(cart);
-    if (itemsArray.length === 0) { alert("Sila masukkan kuantiti produk sekurang-kurangnya 1 item!"); return; }
     
-    // Validate stock before anything
-    for (let item of itemsArray) {
-        const key = getVariationKey(item.prodId, item.size, item.type);
-        const currentStock = stockMap[key]?.stock !== undefined ? stockMap[key].stock : 100;
-        if (currentStock < item.qty) { alert(`Stok ${item.prodName} tidak mencukupi. Baki: ${currentStock}`); return; }
-    }
-
-    const payLater = document.getElementById('pay-later').checked;
-    let receiptUrl = null;
-    const receiptFile = document.getElementById('pay-receipt').files[0];
-    if (!payLater && receiptFile) {
-        try {
-            const base64 = await new Promise(resolve => { const reader = new FileReader(); reader.onload = () => resolve(reader.result); reader.readAsDataURL(receiptFile); });
-            // dummy upload (no real api key used, just placeholder)
-            receiptUrl = "📷 Resit diterima (gambar disertakan dalam lampiran WA)";
-        } catch(err) { alert("Gagal membaca gambar resit: " + err.message); return; }
-    } else if (!payLater && !receiptFile) { alert("Sila muat naik resit pembayaran atau pilih 'Bayar Kemudian'."); return; }
-
-    let productTotal = 0, itemsText = '', stockUpdateText = '';
-    const shippingCost = currentShipping.cost;
-    const shippingRegion = currentShipping.code === 'SM' ? 'Semenanjung Malaysia' : (currentShipping.code === 'SS' ? 'Sabah/Sarawak' : 'Singapura');
+    // Disable button to prevent double submission
+    if (submitBtn.disabled) return;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-pulse"></i> Memproses...';
     
-    const custName = document.getElementById('cust-name').value;
-    const custPhone = document.getElementById('cust-phone').value;
-    const custAddress = document.getElementById('cust-address').value;
-    const custPostcode = document.getElementById('cust-postcode').value;
-    const custState = document.getElementById('cust-state').value;
-    const bankName = document.getElementById('bank-name').value;
-    const statusBayaran = payLater ? 'Bayar Kemudian (Simpan Slot)' : `Sudah Pindahan (${bankName})`;
-
-    // Prepare order summary first (always send WhatsApp even if firebase fails)
-    for (let item of itemsArray) {
-        productTotal += item.price * item.qty;
-        itemsText += `${item.prodName} (${item.size} - ${item.type}) x ${item.qty} = RM ${(item.price * item.qty).toFixed(2)}\n`;
-    }
-    const grandTotal = productTotal + shippingCost;
-    let waMessage = `*🧾 ORDER BARU (VELXERA VENTURES)*\n\n` +
-                    `*👤 PELANGGAN:*\n${custName}\n${custPhone}\n${custAddress}, ${custPostcode} ${custState}\n\n` +
-                    `*📦 ITEM DIPESAN:*\n${itemsText}\n` +
-                    `*🚚 PENGHANTARAN:* ${shippingRegion} = RM${shippingCost.toFixed(2)}\n` +
-                    `*💰 TOTAL BAYARAN:* RM${grandTotal.toFixed(2)}\n\n` +
-                    `*📌 STATUS BAYARAN:* ${statusBayaran}\n`;
-    if (receiptUrl) waMessage += `*📎 RESIT PEMBAYARAN:* ${receiptUrl}\n`;
-    
-    // ----- FIREBASE TRANSACTION (try best, but WhatsApp always goes out) -----
-    let firebaseSuccess = false;
     try {
-        await runTransaction(db, async (transaction) => {
-            const reads = [];
-            for (const item of itemsArray) {
-                const key = getVariationKey(item.prodId, item.size, item.type);
-                const docRef = doc(db, "inventory", key);
-                reads.push({ item, docRef, snap: await transaction.get(docRef) });
+        const itemsArray = Object.values(cart);
+        if (itemsArray.length === 0) { alert("Sila masukkan kuantiti produk sekurang-kurangnya 1 item!"); return; }
+        
+        // Validate stock against current stockMap
+        for (let item of itemsArray) {
+            const key = getVariationKey(item.prodId, item.size, item.type);
+            const stockData = stockMap.get(key) || {};
+            const availableStock = (stockData.stock !== undefined && stockData.stock !== null) ? stockData.stock : 100;
+            if (availableStock < item.qty) { 
+                alert(`Stok ${item.prodName} (${item.size} - ${item.type}) tidak mencukupi. Baki: ${availableStock}`); 
+                return;
             }
-            for (const r of reads) {
-                let currentStock = 100, initialStock = 100;
-                if (r.snap.exists) {
-                    currentStock = r.snap.data().stock ?? 100;
-                    initialStock = r.snap.data().initialStock ?? 100;
+        }
+        
+        const payLater = document.getElementById('pay-later').checked;
+        let receiptNote = "";
+        const receiptFile = document.getElementById('pay-receipt').files[0];
+        if (!payLater && receiptFile) {
+            receiptNote = "📎 Resit disertakan sebagai lampiran (sila semak mesej ini untuk gambar).";
+        } else if (!payLater && !receiptFile) { 
+            alert("Sila muat naik resit pembayaran atau pilih 'Bayar Kemudian'.");
+            return; 
+        } else if (payLater) {
+            receiptNote = "Bayaran akan dibuat kemudian (simpan slot).";
+        }
+        
+        // Collect customer data
+        const custName = document.getElementById('cust-name').value.trim();
+        const custPhone = document.getElementById('cust-phone').value.trim();
+        const custAddress = document.getElementById('cust-address').value.trim();
+        const custPostcode = document.getElementById('cust-postcode').value.trim();
+        const custState = document.getElementById('cust-state').value.trim();
+        const bankName = document.getElementById('bank-name').value.trim() || "Tiada";
+        if (!custName || !custPhone || !custAddress || !custPostcode || !custState) {
+            alert("Sila lengkapkan semua butiran penghantaran.");
+            return;
+        }
+        
+        const statusBayaran = payLater ? 'Bayar Kemudian (Simpan Slot)' : `Sudah Pindahan (${bankName})`;
+        const shippingCost = currentShipping.cost;
+        const shippingRegion = currentShipping.code === 'SM' ? 'Semenanjung Malaysia' : (currentShipping.code === 'SS' ? 'Sabah/Sarawak' : 'Singapura');
+        
+        let productTotal = 0;
+        let itemsText = '';
+        for (let item of itemsArray) {
+            productTotal += item.price * item.qty;
+            itemsText += `${item.prodName} (${item.size} - ${item.type}) x ${item.qty} = RM ${(item.price * item.qty).toFixed(2)}\n`;
+        }
+        const grandTotal = productTotal + shippingCost;
+        
+        // Prepare WhatsApp message
+        let waMessage = `*🧾 ORDER BARU - VELXERA VENTURES*%0A%0A` +
+                        `*👤 PELANGGAN:*%0A${custName}%0A${custPhone}%0A${custAddress}, ${custPostcode} ${custState}%0A%0A` +
+                        `*📦 ITEM DIPESAN:*%0A${itemsText}%0A` +
+                        `*🚚 PENGHANTARAN:* ${shippingRegion} = RM${shippingCost.toFixed(2)}%0A` +
+                        `*💰 TOTAL BAYARAN:* RM${grandTotal.toFixed(2)}%0A%0A` +
+                        `*📌 STATUS BAYARAN:* ${statusBayaran}%0A`;
+        
+        if (receiptFile && !payLater) {
+            // We'll attach a note because we can't upload automatically, but we'll include a placeholder
+            waMessage += `%0A📎 *RESIT PEMBAYARAN:* (Gambar disertakan dalam mesej WhatsApp ini - sila lampirkan secara manual jika perlu).%0A`;
+        } else if (receiptNote) {
+            waMessage += `%0A📌 ${receiptNote}%0A`;
+        }
+        
+        // TRY FIREBASE TRANSACTION (non-blocking for WA)
+        let firebaseErrorMsg = null;
+        let stockUpdateText = '';
+        try {
+            await runTransaction(db, async (transaction) => {
+                const reads = [];
+                for (const item of itemsArray) {
+                    const key = getVariationKey(item.prodId, item.size, item.type);
+                    const docRef = doc(db, "inventory", key);
+                    reads.push({ item, docRef, snap: await transaction.get(docRef) });
                 }
-                if (currentStock < r.item.qty) throw new Error(`Stok ${r.item.prodName} tidak mencukupi.`);
-                const newStock = currentStock - r.item.qty;
-                transaction.set(r.docRef, { stock: newStock, initialStock: initialStock });
-                stockUpdateText += `• ${r.item.prodName} ${r.item.size} ${r.item.type}: Stok sebelum ${currentStock}, selepas = ${newStock}\n`;
-            }
-            const orderId = `ORD-${Date.now()}`;
-            transaction.set(doc(db, "orders", orderId), {
-                orderId,
-                customer: { name: custName, phone: custPhone, address_line1: custAddress, postcode: custPostcode, state: custState },
-                items: itemsArray,
-                totalAmount: grandTotal,
-                status: payLater ? 'Pay Later' : 'Pending Verification',
-                delivery_status: 'Unfulfilled',
-                shipping: { region: shippingRegion, cost: shippingCost },
-                paymentDetails: { bankName: payLater ? 'N/A' : bankName, receiptUrl: receiptUrl, payLater: payLater },
-                createdAt: new Date().toISOString()
+                for (const r of reads) {
+                    let currentStock = 100;
+                    let initialStock = 100;
+                    if (r.snap.exists) {
+                        currentStock = r.snap.data().stock ?? 100;
+                        initialStock = r.snap.data().initialStock ?? 100;
+                    }
+                    if (currentStock < r.item.qty) throw new Error(`Stok ${r.item.prodName} tidak mencukupi.`);
+                    const newStock = currentStock - r.item.qty;
+                    transaction.set(r.docRef, { stock: newStock, initialStock: initialStock });
+                    stockUpdateText += `• ${r.item.prodName} ${r.item.size} ${r.item.type}: Stok sebelum ${currentStock}, selepas = ${newStock}\n`;
+                }
+                const orderId = `ORD-${Date.now()}`;
+                transaction.set(doc(db, "orders", orderId), {
+                    orderId,
+                    customer: { name: custName, phone: custPhone, address_line1: custAddress, postcode: custPostcode, state: custState },
+                    items: itemsArray,
+                    totalAmount: grandTotal,
+                    status: payLater ? 'Pay Later' : 'Pending Verification',
+                    delivery_status: 'Unfulfilled',
+                    shipping: { region: shippingRegion, cost: shippingCost },
+                    paymentDetails: { bankName: payLater ? 'N/A' : bankName, receiptUrl: receiptFile ? "manual_upload_needed" : null, payLater: payLater },
+                    createdAt: new Date().toISOString()
+                });
             });
-        });
-        firebaseSuccess = true;
-        alert("✅ Pesanan berjaya direkodkan! .");
+            if (stockUpdateText) waMessage += `%0A%0A*📉 STOK TERKINI:*%0A${stockUpdateText.replace(/\n/g, '%0A')}%0A`;
+            waMessage += `%0A✅ Pesanan berjaya disimpan ke sistem.`;
+        } catch (err) {
+            console.error("Firestore transaction error:", err);
+            firebaseErrorMsg = err.message;
+            waMessage += `%0A%0A⚠️ *AMARAN: Sistem tidak dapat simpan pesanan automatik.*%0ASebab: ${err.message}%0A_Sila proses pesanan secara manual dan update stok._`;
+        }
+        
+        waMessage += `%0A%0A_🔔 Admin: Sila sahkan dan proses._`;
+        
+        // Use official WhatsApp number from footer (0124794979 -> 60124794979)
+        const adminWhatsApp = "60124794979";
+        const waUrl = `https://wa.me/${adminWhatsApp}?text=${waMessage}`;
+        
+        // Open WhatsApp in new tab
+        window.open(waUrl, '_blank');
+        
+        // Clear cart and reset form
+        cart = {};
+        calculateTotal();
+        document.getElementById('cart-count').innerText = '0';
+        document.querySelectorAll('.qty-input').forEach(inp => inp.value = '0');
+        
+        // Reset file input and pay-later if needed
+        document.getElementById('pay-receipt').value = '';
+        document.getElementById('pay-later').checked = false;
+        document.getElementById('payment-fields').style.display = 'block';
+        
+        alert("Pesanan telah dihantar ke WhatsApp admin! Sila tunggu pengesahan.");
+        
+        // Optional: refresh page after delay to reset stock display
+        setTimeout(() => location.reload(), 2500);
+        
     } catch (err) {
-        console.error("Firestore error:", err);
-        alert("⚠️ Pesanan tidak dapat disimpan ke sistem (stok tidak dikurangkan secara automatik).\nTetapi maklumat tetap akan dihantar ke WhatsApp untuk tindakan manual.");
-        waMessage += `\n⚠️ *SISTEM GAGAL MENYIMPAN:* ${err.message}\nSila semak stok secara manual dan proses pesanan.`;
+        console.error("General error:", err);
+        alert("Ralat: " + err.message);
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Hantar Ke WhatsApp Sekarang <i class="fa-solid fa-bolt ms-1"></i>';
     }
-    
-    // Add stock update info to WA message if available
-    if (stockUpdateText) waMessage += `\n*📉 BAKI STOK TERKINI (selepas pesanan):*\n${stockUpdateText}`;
-    waMessage += `\n_🔔 Admin: Proses pesanan segera._`;
-    
-    // Always open WhatsApp with order details
-    window.open(`https://wa.me/60123456789?text=${encodeURIComponent(waMessage)}`, '_blank');
-    
-    // Clear cart and reset UI after successful send
-    cart = {};
-    calculateTotal();
-    document.getElementById('cart-count').innerText = '0';
-    // Optional: reset all quantity inputs to zero
-    document.querySelectorAll('.qty-input').forEach(inp => inp.value = '0');
-    if (firebaseSuccess) setTimeout(() => location.reload(), 2000);
 });
 
+// Bootstrap initialisation
 fetchProducts();
 </script>
 
 <script>
+    // Simple service worker registration (ignore cache errors gracefully)
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('sw.js').then(reg => console.log('✅ Service Worker registered:', reg.scope))
-            .catch(err => console.log('❌ Service Worker registration failed:', err));
+            navigator.serviceWorker.register('sw.js').then(reg => {
+                console.log('✅ Service Worker registered:', reg.scope);
+            }).catch(err => {
+                console.warn('Service Worker not supported fully:', err);
+            });
         });
     }
 </script>
