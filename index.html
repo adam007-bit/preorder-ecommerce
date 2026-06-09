@@ -354,19 +354,23 @@
         const statusBayaran = payLater ? 'Bayar Kemudian (Simpan Slot)' : `Sudah Pindahan (${bankName})`;
 
         try {
-            await runTransaction(db, async (transaction) => {
-                for (const item of itemsArray) {
-                    const key = getVariationKey(item.prodId, item.size, item.type);
-                    const docRef = doc(db, "inventory", key);
-                    const snap = await transaction.get(docRef);
-                    let currentStock = 100;
-                    if (snap.exists) currentStock = snap.data().stock ?? 100;
-                    if (currentStock < item.qty) throw new Error(`Stok ${item.prodName} tidak mencukupi.`);
-                    transaction.set(docRef, {
-                        stock: currentStock - item.qty,
-                        initialStock: snap.exists ? (snap.data().initialStock ?? 100) : 100
-                    });
-                }
+           await runTransaction(db, async (transaction) => {
+    for (const item of itemsArray) {
+        const key = getVariationKey(item.prodId, item.size, item.type);
+        const docRef = doc(db, "inventory", key);
+        const snap = await transaction.get(docRef);
+        let currentStock = 100;  // default
+        if (snap.exists) {
+            currentStock = snap.data().stock ?? 100;
+        }
+        if (currentStock < item.qty) {
+            throw new Error(`Stok ${item.prodName} tidak mencukupi.`);
+        }
+        transaction.set(docRef, {
+            stock: currentStock - item.qty,
+            initialStock: snap.exists ? (snap.data().initialStock ?? 100) : 100
+        });
+    }
                 const orderId = `ORD-${Date.now()}`;
                 transaction.set(doc(db, "orders", orderId), {
                     orderId,
