@@ -69,9 +69,27 @@
         }
         .checkout-float:hover { transform: scale(1.05); }
         .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        /* SECURITY: warning banner style */
+        .security-warn { background: #fff7ed; border: 1px solid #fed7aa; border-radius: 12px; padding: 10px 14px; font-size: 12px; color: #9a3412; margin-bottom: 10px; display:none; }
+        .security-warn.show { display: block; }
+        /* SECURITY: honeypot field hidden */
+        .hp-field { opacity: 0; position: absolute; top: 0; left: 0; height: 0; width: 0; z-index: -1; }
+        /* SECURITY: rate limit overlay */
+        .rate-limit-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center; }
+        .rate-limit-overlay.show { display:flex; }
+        .rate-limit-box { background:white; border-radius:24px; padding:32px; text-align:center; max-width:320px; }
     </style>
 </head>
 <body>
+
+<!-- SECURITY: Rate limit overlay -->
+<div class="rate-limit-overlay" id="rateLimitOverlay">
+    <div class="rate-limit-box">
+        <i class="fa-solid fa-shield-halved fa-3x mb-3" style="color:#10b981;"></i>
+        <h5 class="fw-bold">Terlalu Banyak Cubaan</h5>
+        <p class="text-muted small">Anda telah menghantar terlalu banyak pesanan dalam masa singkat. Sila cuba lagi selepas <strong id="cooldown-timer">60</strong> saat.</p>
+    </div>
+</div>
 
 <nav class="navbar navbar-light custom-navbar sticky-top animate__animated animate__fadeInDown">
     <div class="container text-center">
@@ -116,22 +134,37 @@
             <p class="text-muted small">Pesanan anda akan terus disahkan menerusi WhatsApp</p>
         </div>
 
-        <form id="order-form">
+        <form id="order-form" autocomplete="off">
+
+            <!-- SECURITY: Honeypot field - bots fill this, humans don't see it -->
+            <div class="hp-field" aria-hidden="true">
+                <input type="text" id="hp-website" name="website" tabindex="-1" autocomplete="off">
+                <input type="text" id="hp-email" name="email_address" tabindex="-1" autocomplete="off">
+            </div>
+
             <div class="mb-3">
                 <label class="form-label small fw-bold"><i class="fa-regular fa-user me-1 text-emerald"></i> Nama Penuh</label>
-                <input type="text" class="form-control" id="cust-name" required placeholder="Ahmad Ali">
+                <!-- SECURITY: warn banner for name -->
+                <div class="security-warn" id="warn-name"><i class="fa-solid fa-triangle-exclamation me-1"></i> <span id="warn-name-msg"></span></div>
+                <input type="text" class="form-control" id="cust-name" required placeholder="Ahmad Ali" maxlength="80" oninput="validateName(this)">
             </div>
             <div class="mb-3">
                 <label class="form-label small fw-bold"><i class="fa-brands fa-whatsapp me-1 text-success"></i> No. WhatsApp</label>
-                <input type="tel" class="form-control" id="cust-phone" required placeholder="0123456789">
+                <div class="security-warn" id="warn-phone"><i class="fa-solid fa-triangle-exclamation me-1"></i> <span id="warn-phone-msg"></span></div>
+                <input type="tel" class="form-control" id="cust-phone" required placeholder="0123456789" maxlength="15" oninput="validatePhone(this)">
             </div>
             <div class="mb-3">
                 <label class="form-label small fw-bold"><i class="fa-regular fa-map me-1 text-danger"></i> Alamat Lengkap</label>
-                <textarea class="form-control" id="cust-address" rows="2" required placeholder="No rumah, jalan, poskod..."></textarea>
+                <div class="security-warn" id="warn-address"><i class="fa-solid fa-triangle-exclamation me-1"></i> <span id="warn-address-msg"></span></div>
+                <textarea class="form-control" id="cust-address" rows="2" required placeholder="No rumah, jalan, poskod..." maxlength="300" oninput="validateAddress(this)"></textarea>
             </div>
             <div class="row g-2">
-                <div class="col-6 mb-3"><label class="form-label small fw-bold">Poskod</label><input type="text" class="form-control" id="cust-postcode" required></div>
-                <div class="col-6 mb-3"><label class="form-label small fw-bold">Negeri / Negara</label><input type="text" class="form-control" id="cust-state" required placeholder="Selangor / Singapore"></div>
+                <div class="col-6 mb-3">
+                    <label class="form-label small fw-bold">Poskod</label>
+                    <div class="security-warn" id="warn-postcode"><i class="fa-solid fa-triangle-exclamation me-1"></i> <span id="warn-postcode-msg"></span></div>
+                    <input type="text" class="form-control" id="cust-postcode" required maxlength="10" oninput="validatePostcode(this)">
+                </div>
+                <div class="col-6 mb-3"><label class="form-label small fw-bold">Negeri / Negara</label><input type="text" class="form-control" id="cust-state" required placeholder="Selangor / Singapore" maxlength="50"></div>
             </div>
 
             <div class="mb-4">
@@ -158,9 +191,20 @@
             </div>
 
             <div class="card p-3 border-0 rounded-4 bg-light mb-4">
-                <div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="pay-later" onchange="togglePaymentFields(this)"><label class="form-check-label small fw-bold"> Simpan slot sahaja (Bayar Kemudian)</label></div>
-                <div id="payment-fields"><div class="mb-2"><label class="form-label text-muted small">Nama Bank Pengirim</label><input type="text" class="form-control form-control-sm" id="bank-name" placeholder="CIMB / Maybank"></div><div><label class="form-label text-muted small">Resit Pembayaran (Gambar)</label><input type="file" class="form-control form-control-sm" id="pay-receipt" accept="image/*"></div></div>
+                <div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="pay-later" onchange="togglePaymentFields(this)"><label class="form-check-label small fw-bold">  (Bayar Kemudian)</label></div>
+                <div id="payment-fields">
+                    <div class="mb-2"><label class="form-label text-muted small">Nama Bank Pengirim</label><input type="text" class="form-control form-control-sm" id="bank-name" placeholder="CIMB / Maybank" maxlength="50"></div>
+                    <div>
+                        <label class="form-label text-muted small">Resit Pembayaran (Gambar)</label>
+                        <!-- SECURITY: receipt file type validation -->
+                        <input type="file" class="form-control form-control-sm" id="pay-receipt" accept="image/jpeg,image/png,image/webp,image/gif" onchange="validateReceipt(this)">
+                        <div class="security-warn" id="warn-receipt"><i class="fa-solid fa-triangle-exclamation me-1"></i> <span id="warn-receipt-msg"></span></div>
+                    </div>
+                </div>
             </div>
+
+            <!-- SECURITY: submission rate limit warning -->
+            <div class="security-warn show" id="warn-ratelimit" style="display:none!important;"></div>
 
             <button type="submit" class="btn btn-submit w-100 py-3 text-uppercase" id="submitOrderBtn">Hantar Ke WhatsApp Sekarang <i class="fa-solid fa-bolt ms-1"></i></button>
         </form>
@@ -195,6 +239,178 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// ============================================================
+// SECURITY LAYER 1 — RATE LIMITING
+// Max 3 order attempts per 60 seconds (stored in sessionStorage)
+// ============================================================
+const RATE_LIMIT_MAX = 3;
+const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 60 seconds
+const RATE_LIMIT_COOLDOWN_S = 60;
+
+function getRateLimitData() {
+    try {
+        const raw = sessionStorage.getItem('vv_rl');
+        return raw ? JSON.parse(raw) : { attempts: [], blocked_until: null };
+    } catch { return { attempts: [], blocked_until: null }; }
+}
+
+function saveRateLimitData(data) {
+    try { sessionStorage.setItem('vv_rl', JSON.stringify(data)); } catch {}
+}
+
+function isRateLimited() {
+    const data = getRateLimitData();
+    const now = Date.now();
+    // Check if still in cooldown block
+    if (data.blocked_until && now < data.blocked_until) return true;
+    // Clean old attempts outside window
+    data.attempts = (data.attempts || []).filter(t => now - t < RATE_LIMIT_WINDOW_MS);
+    if (data.attempts.length >= RATE_LIMIT_MAX) {
+        data.blocked_until = now + RATE_LIMIT_COOLDOWN_S * 1000;
+        saveRateLimitData(data);
+        return true;
+    }
+    return false;
+}
+
+function recordAttempt() {
+    const data = getRateLimitData();
+    const now = Date.now();
+    data.attempts = (data.attempts || []).filter(t => now - t < RATE_LIMIT_WINDOW_MS);
+    data.attempts.push(now);
+    saveRateLimitData(data);
+}
+
+function showRateLimitOverlay() {
+    const overlay = document.getElementById('rateLimitOverlay');
+    const timerEl = document.getElementById('cooldown-timer');
+    overlay.classList.add('show');
+    const data = getRateLimitData();
+    let remaining = data.blocked_until ? Math.ceil((data.blocked_until - Date.now()) / 1000) : RATE_LIMIT_COOLDOWN_S;
+    timerEl.innerText = remaining;
+    const interval = setInterval(() => {
+        remaining--;
+        timerEl.innerText = remaining;
+        if (remaining <= 0) {
+            clearInterval(interval);
+            overlay.classList.remove('show');
+            // Reset rate limit after cooldown
+            const d = getRateLimitData();
+            d.blocked_until = null;
+            d.attempts = [];
+            saveRateLimitData(d);
+        }
+    }, 1000);
+}
+
+// ============================================================
+// SECURITY LAYER 2 — INPUT VALIDATION & SANITIZATION
+// ============================================================
+
+// Sanitize: strip HTML tags and dangerous characters from string
+function sanitize(str) {
+    if (!str) return '';
+    return str
+        .replace(/<[^>]*>/g, '')           // strip HTML tags
+        .replace(/[<>"'`;\\]/g, '')         // strip dangerous chars
+        .trim()
+        .substring(0, 500);                 // hard length cap
+}
+
+// Validate: Malaysian/SG phone number
+function isValidPhone(phone) {
+    const cleaned = phone.replace(/[\s\-\+]/g, '');
+    return /^(60|0)[1-9][0-9]{7,10}$/.test(cleaned) || /^(65)[6-9][0-9]{7}$/.test(cleaned);
+}
+
+// Validate: name — letters, spaces, common punctuation only
+function isValidName(name) {
+    return /^[a-zA-Z\u00C0-\u024F\u0400-\u04FF\s'.,-]{2,80}$/.test(name);
+}
+
+// Validate: postcode — numeric, 5 digits (MY) or 6 digits (SG)
+function isValidPostcode(pc) {
+    return /^[0-9]{5,6}$/.test(pc.replace(/\s/g, ''));
+}
+
+// Validate: receipt file type and size
+function isValidReceipt(file) {
+    if (!file) return { ok: true };
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!allowedTypes.includes(file.type)) return { ok: false, msg: 'Format fail tidak sah. Sila muat naik gambar (JPG/PNG/WEBP).' };
+    if (file.size > 5 * 1024 * 1024) return { ok: false, msg: 'Saiz fail terlalu besar. Maksimum 5MB.' };
+    return { ok: true };
+}
+
+// Validate: detect script injection / suspicious patterns
+function hasSuspiciousContent(str) {
+    const patterns = [
+        /javascript:/i, /vbscript:/i, /<script/i, /on\w+\s*=/i,
+        /union\s+select/i, /drop\s+table/i, /insert\s+into/i,
+        /\bexec\b/i, /\beval\b/i
+    ];
+    return patterns.some(p => p.test(str));
+}
+
+// Inline validators (called on oninput, show/hide warning banners)
+window.validateName = function(input) {
+    const warn = document.getElementById('warn-name');
+    const msg = document.getElementById('warn-name-msg');
+    const val = input.value.trim();
+    if (hasSuspiciousContent(val)) { msg.innerText = 'Nama mengandungi aksara yang tidak dibenarkan.'; warn.classList.add('show'); }
+    else if (val.length > 1 && !isValidName(val)) { msg.innerText = 'Nama tidak sah. Gunakan huruf sahaja.'; warn.classList.add('show'); }
+    else warn.classList.remove('show');
+};
+
+window.validatePhone = function(input) {
+    const warn = document.getElementById('warn-phone');
+    const msg = document.getElementById('warn-phone-msg');
+    const val = input.value.trim();
+    if (val.length > 7 && !isValidPhone(val)) { msg.innerText = 'Format nombor telefon tidak sah. Contoh: 0123456789'; warn.classList.add('show'); }
+    else warn.classList.remove('show');
+};
+
+window.validateAddress = function(input) {
+    const warn = document.getElementById('warn-address');
+    const msg = document.getElementById('warn-address-msg');
+    const val = input.value.trim();
+    if (hasSuspiciousContent(val)) { msg.innerText = 'Alamat mengandungi aksara yang tidak dibenarkan.'; warn.classList.add('show'); }
+    else warn.classList.remove('show');
+};
+
+window.validatePostcode = function(input) {
+    const warn = document.getElementById('warn-postcode');
+    const msg = document.getElementById('warn-postcode-msg');
+    const val = input.value.trim();
+    if (val.length >= 5 && !isValidPostcode(val)) { msg.innerText = 'Poskod tidak sah. Masukkan 5-6 digit angka.'; warn.classList.add('show'); }
+    else warn.classList.remove('show');
+};
+
+window.validateReceipt = function(input) {
+    const warn = document.getElementById('warn-receipt');
+    const msg = document.getElementById('warn-receipt-msg');
+    const result = isValidReceipt(input.files[0]);
+    if (!result.ok) { msg.innerText = result.msg; warn.classList.add('show'); input.value = ''; }
+    else warn.classList.remove('show');
+};
+
+// ============================================================
+// SECURITY LAYER 3 — ANTI-BOT / HONEYPOT + TIMING CHECK
+// ============================================================
+const PAGE_LOAD_TIME = Date.now();
+const MIN_FORM_FILL_MS = 4000; // genuine humans take at least 4 seconds
+
+function isBotDetected() {
+    // Honeypot: if either hidden field is filled, it's a bot
+    const hpWebsite = document.getElementById('hp-website').value;
+    const hpEmail = document.getElementById('hp-email').value;
+    if (hpWebsite || hpEmail) return { bot: true, reason: 'Honeypot triggered' };
+    // Timing: form submitted suspiciously fast
+    const elapsed = Date.now() - PAGE_LOAD_TIME;
+    if (elapsed < MIN_FORM_FILL_MS) return { bot: true, reason: `Form filled in ${elapsed}ms (too fast)` };
+    return { bot: false };
+}
+
 // Global helper for pay-later toggle
 window.togglePaymentFields = function(chk) { 
     const fieldsDiv = document.getElementById('payment-fields');
@@ -203,7 +419,7 @@ window.togglePaymentFields = function(chk) {
 
 let cart = {};
 let currentShipping = { code: 'SM', cost: 10 };
-let stockMap = new Map(); // use Map for better safety
+let stockMap = new Map();
 
 function getVariationKey(prodId, size, type) { 
     return `${prodId}_${size}_${type}`.replace(/\s/g, '_'); 
@@ -335,15 +551,30 @@ document.getElementById('checkoutBtn').addEventListener('click', () => {
     document.getElementById('shipping-form-section').scrollIntoView({ behavior: 'smooth', block: 'center' });
 });
 
-// ---------- FIXED WHATSAPP SUBMIT HANDLER ----------
+// ---------- WHATSAPP SUBMIT HANDLER (with all security layers) ----------
 const submitBtn = document.getElementById('submitOrderBtn');
 const orderForm = document.getElementById('order-form');
 
 orderForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
-    // Disable button to prevent double submission
     if (submitBtn.disabled) return;
+
+    // ── SECURITY: Rate limit check ──────────────────────────────────────
+    if (isRateLimited()) {
+        showRateLimitOverlay();
+        return;
+    }
+
+    // ── SECURITY: Anti-bot check ────────────────────────────────────────
+    const botCheck = isBotDetected();
+    if (botCheck.bot) {
+        console.warn('Bot detected:', botCheck.reason);
+        // Moderate: warn but silently drop — don't tell bots they were caught
+        alert("Pesanan tidak dapat diproses. Sila cuba semula dalam beberapa saat.");
+        return;
+    }
+
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-pulse"></i> Memproses...';
     
@@ -365,7 +596,11 @@ orderForm.addEventListener('submit', async (e) => {
         const payLater = document.getElementById('pay-later').checked;
         let receiptNote = "";
         const receiptFile = document.getElementById('pay-receipt').files[0];
+
+        // ── SECURITY: Validate receipt file ─────────────────────────────
         if (!payLater && receiptFile) {
+            const receiptCheck = isValidReceipt(receiptFile);
+            if (!receiptCheck.ok) { alert(receiptCheck.msg); return; }
             receiptNote = "📎 Resit disertakan sebagai lampiran (sila semak mesej ini untuk gambar).";
         } else if (!payLater && !receiptFile) { 
             alert("Sila muat naik resit pembayaran atau pilih 'Bayar Kemudian'.");
@@ -374,17 +609,38 @@ orderForm.addEventListener('submit', async (e) => {
             receiptNote = "Bayaran akan dibuat kemudian (simpan slot).";
         }
         
-        // Collect customer data
-        const custName = document.getElementById('cust-name').value.trim();
-        const custPhone = document.getElementById('cust-phone').value.trim();
-        const custAddress = document.getElementById('cust-address').value.trim();
-        const custPostcode = document.getElementById('cust-postcode').value.trim();
-        const custState = document.getElementById('cust-state').value.trim();
-        const bankName = document.getElementById('bank-name').value.trim() || "Tiada";
+        // ── SECURITY: Collect & sanitize all customer input ──────────────
+        const custName    = sanitize(document.getElementById('cust-name').value);
+        const custPhone   = sanitize(document.getElementById('cust-phone').value);
+        const custAddress = sanitize(document.getElementById('cust-address').value);
+        const custPostcode= sanitize(document.getElementById('cust-postcode').value);
+        const custState   = sanitize(document.getElementById('cust-state').value);
+        const bankName    = sanitize(document.getElementById('bank-name').value) || "Tiada";
+
         if (!custName || !custPhone || !custAddress || !custPostcode || !custState) {
             alert("Sila lengkapkan semua butiran penghantaran.");
             return;
         }
+
+        // ── SECURITY: Field-level validation before submission ───────────
+        if (!isValidName(custName)) {
+            alert("Nama tidak sah. Sila semak dan cuba lagi."); return;
+        }
+        if (!isValidPhone(custPhone)) {
+            alert("Nombor telefon tidak sah. Contoh: 0123456789"); return;
+        }
+        if (!isValidPostcode(custPostcode)) {
+            alert("Poskod tidak sah. Masukkan 5-6 digit angka."); return;
+        }
+        const allTextFields = [custName, custPhone, custAddress, custPostcode, custState, bankName];
+        for (const field of allTextFields) {
+            if (hasSuspiciousContent(field)) {
+                alert("Input mengandungi aksara yang tidak dibenarkan. Sila semak borang anda."); return;
+            }
+        }
+
+        // ── Record this attempt for rate limiting ────────────────────────
+        recordAttempt();
         
         const statusBayaran = payLater ? 'Bayar Kemudian (Simpan Slot)' : `Sudah Pindahan (${bankName})`;
         const shippingCost = currentShipping.cost;
@@ -408,7 +664,6 @@ orderForm.addEventListener('submit', async (e) => {
                         `*📌 STATUS BAYARAN:* ${statusBayaran}%0A`;
         
         if (receiptFile && !payLater) {
-            // We'll attach a note because we can't upload automatically, but we'll include a placeholder
             waMessage += `%0A📎 *RESIT PEMBAYARAN:* (Gambar disertakan dalam mesej WhatsApp ini - sila lampirkan secara manual jika perlu).%0A`;
         } else if (receiptNote) {
             waMessage += `%0A📌 ${receiptNote}%0A`;
@@ -461,11 +716,9 @@ orderForm.addEventListener('submit', async (e) => {
         
         waMessage += `%0A%0A_🔔 Admin: Sila sahkan dan proses._`;
         
-        // Use official WhatsApp number from footer (0124794979 -> 60124794979)
         const adminWhatsApp = "60124794979";
         const waUrl = `https://wa.me/${adminWhatsApp}?text=${waMessage}`;
         
-        // Open WhatsApp in new tab
         window.open(waUrl, '_blank');
         
         // Clear cart and reset form
@@ -473,36 +726,80 @@ orderForm.addEventListener('submit', async (e) => {
         calculateTotal();
         document.getElementById('cart-count').innerText = '0';
         document.querySelectorAll('.qty-input').forEach(inp => inp.value = '0');
-        
-        // Reset file input and pay-later if needed
         document.getElementById('pay-receipt').value = '';
         document.getElementById('pay-later').checked = false;
         document.getElementById('payment-fields').style.display = 'block';
         
         alert("Pesanan telah dihantar ke WhatsApp admin! Sila tunggu pengesahan.");
         
-        // FIX #2: disable button permanently before reload so it won't re-enable during the 2.5s delay
+        // FIX #2: disable button permanently before reload
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<i class="fa-solid fa-check"></i> Pesanan Dihantar!';
 
-        // Optional: refresh page after delay to reset stock display
         setTimeout(() => location.reload(), 2500);
         
     } catch (err) {
         console.error("General error:", err);
         alert("Ralat: " + err.message);
-        // Only re-enable button on actual error
         submitBtn.disabled = false;
         submitBtn.innerHTML = 'Hantar Ke WhatsApp Sekarang <i class="fa-solid fa-bolt ms-1"></i>';
     }
 });
 
-// Bootstrap initialisation
 fetchProducts();
 </script>
 
+<!-- ============================================================
+  SECURITY LAYER 4 — FIREBASE SECURITY RULES
+  Copy these rules into your Firebase Console:
+  Firestore Database → Rules
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // PRODUCTS & INVENTORY: anyone can READ, no one can WRITE from client
+    match /products/{doc} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /inventory/{doc} {
+      allow read: if true;
+      // Only allow stock decrements (not increases) from client transactions
+      allow update: if request.resource.data.stock is int
+                    && request.resource.data.stock >= 0
+                    && request.resource.data.stock <= resource.data.stock
+                    && request.resource.data.initialStock == resource.data.initialStock;
+      allow create: if false;
+      allow delete: if false;
+    }
+
+    // ORDERS: anyone can create (place order), no one can read/edit/delete from client
+    match /orders/{orderId} {
+      allow create: if
+        // Required fields must exist
+        request.resource.data.keys().hasAll(['orderId','customer','items','totalAmount','createdAt'])
+        // Total must be positive and not absurdly large (max RM 9999)
+        && request.resource.data.totalAmount is float
+        && request.resource.data.totalAmount > 0
+        && request.resource.data.totalAmount < 9999
+        // Items must be a non-empty list
+        && request.resource.data.items is list
+        && request.resource.data.items.size() > 0
+        && request.resource.data.items.size() <= 20
+        // Customer name must be a string under 100 chars
+        && request.resource.data.customer.name is string
+        && request.resource.data.customer.name.size() <= 100
+        // Phone must be a string under 20 chars
+        && request.resource.data.customer.phone is string
+        && request.resource.data.customer.phone.size() <= 20;
+      allow read, update, delete: if false;
+    }
+  }
+}
+// ============================================================ -->
+
 <script>
-    // Simple service worker registration (ignore cache errors gracefully)
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('sw.js').then(reg => {
