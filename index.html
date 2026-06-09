@@ -277,7 +277,17 @@ function renderProducts(products) {
     });
 }
 
-function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+// FIX #4: escapeHtml now also escapes double quotes to prevent broken HTML attributes
+function escapeHtml(str) { 
+    if(!str) return ''; 
+    return str.replace(/[&<>"]/g, function(m){
+        if(m==='&') return '&amp;'; 
+        if(m==='<') return '&lt;'; 
+        if(m==='>') return '&gt;'; 
+        if(m==='"') return '&quot;';
+        return m;
+    }); 
+}
 
 window.updateCart = function(input, prodId, prodName, size, type, price) {
     const key = getVariationKey(prodId, size, type);
@@ -382,9 +392,10 @@ orderForm.addEventListener('submit', async (e) => {
         
         let productTotal = 0;
         let itemsText = '';
+        // FIX #3: use %0A instead of \n so WhatsApp message line breaks work correctly
         for (let item of itemsArray) {
             productTotal += item.price * item.qty;
-            itemsText += `${item.prodName} (${item.size} - ${item.type}) x ${item.qty} = RM ${(item.price * item.qty).toFixed(2)}\n`;
+            itemsText += `${item.prodName} (${item.size} - ${item.type}) x ${item.qty} = RM ${(item.price * item.qty).toFixed(2)}%0A`;
         }
         const grandTotal = productTotal + shippingCost;
         
@@ -417,7 +428,8 @@ orderForm.addEventListener('submit', async (e) => {
                 for (const r of reads) {
                     let currentStock = 100;
                     let initialStock = 100;
-                    if (r.snap.exists) {
+                    // FIX #1: snap.exists() is a method, not a property
+                    if (r.snap.exists()) {
                         currentStock = r.snap.data().stock ?? 100;
                         initialStock = r.snap.data().initialStock ?? 100;
                     }
@@ -469,13 +481,17 @@ orderForm.addEventListener('submit', async (e) => {
         
         alert("Pesanan telah dihantar ke WhatsApp admin! Sila tunggu pengesahan.");
         
+        // FIX #2: disable button permanently before reload so it won't re-enable during the 2.5s delay
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fa-solid fa-check"></i> Pesanan Dihantar!';
+
         // Optional: refresh page after delay to reset stock display
         setTimeout(() => location.reload(), 2500);
         
     } catch (err) {
         console.error("General error:", err);
         alert("Ralat: " + err.message);
-    } finally {
+        // Only re-enable button on actual error
         submitBtn.disabled = false;
         submitBtn.innerHTML = 'Hantar Ke WhatsApp Sekarang <i class="fa-solid fa-bolt ms-1"></i>';
     }
