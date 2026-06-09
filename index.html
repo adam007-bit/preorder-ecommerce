@@ -209,7 +209,7 @@ window.togglePaymentFields = function(chk) {
 const IMGBB_API_KEY = 'YOUR_IMGBB_API_KEY';   
 
 async function uploadReceiptToImgBB(base64Image) {
-    if (!IMGBB_API_KEY || IMGBB_API_KEY === 'YOUR_IMGBB_API_KEY') return null;
+    if (!IMGBB_API_KEY || IMGBB_API_KEY === '8b4d34f1c329684356d506ef8d67105e') return null;
     const formData = new FormData();
     formData.append('key', IMGBB_API_KEY);
     formData.append('image', base64Image.split(',')[1]);
