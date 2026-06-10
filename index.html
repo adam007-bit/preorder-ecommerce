@@ -15,6 +15,7 @@
     <link rel="apple-touch-icon" href="icon.jpg">
 
     <style>
+        /* Semua CSS asal TIDAK DIUBAH */
         :root {
             --emerald-primary: #10b981;
             --emerald-dark: #059669;
@@ -69,15 +70,14 @@
         }
         .checkout-float:hover { transform: scale(1.05); }
         .btn:disabled { opacity: 0.6; cursor: not-allowed; }
-        /* SECURITY: warning banner style */
         .security-warn { background: #fff7ed; border: 1px solid #fed7aa; border-radius: 12px; padding: 10px 14px; font-size: 12px; color: #9a3412; margin-bottom: 10px; display:none; }
         .security-warn.show { display: block; }
-        /* SECURITY: honeypot field hidden */
         .hp-field { opacity: 0; position: absolute; top: 0; left: 0; height: 0; width: 0; z-index: -1; }
-        /* SECURITY: rate limit overlay */
         .rate-limit-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center; }
         .rate-limit-overlay.show { display:flex; }
         .rate-limit-box { background:white; border-radius:24px; padding:32px; text-align:center; max-width:320px; }
+        /* Tambahan progress upload (tidak mengubah design asal) */
+        .progress-upload { font-size: 11px; margin-top: 4px; color: #10b981; display: none; }
     </style>
 </head>
 <body>
@@ -196,6 +196,7 @@
                     <div>
                         <label class="form-label text-muted small">Resit Pembayaran (Gambar)</label>
                         <input type="file" class="form-control form-control-sm" id="pay-receipt" accept="image/jpeg,image/png,image/webp,image/gif" onchange="validateReceipt(this)">
+                        <div class="progress-upload" id="uploadProgress">⏳ Sedang muat naik...</div>
                         <div class="security-warn" id="warn-receipt"><i class="fa-solid fa-triangle-exclamation me-1"></i> <span id="warn-receipt-msg"></span></div>
                     </div>
                 </div>
@@ -222,6 +223,8 @@
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
 import { getFirestore, collection, doc, getDocs, runTransaction } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+// TAMBAHAN: Import Storage
+import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js';
 
 const firebaseConfig = {
     apiKey: "AIzaSyAdUZs-P5SPcivHHP9lRmdyOC355Op8bOU",
@@ -233,9 +236,10 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const storage = getStorage(app); // <-- Storage
 
 // ============================================================
-// SECURITY LAYER 1 — RATE LIMITING
+// SECURITY LAYER 1 — RATE LIMITING (sama seperti asal)
 // ============================================================
 const RATE_LIMIT_MAX = 3;
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
@@ -295,7 +299,7 @@ function showRateLimitOverlay() {
 }
 
 // ============================================================
-// SECURITY LAYER 2 — INPUT VALIDATION & SANITIZATION
+// SECURITY LAYER 2 — INPUT VALIDATION & SANITIZATION (sama)
 // ============================================================
 function sanitize(str) {
     if (!str) return '';
@@ -374,7 +378,7 @@ window.validateReceipt = function(input) {
 };
 
 // ============================================================
-// SECURITY LAYER 3 — ANTI-BOT / HONEYPOT + TIMING CHECK
+// SECURITY LAYER 3 — ANTI-BOT / HONEYPOT + TIMING CHECK (sama)
 // ============================================================
 const PAGE_LOAD_TIME = Date.now();
 const MIN_FORM_FILL_MS = 4000;
@@ -526,7 +530,7 @@ document.getElementById('checkoutBtn').addEventListener('click', () => {
     document.getElementById('shipping-form-section').scrollIntoView({ behavior: 'smooth', block: 'center' });
 });
 
-// ========== HANTAR PESANAN KE FIRESTORE (tanpa WhatsApp) ==========
+// ========== HANTAR PESANAN KE FIRESTORE DENGAN UPLOAD RESIT KE STORAGE ==========
 const submitBtn = document.getElementById('submitOrderBtn');
 const orderForm = document.getElementById('order-form');
 
@@ -567,13 +571,48 @@ orderForm.addEventListener('submit', async (e) => {
         
         const payLater = document.getElementById('pay-later').checked;
         const receiptFile = document.getElementById('pay-receipt').files[0];
-
+        
+        let receiptUrl = null;
+        const progressDiv = document.getElementById('uploadProgress');
+        
+        // Jika tidak bayar kemudian dan ada fail resit, upload ke Storage
         if (!payLater && receiptFile) {
             const receiptCheck = isValidReceipt(receiptFile);
             if (!receiptCheck.ok) { alert(receiptCheck.msg); return; }
-        } else if (!payLater && !receiptFile) { 
+            
+            progressDiv.style.display = 'block';
+            progressDiv.innerHTML = '⬆️ Sedang memuat naik resit... 0%';
+            
+            const fileExt = receiptFile.name.split('.').pop();
+            const fileName = `receipt_${Date.now()}_${Math.random().toString(36).substring(2,8)}.${fileExt}`;
+            const storageRef = ref(storage, `receipts/${fileName}`);
+            const uploadTask = uploadBytesResumable(storageRef, receiptFile);
+            
+            try {
+                const url = await new Promise((resolve, reject) => {
+                    uploadTask.on('state_changed',
+                        (snapshot) => {
+                            const percent = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                            progressDiv.innerHTML = `⬆️ Muat naik ${Math.round(percent)}%`;
+                        },
+                        (error) => reject(error),
+                        async () => {
+                            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                            resolve(downloadURL);
+                        }
+                    );
+                });
+                receiptUrl = url;
+                progressDiv.innerHTML = '✅ Resit berjaya dimuat naik';
+                setTimeout(() => progressDiv.style.display = 'none', 2000);
+            } catch (uploadErr) {
+                progressDiv.style.display = 'none';
+                alert("Gagal muat naik resit: " + uploadErr.message);
+                return;
+            }
+        } else if (!payLater && !receiptFile) {
             alert("Sila muat naik resit pembayaran atau pilih 'Bayar Kemudian'.");
-            return; 
+            return;
         }
         
         const custName    = sanitize(document.getElementById('cust-name').value);
@@ -608,7 +647,7 @@ orderForm.addEventListener('submit', async (e) => {
         for (let item of itemsArray) productTotal += item.price * item.qty;
         const grandTotal = productTotal + shippingCost;
         
-        // Simpan ke Firestore dengan transaction (update stok)
+        // Simpan ke Firestore dengan transaction (update stok) dan simpan receiptUrl
         await runTransaction(db, async (transaction) => {
             // Update stok
             for (const item of itemsArray) {
@@ -620,17 +659,17 @@ orderForm.addEventListener('submit', async (e) => {
                 const newStock = currentStock - item.qty;
                 transaction.set(docRef, { stock: newStock, initialStock: snap.exists() ? snap.data().initialStock : 100 }, { merge: true });
             }
-            // Simpan pesanan
+            // Simpan pesanan dengan receiptUrl
             const orderRef = doc(collection(db, "orders"));
             transaction.set(orderRef, {
                 orderId: orderRef.id,
                 customer: { name: custName, phone: custPhone, address_line1: custAddress, postcode: custPostcode, state: custState },
                 items: itemsArray.map(i => ({ prodName: i.prodName, size: i.size, type: i.type, qty: i.qty, price: i.price })),
                 totalAmount: grandTotal,
-                status: 'pending',   // pending, completed, cancelled
+                status: 'pending',
                 paymentMethod: payLater ? 'Bayar Kemudian' : 'Pindahan Bank',
                 bankName: payLater ? null : bankName,
-                receiptFile: receiptFile ? receiptFile.name : null,
+                receiptUrl: receiptUrl,   // <-- URL gambar resit dari Storage
                 shipping: { region: shippingRegion, cost: shippingCost },
                 createdAt: new Date().toISOString()
             });
@@ -646,7 +685,7 @@ orderForm.addEventListener('submit', async (e) => {
         document.getElementById('payment-fields').style.display = 'block';
         document.getElementById('order-form').reset();
         
-        alert("✅ Pesanan anda berjaya disimpan! Admin akan memproses dalam masa 24 jam.");
+        alert("✅ Pesanan anda berjaya disimpan! Resit telah disimpan. Admin akan memproses dalam masa 24 jam.");
         
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<i class="fa-solid fa-check"></i> Pesanan Dihantar!';
