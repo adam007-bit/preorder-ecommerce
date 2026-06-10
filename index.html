@@ -76,8 +76,34 @@
         .rate-limit-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center; }
         .rate-limit-overlay.show { display:flex; }
         .rate-limit-box { background:white; border-radius:24px; padding:32px; text-align:center; max-width:320px; }
-        /* Tambahan progress upload (tidak mengubah design asal) */
         .progress-upload { font-size: 11px; margin-top: 4px; color: #10b981; display: none; }
+        /* ===== TAMBAHAN: BUTANG KATEGORI ===== */
+        .category-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 15px 0 10px 0;
+        }
+        .cat-btn {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 40px;
+            padding: 6px 18px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .cat-btn.active {
+            background: var(--emerald-primary);
+            border-color: var(--emerald-primary);
+            color: white;
+            box-shadow: 0 2px 8px rgba(16,185,129,0.3);
+        }
+        .cat-btn:hover:not(.active) {
+            border-color: var(--emerald-primary);
+            color: var(--emerald-primary);
+        }
     </style>
 </head>
 <body>
@@ -117,6 +143,15 @@
         <div class="flex-grow-1 ms-3 border-bottom" style="border-color: #10b981;"></div>
     </div>
     
+    <!-- ========== TAMBAHAN BUTANG KATEGORI ========== -->
+    <div class="category-filters">
+        <button class="cat-btn active" data-cat="all">Semua</button>
+        <button class="cat-btn" data-cat="peptides">Peptides</button>
+        <button class="cat-btn" data-cat="beauty">Beauty Line</button>
+        <button class="cat-btn" data-cat="readystock">Ready Stock</button>
+    </div>
+    <!-- ============================================= -->
+
     <div id="product-list" class="row g-3">
         <div class="text-center py-5">
             <div class="spinner-border text-emerald" role="status" style="color:#10b981; width:3rem;height:3rem;"></div>
@@ -124,7 +159,7 @@
         </div>
     </div>
 
-    <!-- FORM PENGHANTARAN -->
+    <!-- FORM PENGHANTARAN (sama seperti asal) -->
     <div class="card form-card p-4 mt-4 shadow-sm" id="shipping-form-section">
         <div class="text-center mb-4">
             <div class="p-3 rounded-circle d-inline-block mb-2 shadow-sm" style="background: var(--emerald-grad); color: white;">
@@ -223,7 +258,6 @@
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
 import { getFirestore, collection, doc, getDocs, runTransaction } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
-// TAMBAHAN: Import Storage
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js';
 
 const firebaseConfig = {
@@ -236,7 +270,7 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const storage = getStorage(app); // <-- Storage
+const storage = getStorage(app);
 
 // ============================================================
 // SECURITY LAYER 1 — RATE LIMITING (sama seperti asal)
@@ -400,6 +434,8 @@ window.togglePaymentFields = function(chk) {
 let cart = {};
 let currentShipping = { code: 'SM', cost: 10 };
 let stockMap = new Map();
+let allProducts = [];
+let currentCategory = 'all'; // all, peptides, beauty, readystock
 
 function getVariationKey(prodId, size, type) { 
     return `${prodId}_${size}_${type}`.replace(/\s/g, '_'); 
@@ -417,25 +453,72 @@ async function fetchStock() {
     }
 }
 
+// Fungsi untuk menentukan kategori produk berdasarkan nama
+function getProductCategory(productName) {
+    const name = productName.toLowerCase();
+    const beautyKeywords = [
+        'ghk-cu', 'ahk-cu', 'glutathione', 'glow', 'klow', 'snap-8', 'matrixyl', 'ggh', 'exosome', 'pdrn',
+        'botulinum toxin', 'hyaluronic acid', 'pink hyaluronic', 'whitening', 'spotfading', 'snake venom',
+        'lipo c', 'fat blaster', 'lemon bottle', 'super human blend', 'super shred', 'shred',
+        'immunological enhancement', 'sz352', 'vitamin b', 'vitamin b12', 'vitamin b6', 'vitamin b1',
+        'vitamin c', 'vitamin d2', 'super beauty', 'hhb', 'reconstitution water', 'bac water',
+        'sterilized water', 'acetic acid'
+    ];
+    for (let kw of beautyKeywords) {
+        if (name.includes(kw)) return 'beauty';
+    }
+    return 'peptides';
+}
+
+// Fungsi tapis produk berdasarkan kategori dan stok (untuk ready stock)
+function filterProductsByCategory(products, category) {
+    if (category === 'all') return products;
+    if (category === 'readystock') {
+        // Hanya produk yang mempunyai sekurang-kurangnya satu variasi dengan stok > 0
+        return products.filter(product => {
+            if (!product.variations) return false;
+            return product.variations.some(v => {
+                const key = getVariationKey(product.id, v.size, v.type);
+                const stockData = stockMap.get(key) || {};
+                const stock = (stockData.stock !== undefined && stockData.stock !== null) ? stockData.stock : 100;
+                return stock > 0;
+            });
+        });
+    }
+    // peptides or beauty
+    return products.filter(product => {
+        const cat = getProductCategory(product.name);
+        if (category === 'peptides') return cat === 'peptides';
+        if (category === 'beauty') return cat === 'beauty';
+        return true;
+    });
+}
+
 async function fetchProducts() {
     try {
         const snapshot = await getDocs(collection(db, "products"));
-        const products = []; 
-        snapshot.forEach(doc => products.push({ id: doc.id, ...doc.data() }));
+        allProducts = []; 
+        snapshot.forEach(doc => allProducts.push({ id: doc.id, ...doc.data() }));
         await fetchStock();
-        renderProducts(products);
+        renderProductsByCategory(); // papar ikut kategori semasa
         initShippingSelector();
+        setupCategoryFilters();
     } catch (err) { 
         console.error("Gagal memuatkan produk:", err); 
         document.getElementById('product-list').innerHTML = '<div class="alert alert-danger">Gagal muat naik produk. Sila refresh.</div>';
     }
 }
 
+function renderProductsByCategory() {
+    const filtered = filterProductsByCategory(allProducts, currentCategory);
+    renderProducts(filtered);
+}
+
 function renderProducts(products) {
     const container = document.getElementById('product-list');
     container.innerHTML = '';
     if (!products.length) {
-        container.innerHTML = '<div class="text-center">Tiada produk buat masa ini.</div>';
+        container.innerHTML = '<div class="text-center py-4"><i class="fa-solid fa-box-open fa-2x text-muted mb-2"></i><p class="text-muted">Tiada produk dalam kategori ini</p></div>';
         return;
     }
     products.forEach(p => {
@@ -466,10 +549,25 @@ function renderProducts(products) {
         });
         container.innerHTML += `
             <div class="col-12"><div class="card product-card p-3">
-                <div class="d-flex justify-content-between mb-2"><span class="category-badge badge">${escapeHtml(p.category)}</span><span class="badge bg-warning text-dark"><i class="fa-solid fa-fire"></i> Hot</span></div>
+                <div class="d-flex justify-content-between mb-2"><span class="category-badge badge">${escapeHtml(p.category || (getProductCategory(p.name).toUpperCase()))}</span><span class="badge bg-warning text-dark"><i class="fa-solid fa-fire"></i> Hot</span></div>
                 <h6 class="fw-bold">${escapeHtml(p.name)}</h6>${p.description ? `<p class="small text-muted">${escapeHtml(p.description)}</p>` : ''}
                 <div>${variationHtml}</div>
             </div></div>`;
+    });
+}
+
+function setupCategoryFilters() {
+    const btns = document.querySelectorAll('.cat-btn');
+    btns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            // update active class
+            btns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            // set category
+            const cat = btn.dataset.cat;
+            currentCategory = cat;
+            renderProductsByCategory();
+        });
     });
 }
 
@@ -530,7 +628,7 @@ document.getElementById('checkoutBtn').addEventListener('click', () => {
     document.getElementById('shipping-form-section').scrollIntoView({ behavior: 'smooth', block: 'center' });
 });
 
-// ========== HANTAR PESANAN KE FIRESTORE DENGAN UPLOAD RESIT KE STORAGE ==========
+// ========== HANTAR PESANAN KE FIRESTORE DENGAN UPLOAD RESIT KE STORAGE (sama seperti asal) ==========
 const submitBtn = document.getElementById('submitOrderBtn');
 const orderForm = document.getElementById('order-form');
 
