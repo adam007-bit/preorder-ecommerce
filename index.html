@@ -77,7 +77,6 @@
         .rate-limit-overlay.show { display:flex; }
         .rate-limit-box { background:white; border-radius:24px; padding:32px; text-align:center; max-width:320px; }
         .progress-upload { font-size: 11px; margin-top: 4px; color: #10b981; display: none; }
-        /* ===== TAMBAHAN: BUTANG KATEGORI ===== */
         .category-filters {
             display: flex;
             flex-wrap: wrap;
@@ -143,14 +142,12 @@
         <div class="flex-grow-1 ms-3 border-bottom" style="border-color: #10b981;"></div>
     </div>
     
-    <!-- ========== TAMBAHAN BUTANG KATEGORI ========== -->
     <div class="category-filters">
         <button class="cat-btn active" data-cat="all">Semua</button>
         <button class="cat-btn" data-cat="peptides">Peptides</button>
         <button class="cat-btn" data-cat="beauty">Beauty Line</button>
         <button class="cat-btn" data-cat="readystock">Ready Stock</button>
     </div>
-    <!-- ============================================= -->
 
     <div id="product-list" class="row g-3">
         <div class="text-center py-5">
@@ -159,7 +156,7 @@
         </div>
     </div>
 
-    <!-- FORM PENGHANTARAN (sama seperti asal) -->
+    <!-- FORM PENGHANTARAN -->
     <div class="card form-card p-4 mt-4 shadow-sm" id="shipping-form-section">
         <div class="text-center mb-4">
             <div class="p-3 rounded-circle d-inline-block mb-2 shadow-sm" style="background: var(--emerald-grad); color: white;">
@@ -170,8 +167,6 @@
         </div>
 
         <form id="order-form" autocomplete="off">
-
-            <!-- SECURITY: Honeypot field - bots fill this, humans don't see it -->
             <div class="hp-field" aria-hidden="true">
                 <input type="text" id="hp-website" name="website" tabindex="-1" autocomplete="off">
                 <input type="text" id="hp-email" name="email_address" tabindex="-1" autocomplete="off">
@@ -213,7 +208,7 @@
             </div>
 
             <div class="total-box text-center my-4">
-                <span class="small text-white opacity-90">  TOTAL (Produk + Penghantaran) </span>
+                <span class="small text-white opacity-90">TOTAL (Produk + Penghantaran)</span>
                 <h2 class="fw-extrabold m-0 mt-1 text-white" id="grand-total" style="font-size: 32px;">RM 0.00</h2>
                 <div class="small text-white-50 mt-1" id="breakdown-text"></div>
             </div>
@@ -225,13 +220,13 @@
             </div>
 
             <div class="card p-3 border-0 rounded-4 bg-light mb-4">
-                <div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="pay-later" onchange="togglePaymentFields(this)"><label class="form-check-label small fw-bold">  (Bayar Kemudian)</label></div>
+                <div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="pay-later" onchange="togglePaymentFields(this)"><label class="form-check-label small fw-bold"> (Bayar Kemudian)</label></div>
                 <div id="payment-fields">
                     <div class="mb-2"><label class="form-label text-muted small">Nama Bank Pengirim</label><input type="text" class="form-control form-control-sm" id="bank-name" placeholder="CIMB / Maybank" maxlength="50"></div>
                     <div>
                         <label class="form-label text-muted small">Resit Pembayaran (Gambar)</label>
                         <input type="file" class="form-control form-control-sm" id="pay-receipt" accept="image/jpeg,image/png,image/webp,image/gif" onchange="validateReceipt(this)">
-                        <div class="progress-upload" id="uploadProgress">⏳ Sedang muat naik...</div>
+                        <div class="progress-upload" id="uploadProgress">⏳ Sedang memuat naik...</div>
                         <div class="security-warn" id="warn-receipt"><i class="fa-solid fa-triangle-exclamation me-1"></i> <span id="warn-receipt-msg"></span></div>
                     </div>
                 </div>
@@ -258,7 +253,11 @@
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
 import { getFirestore, collection, doc, getDocs, runTransaction } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
-import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js';
+
+// ========== KONFIGURASI IMGBB API ==========
+// Dapatkan API Key percuma di: https://api.imgbb.com/
+// Gantikan 'YOUR_IMGBB_API_KEY' dengan key sebenar anda.
+const IMGBB_API_KEY = '8b4d34f1c329684356d506ef8d67105e'; // <-- GANTI DENGAN API KEY ANDA
 
 const firebaseConfig = {
     apiKey: "AIzaSyAdUZs-P5SPcivHHP9lRmdyOC355Op8bOU",
@@ -270,10 +269,9 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const storage = getStorage(app);
 
 // ============================================================
-// SECURITY LAYER 1 — RATE LIMITING (sama seperti asal)
+// SECURITY LAYERS (sama seperti asal)
 // ============================================================
 const RATE_LIMIT_MAX = 3;
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
@@ -332,9 +330,6 @@ function showRateLimitOverlay() {
     }, 1000);
 }
 
-// ============================================================
-// SECURITY LAYER 2 — INPUT VALIDATION & SANITIZATION (sama)
-// ============================================================
 function sanitize(str) {
     if (!str) return '';
     return str.replace(/<[^>]*>/g, '').replace(/[<>"'`;\\]/g, '').trim().substring(0, 500);
@@ -356,8 +351,8 @@ function isValidPostcode(pc) {
 function isValidReceipt(file) {
     if (!file) return { ok: true };
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-    if (!allowedTypes.includes(file.type)) return { ok: false, msg: 'Format fail tidak sah. Sila muat naik gambar (JPG/PNG/WEBP).' };
-    if (file.size > 5 * 1024 * 1024) return { ok: false, msg: 'Saiz fail terlalu besar. Maksimum 5MB.' };
+    if (!allowedTypes.includes(file.type)) return { ok: false, msg: 'Format fail tidak sah. JPG/PNG/WEBP/GIF sahaja.' };
+    if (file.size > 5 * 1024 * 1024) return { ok: false, msg: 'Saiz maksimum 5MB.' };
     return { ok: true };
 }
 
@@ -374,7 +369,7 @@ window.validateName = function(input) {
     const warn = document.getElementById('warn-name');
     const msg = document.getElementById('warn-name-msg');
     const val = input.value.trim();
-    if (hasSuspiciousContent(val)) { msg.innerText = 'Nama mengandungi aksara yang tidak dibenarkan.'; warn.classList.add('show'); }
+    if (hasSuspiciousContent(val)) { msg.innerText = 'Nama mengandungi aksara tidak dibenarkan.'; warn.classList.add('show'); }
     else if (val.length > 1 && !isValidName(val)) { msg.innerText = 'Nama tidak sah. Gunakan huruf sahaja.'; warn.classList.add('show'); }
     else warn.classList.remove('show');
 };
@@ -383,7 +378,7 @@ window.validatePhone = function(input) {
     const warn = document.getElementById('warn-phone');
     const msg = document.getElementById('warn-phone-msg');
     const val = input.value.trim();
-    if (val.length > 7 && !isValidPhone(val)) { msg.innerText = 'Format nombor telefon tidak sah. Contoh: 0123456789'; warn.classList.add('show'); }
+    if (val.length > 7 && !isValidPhone(val)) { msg.innerText = 'Format no. telefon tidak sah.'; warn.classList.add('show'); }
     else warn.classList.remove('show');
 };
 
@@ -391,7 +386,7 @@ window.validateAddress = function(input) {
     const warn = document.getElementById('warn-address');
     const msg = document.getElementById('warn-address-msg');
     const val = input.value.trim();
-    if (hasSuspiciousContent(val)) { msg.innerText = 'Alamat mengandungi aksara yang tidak dibenarkan.'; warn.classList.add('show'); }
+    if (hasSuspiciousContent(val)) { msg.innerText = 'Alamat mengandungi aksara tidak dibenarkan.'; warn.classList.add('show'); }
     else warn.classList.remove('show');
 };
 
@@ -399,7 +394,7 @@ window.validatePostcode = function(input) {
     const warn = document.getElementById('warn-postcode');
     const msg = document.getElementById('warn-postcode-msg');
     const val = input.value.trim();
-    if (val.length >= 5 && !isValidPostcode(val)) { msg.innerText = 'Poskod tidak sah. Masukkan 5-6 digit angka.'; warn.classList.add('show'); }
+    if (val.length >= 5 && !isValidPostcode(val)) { msg.innerText = 'Poskod tidak sah (5-6 digit).'; warn.classList.add('show'); }
     else warn.classList.remove('show');
 };
 
@@ -411,31 +406,27 @@ window.validateReceipt = function(input) {
     else warn.classList.remove('show');
 };
 
-// ============================================================
-// SECURITY LAYER 3 — ANTI-BOT / HONEYPOT + TIMING CHECK (sama)
-// ============================================================
 const PAGE_LOAD_TIME = Date.now();
 const MIN_FORM_FILL_MS = 4000;
 
 function isBotDetected() {
     const hpWebsite = document.getElementById('hp-website').value;
     const hpEmail = document.getElementById('hp-email').value;
-    if (hpWebsite || hpEmail) return { bot: true, reason: 'Honeypot triggered' };
+    if (hpWebsite || hpEmail) return { bot: true };
     const elapsed = Date.now() - PAGE_LOAD_TIME;
-    if (elapsed < MIN_FORM_FILL_MS) return { bot: true, reason: `Form filled in ${elapsed}ms (too fast)` };
+    if (elapsed < MIN_FORM_FILL_MS) return { bot: true };
     return { bot: false };
 }
 
 window.togglePaymentFields = function(chk) { 
-    const fieldsDiv = document.getElementById('payment-fields');
-    if (fieldsDiv) fieldsDiv.style.display = chk.checked ? 'none' : 'block'; 
+    document.getElementById('payment-fields').style.display = chk.checked ? 'none' : 'block'; 
 };
 
 let cart = {};
 let currentShipping = { code: 'SM', cost: 10 };
 let stockMap = new Map();
 let allProducts = [];
-let currentCategory = 'all'; // all, peptides, beauty, readystock
+let currentCategory = 'all';
 
 function getVariationKey(prodId, size, type) { 
     return `${prodId}_${size}_${type}`.replace(/\s/g, '_'); 
@@ -453,7 +444,6 @@ async function fetchStock() {
     }
 }
 
-// Fungsi untuk menentukan kategori produk berdasarkan nama
 function getProductCategory(productName) {
     const name = productName.toLowerCase();
     const beautyKeywords = [
@@ -464,30 +454,24 @@ function getProductCategory(productName) {
         'vitamin c', 'vitamin d2', 'super beauty', 'hhb', 'reconstitution water', 'bac water',
         'sterilized water', 'acetic acid'
     ];
-    for (let kw of beautyKeywords) {
-        if (name.includes(kw)) return 'beauty';
-    }
+    for (let kw of beautyKeywords) if(name.includes(kw)) return 'beauty';
     return 'peptides';
 }
 
-// Fungsi tapis produk berdasarkan kategori dan stok (untuk ready stock)
 function filterProductsByCategory(products, category) {
     if (category === 'all') return products;
     if (category === 'readystock') {
-        // Hanya produk yang mempunyai sekurang-kurangnya satu variasi dengan stok > 0
-        return products.filter(product => {
-            if (!product.variations) return false;
-            return product.variations.some(v => {
-                const key = getVariationKey(product.id, v.size, v.type);
-                const stockData = stockMap.get(key) || {};
-                const stock = (stockData.stock !== undefined && stockData.stock !== null) ? stockData.stock : 100;
+        return products.filter(p => {
+            if (!p.variations) return false;
+            return p.variations.some(v => {
+                const key = getVariationKey(p.id, v.size, v.type);
+                const stock = stockMap.get(key)?.stock ?? 100;
                 return stock > 0;
             });
         });
     }
-    // peptides or beauty
-    return products.filter(product => {
-        const cat = getProductCategory(product.name);
+    return products.filter(p => {
+        const cat = getProductCategory(p.name);
         if (category === 'peptides') return cat === 'peptides';
         if (category === 'beauty') return cat === 'beauty';
         return true;
@@ -500,7 +484,7 @@ async function fetchProducts() {
         allProducts = []; 
         snapshot.forEach(doc => allProducts.push({ id: doc.id, ...doc.data() }));
         await fetchStock();
-        renderProductsByCategory(); // papar ikut kategori semasa
+        renderProductsByCategory();
         initShippingSelector();
         setupCategoryFilters();
     } catch (err) { 
@@ -527,8 +511,8 @@ function renderProducts(products) {
         p.variations.forEach(v => {
             const key = getVariationKey(p.id, v.size, v.type);
             const stockData = stockMap.get(key) || {};
-            const stock = (stockData.stock !== undefined && stockData.stock !== null) ? stockData.stock : 100;
-            const initialStock = (stockData.initialStock !== undefined && stockData.initialStock !== null) ? stockData.initialStock : 100;
+            const stock = stockData.stock ?? 100;
+            const initialStock = stockData.initialStock ?? 100;
             const sold = Math.max(0, initialStock - stock);
             variationHtml += `
                 <div class="d-flex justify-content-between align-items-center variation-row p-2 mb-2">
@@ -549,7 +533,7 @@ function renderProducts(products) {
         });
         container.innerHTML += `
             <div class="col-12"><div class="card product-card p-3">
-                <div class="d-flex justify-content-between mb-2"><span class="category-badge badge">${escapeHtml(p.category || (getProductCategory(p.name).toUpperCase()))}</span><span class="badge bg-warning text-dark"><i class="fa-solid fa-fire"></i> Hot</span></div>
+                <div class="d-flex justify-content-between mb-2"><span class="category-badge badge">${escapeHtml(p.category || getProductCategory(p.name).toUpperCase())}</span><span class="badge bg-warning text-dark"><i class="fa-solid fa-fire"></i> Hot</span></div>
                 <h6 class="fw-bold">${escapeHtml(p.name)}</h6>${p.description ? `<p class="small text-muted">${escapeHtml(p.description)}</p>` : ''}
                 <div>${variationHtml}</div>
             </div></div>`;
@@ -560,12 +544,9 @@ function setupCategoryFilters() {
     const btns = document.querySelectorAll('.cat-btn');
     btns.forEach(btn => {
         btn.addEventListener('click', () => {
-            // update active class
             btns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            // set category
-            const cat = btn.dataset.cat;
-            currentCategory = cat;
+            currentCategory = btn.dataset.cat;
             renderProductsByCategory();
         });
     });
@@ -573,13 +554,7 @@ function setupCategoryFilters() {
 
 function escapeHtml(str) { 
     if(!str) return ''; 
-    return str.replace(/[&<>"]/g, function(m){
-        if(m==='&') return '&amp;'; 
-        if(m==='<') return '&lt;'; 
-        if(m==='>') return '&gt;'; 
-        if(m==='"') return '&quot;';
-        return m;
-    }); 
+    return str.replace(/[&<>"]/g, m => m==='&'?'&amp;':m==='<'?'&lt;':m==='>'?'&gt;':m==='"'?'&quot;':m); 
 }
 
 window.updateCart = function(input, prodId, prodName, size, type, price) {
@@ -596,8 +571,7 @@ window.updateCart = function(input, prodId, prodName, size, type, price) {
 };
 
 function calculateTotal() {
-    let productTotal = 0; 
-    for (let k in cart) productTotal += cart[k].price * cart[k].qty;
+    let productTotal = 0; for (let k in cart) productTotal += cart[k].price * cart[k].qty;
     let grand = productTotal + currentShipping.cost;
     document.getElementById('grand-total').innerText = `RM ${grand.toFixed(2)}`;
     document.getElementById('breakdown-text').innerHTML = `(Produk: RM${productTotal.toFixed(2)} + Penghantaran: RM${currentShipping.cost.toFixed(2)})`;
@@ -606,11 +580,11 @@ function calculateTotal() {
 function initShippingSelector() {
     const opts = document.querySelectorAll('.shipping-option');
     opts.forEach(opt => {
-        opt.addEventListener('click', (e) => {
+        opt.addEventListener('click', () => {
             const radio = opt.querySelector('input[type="radio"]'); if(radio) radio.checked = true;
             currentShipping = { code: opt.dataset.shipping, cost: parseFloat(opt.dataset.cost) };
             document.querySelectorAll('.shipping-option').forEach(o=>o.classList.remove('selected'));
-            opt.classList.add('selected'); 
+            opt.classList.add('selected');
             calculateTotal();
         });
         if(opt.querySelector('input:checked')) { 
@@ -621,87 +595,56 @@ function initShippingSelector() {
 }
 
 document.getElementById('checkoutBtn').addEventListener('click', () => {
-    if (Object.values(cart).length === 0) {
-        alert("Tiada item dalam keranjang. Sila pilih produk dahulu.");
-        return;
-    }
+    if (Object.values(cart).length === 0) { alert("Tiada item dalam keranjang."); return; }
     document.getElementById('shipping-form-section').scrollIntoView({ behavior: 'smooth', block: 'center' });
 });
 
-// ========== HANTAR PESANAN KE FIRESTORE DENGAN UPLOAD RESIT KE STORAGE (sama seperti asal) ==========
+// ========== UPLOAD RESIT KE IMGBB (BUKAN FIREBASE STORAGE) ==========
+async function uploadReceiptToImgBB(file) {
+    const formData = new FormData();
+    formData.append('image', file);
+    const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+        method: 'POST',
+        body: formData
+    });
+    const data = await response.json();
+    if (!data.success) {
+        throw new Error(data.error?.message || 'Gagal upload ke ImgBB');
+    }
+    return data.data.url; // URL terus ke gambar
+}
+
 const submitBtn = document.getElementById('submitOrderBtn');
 const orderForm = document.getElementById('order-form');
 
 orderForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    
     if (submitBtn.disabled) return;
-
-    if (isRateLimited()) {
-        showRateLimitOverlay();
-        return;
-    }
-
+    if (isRateLimited()) { showRateLimitOverlay(); return; }
     const botCheck = isBotDetected();
-    if (botCheck.bot) {
-        console.warn('Bot detected:', botCheck.reason);
-        alert("Pesanan tidak dapat diproses. Sila cuba semula dalam beberapa saat.");
-        return;
-    }
-
+    if (botCheck.bot) { alert("Pesanan tidak dapat diproses."); return; }
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-pulse"></i> Menyimpan pesanan...';
-    
     try {
         const itemsArray = Object.values(cart);
-        if (itemsArray.length === 0) { alert("Sila masukkan kuantiti produk sekurang-kurangnya 1 item!"); return; }
-        
-        // Validasi stok
+        if (itemsArray.length === 0) { alert("Sila pilih produk."); return; }
         for (let item of itemsArray) {
             const key = getVariationKey(item.prodId, item.size, item.type);
-            const stockData = stockMap.get(key) || {};
-            const availableStock = (stockData.stock !== undefined && stockData.stock !== null) ? stockData.stock : 100;
-            if (availableStock < item.qty) { 
-                alert(`Stok ${item.prodName} (${item.size} - ${item.type}) tidak mencukupi. Baki: ${availableStock}`); 
-                return;
-            }
+            const available = stockMap.get(key)?.stock ?? 100;
+            if (available < item.qty) { alert(`Stok ${item.prodName} tidak cukup.`); return; }
         }
-        
         const payLater = document.getElementById('pay-later').checked;
         const receiptFile = document.getElementById('pay-receipt').files[0];
-        
         let receiptUrl = null;
         const progressDiv = document.getElementById('uploadProgress');
-        
-        // Jika tidak bayar kemudian dan ada fail resit, upload ke Storage
         if (!payLater && receiptFile) {
             const receiptCheck = isValidReceipt(receiptFile);
             if (!receiptCheck.ok) { alert(receiptCheck.msg); return; }
-            
             progressDiv.style.display = 'block';
-            progressDiv.innerHTML = '⬆️ Sedang memuat naik resit... 0%';
-            
-            const fileExt = receiptFile.name.split('.').pop();
-            const fileName = `receipt_${Date.now()}_${Math.random().toString(36).substring(2,8)}.${fileExt}`;
-            const storageRef = ref(storage, `receipts/${fileName}`);
-            const uploadTask = uploadBytesResumable(storageRef, receiptFile);
-            
+            progressDiv.innerHTML = '⬆️ Memuat naik resit ... 0%';
             try {
-                const url = await new Promise((resolve, reject) => {
-                    uploadTask.on('state_changed',
-                        (snapshot) => {
-                            const percent = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                            progressDiv.innerHTML = `⬆️ Muat naik ${Math.round(percent)}%`;
-                        },
-                        (error) => reject(error),
-                        async () => {
-                            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                            resolve(downloadURL);
-                        }
-                    );
-                });
-                receiptUrl = url;
-                progressDiv.innerHTML = '✅ Resit berjaya dimuat naik';
+                receiptUrl = await uploadReceiptToImgBB(receiptFile);
+                progressDiv.innerHTML = '✅ Resit berjaya!';
                 setTimeout(() => progressDiv.style.display = 'none', 2000);
             } catch (uploadErr) {
                 progressDiv.style.display = 'none';
@@ -709,55 +652,34 @@ orderForm.addEventListener('submit', async (e) => {
                 return;
             }
         } else if (!payLater && !receiptFile) {
-            alert("Sila muat naik resit pembayaran atau pilih 'Bayar Kemudian'.");
+            alert("Sila muat naik resit atau pilih 'Bayar Kemudian'.");
             return;
         }
-        
-        const custName    = sanitize(document.getElementById('cust-name').value);
-        const custPhone   = sanitize(document.getElementById('cust-phone').value);
+        const custName = sanitize(document.getElementById('cust-name').value);
+        const custPhone = sanitize(document.getElementById('cust-phone').value);
         const custAddress = sanitize(document.getElementById('cust-address').value);
-        const custPostcode= sanitize(document.getElementById('cust-postcode').value);
-        const custState   = sanitize(document.getElementById('cust-state').value);
-        const bankName    = sanitize(document.getElementById('bank-name').value) || "Tiada";
-
-        if (!custName || !custPhone || !custAddress || !custPostcode || !custState) {
-            alert("Sila lengkapkan semua butiran penghantaran.");
-            return;
-        }
-
-        if (!isValidName(custName)) { alert("Nama tidak sah. Sila semak dan cuba lagi."); return; }
-        if (!isValidPhone(custPhone)) { alert("Nombor telefon tidak sah. Contoh: 0123456789"); return; }
-        if (!isValidPostcode(custPostcode)) { alert("Poskod tidak sah. Masukkan 5-6 digit angka."); return; }
-        
-        const allTextFields = [custName, custPhone, custAddress, custPostcode, custState, bankName];
-        for (const field of allTextFields) {
-            if (hasSuspiciousContent(field)) {
-                alert("Input mengandungi aksara yang tidak dibenarkan. Sila semak borang anda."); return;
-            }
-        }
-
+        const custPostcode = sanitize(document.getElementById('cust-postcode').value);
+        const custState = sanitize(document.getElementById('cust-state').value);
+        const bankName = sanitize(document.getElementById('bank-name').value) || "Tiada";
+        if (!custName || !custPhone || !custAddress || !custPostcode || !custState) { alert("Lengkapkan borang."); return; }
+        if (!isValidName(custName)) { alert("Nama tidak sah."); return; }
+        if (!isValidPhone(custPhone)) { alert("No. telefon tidak sah."); return; }
+        if (!isValidPostcode(custPostcode)) { alert("Poskod tidak sah."); return; }
         recordAttempt();
-        
         const shippingCost = currentShipping.cost;
         const shippingRegion = currentShipping.code === 'SM' ? 'Semenanjung Malaysia' : (currentShipping.code === 'SS' ? 'Sabah/Sarawak' : 'Singapura');
-        
         let productTotal = 0;
         for (let item of itemsArray) productTotal += item.price * item.qty;
         const grandTotal = productTotal + shippingCost;
-        
-        // Simpan ke Firestore dengan transaction (update stok) dan simpan receiptUrl
         await runTransaction(db, async (transaction) => {
-            // Update stok
             for (const item of itemsArray) {
                 const key = getVariationKey(item.prodId, item.size, item.type);
                 const docRef = doc(db, "inventory", key);
                 const snap = await transaction.get(docRef);
                 let currentStock = snap.exists() ? (snap.data().stock ?? 100) : 100;
-                if (currentStock < item.qty) throw new Error(`Stok ${item.prodName} tidak mencukupi.`);
-                const newStock = currentStock - item.qty;
-                transaction.set(docRef, { stock: newStock, initialStock: snap.exists() ? snap.data().initialStock : 100 }, { merge: true });
+                if (currentStock < item.qty) throw new Error(`Stok ${item.prodName} tidak cukup.`);
+                transaction.set(docRef, { stock: currentStock - item.qty, initialStock: snap.exists() ? snap.data().initialStock : 100 }, { merge: true });
             }
-            // Simpan pesanan dengan receiptUrl
             const orderRef = doc(collection(db, "orders"));
             transaction.set(orderRef, {
                 orderId: orderRef.id,
@@ -767,13 +689,11 @@ orderForm.addEventListener('submit', async (e) => {
                 status: 'pending',
                 paymentMethod: payLater ? 'Bayar Kemudian' : 'Pindahan Bank',
                 bankName: payLater ? null : bankName,
-                receiptUrl: receiptUrl,   // <-- URL gambar resit dari Storage
+                receiptUrl: receiptUrl,
                 shipping: { region: shippingRegion, cost: shippingCost },
                 createdAt: new Date().toISOString()
             });
         });
-        
-        // Reset borang & keranjang
         cart = {};
         calculateTotal();
         document.getElementById('cart-count').innerText = '0';
@@ -782,15 +702,12 @@ orderForm.addEventListener('submit', async (e) => {
         document.getElementById('pay-later').checked = false;
         document.getElementById('payment-fields').style.display = 'block';
         document.getElementById('order-form').reset();
-        
-        alert("✅ Pesanan anda berjaya disimpan! Resit telah disimpan. Admin akan memproses dalam masa 24 jam.");
-        
+        alert("✅ Pesanan berjaya disimpan! Resit telah disimpan. Admin akan proses dalam masa 24 jam.");
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<i class="fa-solid fa-check"></i> Pesanan Dihantar!';
         setTimeout(() => location.reload(), 2000);
-        
     } catch (err) {
-        console.error("Error:", err);
+        console.error(err);
         alert("Ralat: " + err.message);
         submitBtn.disabled = false;
         submitBtn.innerHTML = 'Hantar Pesanan <i class="fa-solid fa-check-circle ms-1"></i>';
@@ -803,11 +720,7 @@ fetchProducts();
 <script>
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('sw.js').then(reg => {
-                console.log('✅ Service Worker registered:', reg.scope);
-            }).catch(err => {
-                console.warn('Service Worker not supported fully:', err);
-            });
+            navigator.serviceWorker.register('sw.js').then(reg => console.log('Service Worker registered')).catch(err => console.warn(err));
         });
     }
 </script>
