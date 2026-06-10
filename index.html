@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#10b981">
-    <title>VELXERA VENTURES </title>
+    <title>VELXERA VENTURES</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -108,7 +108,7 @@
             <i class="fa-solid fa-circle-chevron-right"></i>
             <div class="step-item fw-bold"><i class="fa-solid fa-qrcode text-emerald fa-lg mb-1 d-block"></i> 2. Bayar QR/Slip</div>
             <i class="fa-solid fa-circle-chevron-right"></i>
-            <div class="step-item fw-bold"><i class="fa-brands fa-whatsapp text-emerald fa-lg mb-1 d-block"></i> 3. Hantar WA</div>
+            <div class="step-item fw-bold"><i class="fa-solid fa-database text-emerald fa-lg mb-1 d-block"></i> 3. Pesanan Disimpan</div>
         </div>
     </div>
 
@@ -131,7 +131,7 @@
                 <i class="fa-solid fa-paper-plane fa-lg"></i>
             </div>
             <h5 class="fw-bold m-0">Butiran Penghantaran Pintar</h5>
-            <p class="text-muted small">Pesanan anda akan terus disahkan menerusi WhatsApp</p>
+            <p class="text-muted small">Pesanan anda akan terus disimpan & diproses oleh admin</p>
         </div>
 
         <form id="order-form" autocomplete="off">
@@ -144,7 +144,6 @@
 
             <div class="mb-3">
                 <label class="form-label small fw-bold"><i class="fa-regular fa-user me-1 text-emerald"></i> Nama Penuh</label>
-                <!-- SECURITY: warn banner for name -->
                 <div class="security-warn" id="warn-name"><i class="fa-solid fa-triangle-exclamation me-1"></i> <span id="warn-name-msg"></span></div>
                 <input type="text" class="form-control" id="cust-name" required placeholder="Ahmad Ali" maxlength="80" oninput="validateName(this)">
             </div>
@@ -175,7 +174,7 @@
                     <div class="col-4"><div class="shipping-option text-center p-2" data-shipping="SG" data-cost="80"><input type="radio" name="shipping" id="shipSG" class="shipping-radio d-none" value="SG"><label for="shipSG" class="d-block mb-0 cursor-pointer fw-bold"><i class="fa-solid fa-passport"></i> Singapore<br><span class="small">RM80</span></label></div></div>
                 </div>
                 <small class="text-muted">Flat rate termasuk kos bungkusan</small>
-                <div class="shipping-info"><i class="fa-regular fa-clock me-1"></i> Barang akan dipos dalam masa <strong>2 minggu</strong> selepas barang diterima. <br>📦 Anda boleh semak melalui <a href="https://www.easyparcel.com/my" target="_blank">EasyParcel <i class="fa-solid fa-arrow-up-right-from-square"></i></a></div>
+                <div class="shipping-info"><i class="fa-regular fa-clock me-1"></i> Barang akan dipos dalam masa <strong>2 minggu</strong> selepas pembayaran disahkan. <br>📦 Anda boleh semak melalui <a href="https://www.easyparcel.com/my" target="_blank">EasyParcel <i class="fa-solid fa-arrow-up-right-from-square"></i></a></div>
             </div>
 
             <div class="total-box text-center my-4">
@@ -196,17 +195,13 @@
                     <div class="mb-2"><label class="form-label text-muted small">Nama Bank Pengirim</label><input type="text" class="form-control form-control-sm" id="bank-name" placeholder="CIMB / Maybank" maxlength="50"></div>
                     <div>
                         <label class="form-label text-muted small">Resit Pembayaran (Gambar)</label>
-                        <!-- SECURITY: receipt file type validation -->
                         <input type="file" class="form-control form-control-sm" id="pay-receipt" accept="image/jpeg,image/png,image/webp,image/gif" onchange="validateReceipt(this)">
                         <div class="security-warn" id="warn-receipt"><i class="fa-solid fa-triangle-exclamation me-1"></i> <span id="warn-receipt-msg"></span></div>
                     </div>
                 </div>
             </div>
 
-            <!-- SECURITY: submission rate limit warning -->
-            <div class="security-warn show" id="warn-ratelimit" style="display:none!important;"></div>
-
-            <button type="submit" class="btn btn-submit w-100 py-3 text-uppercase" id="submitOrderBtn">Hantar Ke WhatsApp Sekarang <i class="fa-solid fa-bolt ms-1"></i></button>
+            <button type="submit" class="btn btn-submit w-100 py-3 text-uppercase" id="submitOrderBtn">Hantar Pesanan <i class="fa-solid fa-check-circle ms-1"></i></button>
         </form>
 
         <div class="company-footer">
@@ -241,10 +236,9 @@ const db = getFirestore(app);
 
 // ============================================================
 // SECURITY LAYER 1 — RATE LIMITING
-// Max 3 order attempts per 60 seconds (stored in sessionStorage)
 // ============================================================
 const RATE_LIMIT_MAX = 3;
-const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 60 seconds
+const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const RATE_LIMIT_COOLDOWN_S = 60;
 
 function getRateLimitData() {
@@ -261,9 +255,7 @@ function saveRateLimitData(data) {
 function isRateLimited() {
     const data = getRateLimitData();
     const now = Date.now();
-    // Check if still in cooldown block
     if (data.blocked_until && now < data.blocked_until) return true;
-    // Clean old attempts outside window
     data.attempts = (data.attempts || []).filter(t => now - t < RATE_LIMIT_WINDOW_MS);
     if (data.attempts.length >= RATE_LIMIT_MAX) {
         data.blocked_until = now + RATE_LIMIT_COOLDOWN_S * 1000;
@@ -294,7 +286,6 @@ function showRateLimitOverlay() {
         if (remaining <= 0) {
             clearInterval(interval);
             overlay.classList.remove('show');
-            // Reset rate limit after cooldown
             const d = getRateLimitData();
             d.blocked_until = null;
             d.attempts = [];
@@ -306,34 +297,24 @@ function showRateLimitOverlay() {
 // ============================================================
 // SECURITY LAYER 2 — INPUT VALIDATION & SANITIZATION
 // ============================================================
-
-// Sanitize: strip HTML tags and dangerous characters from string
 function sanitize(str) {
     if (!str) return '';
-    return str
-        .replace(/<[^>]*>/g, '')           // strip HTML tags
-        .replace(/[<>"'`;\\]/g, '')         // strip dangerous chars
-        .trim()
-        .substring(0, 500);                 // hard length cap
+    return str.replace(/<[^>]*>/g, '').replace(/[<>"'`;\\]/g, '').trim().substring(0, 500);
 }
 
-// Validate: Malaysian/SG phone number
 function isValidPhone(phone) {
     const cleaned = phone.replace(/[\s\-\+]/g, '');
     return /^(60|0)[1-9][0-9]{7,10}$/.test(cleaned) || /^(65)[6-9][0-9]{7}$/.test(cleaned);
 }
 
-// Validate: name — letters, spaces, common punctuation only
 function isValidName(name) {
     return /^[a-zA-Z\u00C0-\u024F\u0400-\u04FF\s'.,-]{2,80}$/.test(name);
 }
 
-// Validate: postcode — numeric, 5 digits (MY) or 6 digits (SG)
 function isValidPostcode(pc) {
     return /^[0-9]{5,6}$/.test(pc.replace(/\s/g, ''));
 }
 
-// Validate: receipt file type and size
 function isValidReceipt(file) {
     if (!file) return { ok: true };
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
@@ -342,7 +323,6 @@ function isValidReceipt(file) {
     return { ok: true };
 }
 
-// Validate: detect script injection / suspicious patterns
 function hasSuspiciousContent(str) {
     const patterns = [
         /javascript:/i, /vbscript:/i, /<script/i, /on\w+\s*=/i,
@@ -352,7 +332,6 @@ function hasSuspiciousContent(str) {
     return patterns.some(p => p.test(str));
 }
 
-// Inline validators (called on oninput, show/hide warning banners)
 window.validateName = function(input) {
     const warn = document.getElementById('warn-name');
     const msg = document.getElementById('warn-name-msg');
@@ -398,20 +377,17 @@ window.validateReceipt = function(input) {
 // SECURITY LAYER 3 — ANTI-BOT / HONEYPOT + TIMING CHECK
 // ============================================================
 const PAGE_LOAD_TIME = Date.now();
-const MIN_FORM_FILL_MS = 4000; // genuine humans take at least 4 seconds
+const MIN_FORM_FILL_MS = 4000;
 
 function isBotDetected() {
-    // Honeypot: if either hidden field is filled, it's a bot
     const hpWebsite = document.getElementById('hp-website').value;
     const hpEmail = document.getElementById('hp-email').value;
     if (hpWebsite || hpEmail) return { bot: true, reason: 'Honeypot triggered' };
-    // Timing: form submitted suspiciously fast
     const elapsed = Date.now() - PAGE_LOAD_TIME;
     if (elapsed < MIN_FORM_FILL_MS) return { bot: true, reason: `Form filled in ${elapsed}ms (too fast)` };
     return { bot: false };
 }
 
-// Global helper for pay-later toggle
 window.togglePaymentFields = function(chk) { 
     const fieldsDiv = document.getElementById('payment-fields');
     if (fieldsDiv) fieldsDiv.style.display = chk.checked ? 'none' : 'block'; 
@@ -493,7 +469,6 @@ function renderProducts(products) {
     });
 }
 
-// FIX #4: escapeHtml now also escapes double quotes to prevent broken HTML attributes
 function escapeHtml(str) { 
     if(!str) return ''; 
     return str.replace(/[&<>"]/g, function(m){
@@ -551,7 +526,7 @@ document.getElementById('checkoutBtn').addEventListener('click', () => {
     document.getElementById('shipping-form-section').scrollIntoView({ behavior: 'smooth', block: 'center' });
 });
 
-// ---------- WHATSAPP SUBMIT HANDLER (with all security layers) ----------
+// ========== HANTAR PESANAN KE FIRESTORE (tanpa WhatsApp) ==========
 const submitBtn = document.getElementById('submitOrderBtn');
 const orderForm = document.getElementById('order-form');
 
@@ -560,29 +535,26 @@ orderForm.addEventListener('submit', async (e) => {
     
     if (submitBtn.disabled) return;
 
-    // ── SECURITY: Rate limit check ──────────────────────────────────────
     if (isRateLimited()) {
         showRateLimitOverlay();
         return;
     }
 
-    // ── SECURITY: Anti-bot check ────────────────────────────────────────
     const botCheck = isBotDetected();
     if (botCheck.bot) {
         console.warn('Bot detected:', botCheck.reason);
-        // Moderate: warn but silently drop — don't tell bots they were caught
         alert("Pesanan tidak dapat diproses. Sila cuba semula dalam beberapa saat.");
         return;
     }
 
     submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-pulse"></i> Memproses...';
+    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-pulse"></i> Menyimpan pesanan...';
     
     try {
         const itemsArray = Object.values(cart);
         if (itemsArray.length === 0) { alert("Sila masukkan kuantiti produk sekurang-kurangnya 1 item!"); return; }
         
-        // Validate stock against current stockMap
+        // Validasi stok
         for (let item of itemsArray) {
             const key = getVariationKey(item.prodId, item.size, item.type);
             const stockData = stockMap.get(key) || {};
@@ -594,22 +566,16 @@ orderForm.addEventListener('submit', async (e) => {
         }
         
         const payLater = document.getElementById('pay-later').checked;
-        let receiptNote = "";
         const receiptFile = document.getElementById('pay-receipt').files[0];
 
-        // ── SECURITY: Validate receipt file ─────────────────────────────
         if (!payLater && receiptFile) {
             const receiptCheck = isValidReceipt(receiptFile);
             if (!receiptCheck.ok) { alert(receiptCheck.msg); return; }
-            receiptNote = "📎 Resit disertakan sebagai lampiran (sila semak mesej ini untuk gambar).";
         } else if (!payLater && !receiptFile) { 
             alert("Sila muat naik resit pembayaran atau pilih 'Bayar Kemudian'.");
             return; 
-        } else if (payLater) {
-            receiptNote = "Bayaran akan dibuat kemudian (simpan slot).";
         }
         
-        // ── SECURITY: Collect & sanitize all customer input ──────────────
         const custName    = sanitize(document.getElementById('cust-name').value);
         const custPhone   = sanitize(document.getElementById('cust-phone').value);
         const custAddress = sanitize(document.getElementById('cust-address').value);
@@ -622,16 +588,10 @@ orderForm.addEventListener('submit', async (e) => {
             return;
         }
 
-        // ── SECURITY: Field-level validation before submission ───────────
-        if (!isValidName(custName)) {
-            alert("Nama tidak sah. Sila semak dan cuba lagi."); return;
-        }
-        if (!isValidPhone(custPhone)) {
-            alert("Nombor telefon tidak sah. Contoh: 0123456789"); return;
-        }
-        if (!isValidPostcode(custPostcode)) {
-            alert("Poskod tidak sah. Masukkan 5-6 digit angka."); return;
-        }
+        if (!isValidName(custName)) { alert("Nama tidak sah. Sila semak dan cuba lagi."); return; }
+        if (!isValidPhone(custPhone)) { alert("Nombor telefon tidak sah. Contoh: 0123456789"); return; }
+        if (!isValidPostcode(custPostcode)) { alert("Poskod tidak sah. Masukkan 5-6 digit angka."); return; }
+        
         const allTextFields = [custName, custPhone, custAddress, custPostcode, custState, bankName];
         for (const field of allTextFields) {
             if (hasSuspiciousContent(field)) {
@@ -639,89 +599,44 @@ orderForm.addEventListener('submit', async (e) => {
             }
         }
 
-        // ── Record this attempt for rate limiting ────────────────────────
         recordAttempt();
         
-        const statusBayaran = payLater ? 'Bayar Kemudian (Simpan Slot)' : `Sudah Pindahan (${bankName})`;
         const shippingCost = currentShipping.cost;
         const shippingRegion = currentShipping.code === 'SM' ? 'Semenanjung Malaysia' : (currentShipping.code === 'SS' ? 'Sabah/Sarawak' : 'Singapura');
         
         let productTotal = 0;
-        let itemsText = '';
-        // FIX #3: use %0A instead of \n so WhatsApp message line breaks work correctly
-        for (let item of itemsArray) {
-            productTotal += item.price * item.qty;
-            itemsText += `${item.prodName} (${item.size} - ${item.type}) x ${item.qty} = RM ${(item.price * item.qty).toFixed(2)}%0A`;
-        }
+        for (let item of itemsArray) productTotal += item.price * item.qty;
         const grandTotal = productTotal + shippingCost;
         
-        // Prepare WhatsApp message
-        let waMessage = `*🧾 ORDER BARU - VELXERA VENTURES*%0A%0A` +
-                        `*👤 PELANGGAN:*%0A${custName}%0A${custPhone}%0A${custAddress}, ${custPostcode} ${custState}%0A%0A` +
-                        `*📦 ITEM DIPESAN:*%0A${itemsText}%0A` +
-                        `*🚚 PENGHANTARAN:* ${shippingRegion} = RM${shippingCost.toFixed(2)}%0A` +
-                        `*💰 TOTAL BAYARAN:* RM${grandTotal.toFixed(2)}%0A%0A` +
-                        `*📌 STATUS BAYARAN:* ${statusBayaran}%0A`;
-        
-        if (receiptFile && !payLater) {
-            waMessage += `%0A📎 *RESIT PEMBAYARAN:* (Gambar disertakan dalam mesej WhatsApp ini - sila lampirkan secara manual jika perlu).%0A`;
-        } else if (receiptNote) {
-            waMessage += `%0A📌 ${receiptNote}%0A`;
-        }
-        
-        // TRY FIREBASE TRANSACTION (non-blocking for WA)
-        let firebaseErrorMsg = null;
-        let stockUpdateText = '';
-        try {
-            await runTransaction(db, async (transaction) => {
-                const reads = [];
-                for (const item of itemsArray) {
-                    const key = getVariationKey(item.prodId, item.size, item.type);
-                    const docRef = doc(db, "inventory", key);
-                    reads.push({ item, docRef, snap: await transaction.get(docRef) });
-                }
-                for (const r of reads) {
-                    let currentStock = 100;
-                    let initialStock = 100;
-                    // FIX #1: snap.exists() is a method, not a property
-                    if (r.snap.exists()) {
-                        currentStock = r.snap.data().stock ?? 100;
-                        initialStock = r.snap.data().initialStock ?? 100;
-                    }
-                    if (currentStock < r.item.qty) throw new Error(`Stok ${r.item.prodName} tidak mencukupi.`);
-                    const newStock = currentStock - r.item.qty;
-                    transaction.set(r.docRef, { stock: newStock, initialStock: initialStock });
-                    stockUpdateText += `• ${r.item.prodName} ${r.item.size} ${r.item.type}: Stok sebelum ${currentStock}, selepas = ${newStock}\n`;
-                }
-                const orderId = `ORD-${Date.now()}`;
-                transaction.set(doc(db, "orders", orderId), {
-                    orderId,
-                    customer: { name: custName, phone: custPhone, address_line1: custAddress, postcode: custPostcode, state: custState },
-                    items: itemsArray,
-                    totalAmount: grandTotal,
-                    status: payLater ? 'Pay Later' : 'Pending Verification',
-                    delivery_status: 'Unfulfilled',
-                    shipping: { region: shippingRegion, cost: shippingCost },
-                    paymentDetails: { bankName: payLater ? 'N/A' : bankName, receiptUrl: receiptFile ? "manual_upload_needed" : null, payLater: payLater },
-                    createdAt: new Date().toISOString()
-                });
+        // Simpan ke Firestore dengan transaction (update stok)
+        await runTransaction(db, async (transaction) => {
+            // Update stok
+            for (const item of itemsArray) {
+                const key = getVariationKey(item.prodId, item.size, item.type);
+                const docRef = doc(db, "inventory", key);
+                const snap = await transaction.get(docRef);
+                let currentStock = snap.exists() ? (snap.data().stock ?? 100) : 100;
+                if (currentStock < item.qty) throw new Error(`Stok ${item.prodName} tidak mencukupi.`);
+                const newStock = currentStock - item.qty;
+                transaction.set(docRef, { stock: newStock, initialStock: snap.exists() ? snap.data().initialStock : 100 }, { merge: true });
+            }
+            // Simpan pesanan
+            const orderRef = doc(collection(db, "orders"));
+            transaction.set(orderRef, {
+                orderId: orderRef.id,
+                customer: { name: custName, phone: custPhone, address_line1: custAddress, postcode: custPostcode, state: custState },
+                items: itemsArray.map(i => ({ prodName: i.prodName, size: i.size, type: i.type, qty: i.qty, price: i.price })),
+                totalAmount: grandTotal,
+                status: 'pending',   // pending, completed, cancelled
+                paymentMethod: payLater ? 'Bayar Kemudian' : 'Pindahan Bank',
+                bankName: payLater ? null : bankName,
+                receiptFile: receiptFile ? receiptFile.name : null,
+                shipping: { region: shippingRegion, cost: shippingCost },
+                createdAt: new Date().toISOString()
             });
-            if (stockUpdateText) waMessage += `%0A%0A*📉 STOK TERKINI:*%0A${stockUpdateText.replace(/\n/g, '%0A')}%0A`;
-            waMessage += `%0A✅ Pesanan berjaya disimpan ke sistem.`;
-        } catch (err) {
-            console.error("Firestore transaction error:", err);
-            firebaseErrorMsg = err.message;
-            waMessage += `%0A%0A⚠️ *AMARAN: Sistem tidak dapat simpan pesanan automatik.*%0ASebab: ${err.message}%0A_Sila proses pesanan secara manual dan update stok._`;
-        }
+        });
         
-        waMessage += `%0A%0A_🔔 Admin: Sila sahkan dan proses._`;
-        
-        const adminWhatsApp = "60124794979";
-        const waUrl = `https://wa.me/${adminWhatsApp}?text=${waMessage}`;
-        
-        window.open(waUrl, '_blank');
-        
-        // Clear cart and reset form
+        // Reset borang & keranjang
         cart = {};
         calculateTotal();
         document.getElementById('cart-count').innerText = '0';
@@ -729,75 +644,24 @@ orderForm.addEventListener('submit', async (e) => {
         document.getElementById('pay-receipt').value = '';
         document.getElementById('pay-later').checked = false;
         document.getElementById('payment-fields').style.display = 'block';
+        document.getElementById('order-form').reset();
         
-        alert("Pesanan telah dihantar ke WhatsApp admin! Sila tunggu pengesahan.");
+        alert("✅ Pesanan anda berjaya disimpan! Admin akan memproses dalam masa 24 jam.");
         
-        // FIX #2: disable button permanently before reload
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<i class="fa-solid fa-check"></i> Pesanan Dihantar!';
-
-        setTimeout(() => location.reload(), 2500);
+        setTimeout(() => location.reload(), 2000);
         
     } catch (err) {
-        console.error("General error:", err);
+        console.error("Error:", err);
         alert("Ralat: " + err.message);
         submitBtn.disabled = false;
-        submitBtn.innerHTML = 'Hantar Ke WhatsApp Sekarang <i class="fa-solid fa-bolt ms-1"></i>';
+        submitBtn.innerHTML = 'Hantar Pesanan <i class="fa-solid fa-check-circle ms-1"></i>';
     }
 });
 
 fetchProducts();
 </script>
-
-<!-- ============================================================
-  SECURITY LAYER 4 — FIREBASE SECURITY RULES
-  Copy these rules into your Firebase Console:
-  Firestore Database → Rules
-
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-
-    // PRODUCTS & INVENTORY: anyone can READ, no one can WRITE from client
-    match /products/{doc} {
-      allow read: if true;
-      allow write: if false;
-    }
-    match /inventory/{doc} {
-      allow read: if true;
-      // Only allow stock decrements (not increases) from client transactions
-      allow update: if request.resource.data.stock is int
-                    && request.resource.data.stock >= 0
-                    && request.resource.data.stock <= resource.data.stock
-                    && request.resource.data.initialStock == resource.data.initialStock;
-      allow create: if false;
-      allow delete: if false;
-    }
-
-    // ORDERS: anyone can create (place order), no one can read/edit/delete from client
-    match /orders/{orderId} {
-      allow create: if
-        // Required fields must exist
-        request.resource.data.keys().hasAll(['orderId','customer','items','totalAmount','createdAt'])
-        // Total must be positive and not absurdly large (max RM 9999)
-        && request.resource.data.totalAmount is float
-        && request.resource.data.totalAmount > 0
-        && request.resource.data.totalAmount < 9999
-        // Items must be a non-empty list
-        && request.resource.data.items is list
-        && request.resource.data.items.size() > 0
-        && request.resource.data.items.size() <= 20
-        // Customer name must be a string under 100 chars
-        && request.resource.data.customer.name is string
-        && request.resource.data.customer.name.size() <= 100
-        // Phone must be a string under 20 chars
-        && request.resource.data.customer.phone is string
-        && request.resource.data.customer.phone.size() <= 20;
-      allow read, update, delete: if false;
-    }
-  }
-}
-// ============================================================ -->
 
 <script>
     if ('serviceWorker' in navigator) {
