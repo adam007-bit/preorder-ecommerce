@@ -15,7 +15,7 @@
     <link rel="apple-touch-icon" href="icon.jpg">
 
     <style>
-        /* Semua CSS asal TIDAK DIUBAH */
+        /* Semua CSS asal TIDAK DIUBAH – cuma tambah sedikit untuk compact card */
         :root {
             --emerald-primary: #10b981;
             --emerald-dark: #059669;
@@ -31,12 +31,9 @@
         .step-guide-box { background: white; border-radius: 28px; box-shadow: var(--card-shadow); border: 1px solid #eef2ff; }
         .badge-step-title { background: var(--emerald-grad); box-shadow: 0 4px 10px rgba(16,185,129,0.25); }
         .step-item:hover { color: var(--emerald-primary) !important; }
-        .product-card { border: 1px solid #e2e8f0; border-radius: 24px; background: white; box-shadow: var(--card-shadow); transition: all 0.3s ease; }
-        .product-card:hover { transform: translateY(-5px); box-shadow: var(--hover-shadow); border-color: var(--emerald-primary); }
-        .category-badge { background: var(--emerald-grad); color: white; }
-        .variation-row { background: #f8fafc; border-radius: 14px; border: 1px solid #e2e8f0; }
-        .variation-row:hover { background: #ecfdf5; border-color: var(--emerald-primary); }
-        .qty-input { border: 1px solid #cbd5e1; border-radius: 12px; width: 70px; text-align: center; }
+        .product-card { border: 1px solid #e2e8f0; border-radius: 24px; background: white; box-shadow: var(--card-shadow); transition: all 0.3s ease; margin-bottom: 16px; padding: 1rem; }
+        .product-card:hover { transform: translateY(-3px); box-shadow: var(--hover-shadow); border-color: var(--emerald-primary); }
+        .category-badge { background: var(--emerald-grad); color: white; font-size: 11px; padding: 4px 10px; border-radius: 30px; }
         .form-card { border: 1px solid #e2e8f0; border-radius: 32px; background: white; }
         .form-control, .form-select { border-radius: 14px; border: 1px solid #e2e8f0; }
         .form-control:focus, .form-select:focus { border-color: var(--emerald-primary); box-shadow: 0 0 0 3px rgba(16,185,129,0.2); }
@@ -103,6 +100,11 @@
             border-color: var(--emerald-primary);
             color: var(--emerald-primary);
         }
+        /* Compact product card inner styles */
+        .product-select { width: 100%; font-size: 0.85rem; border-radius: 12px; }
+        .product-qty { width: 80px; text-align: center; margin-left: 10px; }
+        .product-price { font-weight: bold; color: var(--emerald-primary); }
+        .stock-info { font-size: 0.7rem; color: #6c757d; margin-top: 4px; }
     </style>
 </head>
 <body>
@@ -156,7 +158,7 @@
         </div>
     </div>
 
-    <!-- FORM PENGHANTARAN -->
+    <!-- FORM PENGHANTARAN (sama seperti asal) -->
     <div class="card form-card p-4 mt-4 shadow-sm" id="shipping-form-section">
         <div class="text-center mb-4">
             <div class="p-3 rounded-circle d-inline-block mb-2 shadow-sm" style="background: var(--emerald-grad); color: white;">
@@ -226,7 +228,7 @@
                     <div>
                         <label class="form-label text-muted small">Resit Pembayaran (Gambar)</label>
                         <input type="file" class="form-control form-control-sm" id="pay-receipt" accept="image/jpeg,image/png,image/webp,image/gif" onchange="validateReceipt(this)">
-                        <div class="progress-upload" id="uploadProgress">⏳ Sedang memuat naik...</div>
+                        <div class="progress-upload" id="uploadProgress">⏳ Sedang muat naik...</div>
                         <div class="security-warn" id="warn-receipt"><i class="fa-solid fa-triangle-exclamation me-1"></i> <span id="warn-receipt-msg"></span></div>
                     </div>
                 </div>
@@ -254,10 +256,7 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
 import { getFirestore, collection, doc, getDocs, runTransaction } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
-// ========== KONFIGURASI IMGBB API ==========
-// Dapatkan API Key percuma di: https://api.imgbb.com/
-// Gantikan 'YOUR_IMGBB_API_KEY' dengan key sebenar anda.
-const IMGBB_API_KEY = '8b4d34f1c329684356d506ef8d67105e'; // <-- GANTI DENGAN API KEY ANDA
+const IMGBB_API_KEY = '8b4d34f1c329684356d506ef8d67105e';
 
 const firebaseConfig = {
     apiKey: "AIzaSyAdUZs-P5SPcivHHP9lRmdyOC355Op8bOU",
@@ -270,24 +269,15 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// ============================================================
-// SECURITY LAYERS (sama seperti asal)
-// ============================================================
+// ========== SECURITY LAYERS (sama seperti asal) ==========
 const RATE_LIMIT_MAX = 3;
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const RATE_LIMIT_COOLDOWN_S = 60;
 
 function getRateLimitData() {
-    try {
-        const raw = sessionStorage.getItem('vv_rl');
-        return raw ? JSON.parse(raw) : { attempts: [], blocked_until: null };
-    } catch { return { attempts: [], blocked_until: null }; }
+    try { const raw = sessionStorage.getItem('vv_rl'); return raw ? JSON.parse(raw) : { attempts: [], blocked_until: null }; } catch { return { attempts: [], blocked_until: null }; }
 }
-
-function saveRateLimitData(data) {
-    try { sessionStorage.setItem('vv_rl', JSON.stringify(data)); } catch {}
-}
-
+function saveRateLimitData(data) { try { sessionStorage.setItem('vv_rl', JSON.stringify(data)); } catch {} }
 function isRateLimited() {
     const data = getRateLimitData();
     const now = Date.now();
@@ -300,7 +290,6 @@ function isRateLimited() {
     }
     return false;
 }
-
 function recordAttempt() {
     const data = getRateLimitData();
     const now = Date.now();
@@ -308,7 +297,6 @@ function recordAttempt() {
     data.attempts.push(now);
     saveRateLimitData(data);
 }
-
 function showRateLimitOverlay() {
     const overlay = document.getElementById('rateLimitOverlay');
     const timerEl = document.getElementById('cooldown-timer');
@@ -329,98 +317,22 @@ function showRateLimitOverlay() {
         }
     }, 1000);
 }
+function sanitize(str) { if(!str) return ''; return str.replace(/<[^>]*>/g, '').replace(/[<>"'`;\\]/g, '').trim().substring(0, 500); }
+function isValidPhone(phone) { const cleaned = phone.replace(/[\s\-\+]/g, ''); return /^(60|0)[1-9][0-9]{7,10}$/.test(cleaned) || /^(65)[6-9][0-9]{7}$/.test(cleaned); }
+function isValidName(name) { return /^[a-zA-Z\u00C0-\u024F\u0400-\u04FF\s'.,-]{2,80}$/.test(name); }
+function isValidPostcode(pc) { return /^[0-9]{5,6}$/.test(pc.replace(/\s/g, '')); }
+function isValidReceipt(file) { if(!file) return { ok:true }; const allowed=['image/jpeg','image/png','image/webp','image/gif']; if(!allowed.includes(file.type)) return { ok:false, msg:'Format fail tidak sah' }; if(file.size>5*1024*1024) return { ok:false, msg:'Saiz maksimum 5MB' }; return { ok:true }; }
+function hasSuspiciousContent(str) { const patterns=[/javascript:/i,/vbscript:/i,/<script/i,/on\w+\s*=/i,/union\s+select/i,/drop\s+table/i,/insert\s+into/i,/\bexec\b/i,/\beval\b/i]; return patterns.some(p=>p.test(str)); }
 
-function sanitize(str) {
-    if (!str) return '';
-    return str.replace(/<[^>]*>/g, '').replace(/[<>"'`;\\]/g, '').trim().substring(0, 500);
-}
-
-function isValidPhone(phone) {
-    const cleaned = phone.replace(/[\s\-\+]/g, '');
-    return /^(60|0)[1-9][0-9]{7,10}$/.test(cleaned) || /^(65)[6-9][0-9]{7}$/.test(cleaned);
-}
-
-function isValidName(name) {
-    return /^[a-zA-Z\u00C0-\u024F\u0400-\u04FF\s'.,-]{2,80}$/.test(name);
-}
-
-function isValidPostcode(pc) {
-    return /^[0-9]{5,6}$/.test(pc.replace(/\s/g, ''));
-}
-
-function isValidReceipt(file) {
-    if (!file) return { ok: true };
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-    if (!allowedTypes.includes(file.type)) return { ok: false, msg: 'Format fail tidak sah. JPG/PNG/WEBP/GIF sahaja.' };
-    if (file.size > 5 * 1024 * 1024) return { ok: false, msg: 'Saiz maksimum 5MB.' };
-    return { ok: true };
-}
-
-function hasSuspiciousContent(str) {
-    const patterns = [
-        /javascript:/i, /vbscript:/i, /<script/i, /on\w+\s*=/i,
-        /union\s+select/i, /drop\s+table/i, /insert\s+into/i,
-        /\bexec\b/i, /\beval\b/i
-    ];
-    return patterns.some(p => p.test(str));
-}
-
-window.validateName = function(input) {
-    const warn = document.getElementById('warn-name');
-    const msg = document.getElementById('warn-name-msg');
-    const val = input.value.trim();
-    if (hasSuspiciousContent(val)) { msg.innerText = 'Nama mengandungi aksara tidak dibenarkan.'; warn.classList.add('show'); }
-    else if (val.length > 1 && !isValidName(val)) { msg.innerText = 'Nama tidak sah. Gunakan huruf sahaja.'; warn.classList.add('show'); }
-    else warn.classList.remove('show');
-};
-
-window.validatePhone = function(input) {
-    const warn = document.getElementById('warn-phone');
-    const msg = document.getElementById('warn-phone-msg');
-    const val = input.value.trim();
-    if (val.length > 7 && !isValidPhone(val)) { msg.innerText = 'Format no. telefon tidak sah.'; warn.classList.add('show'); }
-    else warn.classList.remove('show');
-};
-
-window.validateAddress = function(input) {
-    const warn = document.getElementById('warn-address');
-    const msg = document.getElementById('warn-address-msg');
-    const val = input.value.trim();
-    if (hasSuspiciousContent(val)) { msg.innerText = 'Alamat mengandungi aksara tidak dibenarkan.'; warn.classList.add('show'); }
-    else warn.classList.remove('show');
-};
-
-window.validatePostcode = function(input) {
-    const warn = document.getElementById('warn-postcode');
-    const msg = document.getElementById('warn-postcode-msg');
-    const val = input.value.trim();
-    if (val.length >= 5 && !isValidPostcode(val)) { msg.innerText = 'Poskod tidak sah (5-6 digit).'; warn.classList.add('show'); }
-    else warn.classList.remove('show');
-};
-
-window.validateReceipt = function(input) {
-    const warn = document.getElementById('warn-receipt');
-    const msg = document.getElementById('warn-receipt-msg');
-    const result = isValidReceipt(input.files[0]);
-    if (!result.ok) { msg.innerText = result.msg; warn.classList.add('show'); input.value = ''; }
-    else warn.classList.remove('show');
-};
-
+window.validateName = function(input) { const warn=document.getElementById('warn-name'); const msg=document.getElementById('warn-name-msg'); const val=input.value.trim(); if(hasSuspiciousContent(val)){ msg.innerText='Nama mengandungi aksara tidak dibenarkan.'; warn.classList.add('show'); } else if(val.length>1 && !isValidName(val)){ msg.innerText='Nama tidak sah. Gunakan huruf sahaja.'; warn.classList.add('show'); } else warn.classList.remove('show'); };
+window.validatePhone = function(input) { const warn=document.getElementById('warn-phone'); const msg=document.getElementById('warn-phone-msg'); const val=input.value.trim(); if(val.length>7 && !isValidPhone(val)){ msg.innerText='Format no. telefon tidak sah.'; warn.classList.add('show'); } else warn.classList.remove('show'); };
+window.validateAddress = function(input) { const warn=document.getElementById('warn-address'); const msg=document.getElementById('warn-address-msg'); const val=input.value.trim(); if(hasSuspiciousContent(val)){ msg.innerText='Alamat mengandungi aksara tidak dibenarkan.'; warn.classList.add('show'); } else warn.classList.remove('show'); };
+window.validatePostcode = function(input) { const warn=document.getElementById('warn-postcode'); const msg=document.getElementById('warn-postcode-msg'); const val=input.value.trim(); if(val.length>=5 && !isValidPostcode(val)){ msg.innerText='Poskod tidak sah (5-6 digit).'; warn.classList.add('show'); } else warn.classList.remove('show'); };
+window.validateReceipt = function(input) { const warn=document.getElementById('warn-receipt'); const msg=document.getElementById('warn-receipt-msg'); const result=isValidReceipt(input.files[0]); if(!result.ok){ msg.innerText=result.msg; warn.classList.add('show'); input.value=''; } else warn.classList.remove('show'); };
+window.togglePaymentFields = function(chk) { document.getElementById('payment-fields').style.display = chk.checked ? 'none' : 'block'; };
 const PAGE_LOAD_TIME = Date.now();
 const MIN_FORM_FILL_MS = 4000;
-
-function isBotDetected() {
-    const hpWebsite = document.getElementById('hp-website').value;
-    const hpEmail = document.getElementById('hp-email').value;
-    if (hpWebsite || hpEmail) return { bot: true };
-    const elapsed = Date.now() - PAGE_LOAD_TIME;
-    if (elapsed < MIN_FORM_FILL_MS) return { bot: true };
-    return { bot: false };
-}
-
-window.togglePaymentFields = function(chk) { 
-    document.getElementById('payment-fields').style.display = chk.checked ? 'none' : 'block'; 
-};
+function isBotDetected() { const hpWebsite=document.getElementById('hp-website').value; const hpEmail=document.getElementById('hp-email').value; if(hpWebsite || hpEmail) return { bot:true }; if(Date.now()-PAGE_LOAD_TIME < MIN_FORM_FILL_MS) return { bot:true }; return { bot:false }; }
 
 let cart = {};
 let currentShipping = { code: 'SM', cost: 10 };
@@ -428,41 +340,24 @@ let stockMap = new Map();
 let allProducts = [];
 let currentCategory = 'all';
 
-function getVariationKey(prodId, size, type) { 
-    return `${prodId}_${size}_${type}`.replace(/\s/g, '_'); 
-}
+function getVariationKey(prodId, size, type) { return `${prodId}_${size}_${type}`.replace(/\s/g, '_'); }
 
 async function fetchStock() {
-    try { 
-        const snapshot = await getDocs(collection(db, "inventory")); 
-        stockMap.clear();
-        snapshot.forEach(doc => { 
-            stockMap.set(doc.id, doc.data()); 
-        });
-    } catch(err) { 
-        console.warn("Stok tidak dapat dimuatkan, gunakan stok lalai 100"); 
-    }
+    try { const snapshot = await getDocs(collection(db, "inventory")); stockMap.clear(); snapshot.forEach(doc => { stockMap.set(doc.id, doc.data()); }); } catch(err) { console.warn("Stok tidak dapat dimuatkan, gunakan stok lalai 100"); }
 }
 
 function getProductCategory(productName) {
     const name = productName.toLowerCase();
-    const beautyKeywords = [
-        'ghk-cu', 'ahk-cu', 'glutathione', 'glow', 'klow', 'snap-8', 'matrixyl', 'ggh', 'exosome', 'pdrn',
-        'botulinum toxin', 'hyaluronic acid', 'pink hyaluronic', 'whitening', 'spotfading', 'snake venom',
-        'lipo c', 'fat blaster', 'lemon bottle', 'super human blend', 'super shred', 'shred',
-        'immunological enhancement', 'sz352', 'vitamin b', 'vitamin b12', 'vitamin b6', 'vitamin b1',
-        'vitamin c', 'vitamin d2', 'super beauty', 'hhb', 'reconstitution water', 'bac water',
-        'sterilized water', 'acetic acid'
-    ];
+    const beautyKeywords = ['ghk-cu','ahk-cu','glutathione','glow','klow','snap-8','matrixyl','ggh','exosome','pdrn','botulinum toxin','hyaluronic acid','pink hyaluronic','whitening','spotfading','snake venom','lipo c','fat blaster','lemon bottle','super human blend','super shred','shred','immunological enhancement','sz352','vitamin b','vitamin b12','vitamin b6','vitamin b1','vitamin c','vitamin d2','super beauty','hhb','reconstitution water','bac water','sterilized water','acetic acid'];
     for (let kw of beautyKeywords) if(name.includes(kw)) return 'beauty';
     return 'peptides';
 }
 
 function filterProductsByCategory(products, category) {
-    if (category === 'all') return products;
-    if (category === 'readystock') {
+    if(category === 'all') return products;
+    if(category === 'readystock') {
         return products.filter(p => {
-            if (!p.variations) return false;
+            if(!p.variations) return false;
             return p.variations.some(v => {
                 const key = getVariationKey(p.id, v.size, v.type);
                 const stock = stockMap.get(key)?.stock ?? 100;
@@ -472,8 +367,8 @@ function filterProductsByCategory(products, category) {
     }
     return products.filter(p => {
         const cat = getProductCategory(p.name);
-        if (category === 'peptides') return cat === 'peptides';
-        if (category === 'beauty') return cat === 'beauty';
+        if(category === 'peptides') return cat === 'peptides';
+        if(category === 'beauty') return cat === 'beauty';
         return true;
     });
 }
@@ -481,14 +376,14 @@ function filterProductsByCategory(products, category) {
 async function fetchProducts() {
     try {
         const snapshot = await getDocs(collection(db, "products"));
-        allProducts = []; 
+        allProducts = [];
         snapshot.forEach(doc => allProducts.push({ id: doc.id, ...doc.data() }));
         await fetchStock();
         renderProductsByCategory();
         initShippingSelector();
         setupCategoryFilters();
-    } catch (err) { 
-        console.error("Gagal memuatkan produk:", err); 
+    } catch (err) {
+        console.error(err);
         document.getElementById('product-list').innerHTML = '<div class="alert alert-danger">Gagal muat naik produk. Sila refresh.</div>';
     }
 }
@@ -498,6 +393,7 @@ function renderProductsByCategory() {
     renderProducts(filtered);
 }
 
+// ========== FUNGSI BARU UNTUK COMPACT CARD ==========
 function renderProducts(products) {
     const container = document.getElementById('product-list');
     container.innerHTML = '';
@@ -505,73 +401,157 @@ function renderProducts(products) {
         container.innerHTML = '<div class="text-center py-4"><i class="fa-solid fa-box-open fa-2x text-muted mb-2"></i><p class="text-muted">Tiada produk dalam kategori ini</p></div>';
         return;
     }
-    products.forEach(p => {
-        if (!p.variations || !p.variations.length) return;
-        let variationHtml = '';
-        p.variations.forEach(v => {
-            const key = getVariationKey(p.id, v.size, v.type);
+    products.forEach(product => {
+        if (!product.variations || product.variations.length === 0) return;
+
+        // Generate options for select
+        let optionsHtml = '';
+        let defaultKey = '';
+        let defaultPrice = 0;
+        let defaultStock = 0;
+        product.variations.forEach(v => {
+            const key = getVariationKey(product.id, v.size, v.type);
             const stockData = stockMap.get(key) || {};
             const stock = stockData.stock ?? 100;
-            const initialStock = stockData.initialStock ?? 100;
-            const sold = Math.max(0, initialStock - stock);
-            variationHtml += `
-                <div class="d-flex justify-content-between align-items-center variation-row p-2 mb-2">
-                    <div>
-                        <span class="fw-bold small">${escapeHtml(v.size)}</span><small class="text-muted d-block">${escapeHtml(v.type)}</small>
-                        <div class="mt-1">
-                            <span class="stock-badge"><i class="fa-solid fa-box"></i> Stok: ${stock}</span>
-                            <span class="stock-badge"><i class="fa-solid fa-chart-line"></i> Terjual: ${sold}</span>
-                        </div>
-                    </div>
-                    <div>
-                        <span class="fw-bold text-emerald me-3">RM ${v.price.toFixed(2)}</span>
-                        <input type="number" class="form-control form-control-sm qty-input" min="0" max="${stock}" value="0" 
-                               data-prodid="${p.id}" data-name="${escapeHtml(p.name)}" data-size="${escapeHtml(v.size)}" data-type="${escapeHtml(v.type)}" data-price="${v.price}" data-key="${key}" data-max="${stock}"
-                               onchange="window.updateCart(this, '${p.id}', '${escapeHtml(p.name)}', '${escapeHtml(v.size)}', '${escapeHtml(v.type)}', ${v.price})">
-                    </div>
-                </div>`;
+            const price = v.price;
+            optionsHtml += `<option value="${key}" data-price="${price}" data-stock="${stock}" data-size="${escapeHtml(v.size)}" data-type="${escapeHtml(v.type)}">${escapeHtml(v.size)} - ${escapeHtml(v.type)} (RM ${price})</option>`;
+            if (!defaultKey) {
+                defaultKey = key;
+                defaultPrice = price;
+                defaultStock = stock;
+            }
         });
-        container.innerHTML += `
-            <div class="col-12"><div class="card product-card p-3">
-                <div class="d-flex justify-content-between mb-2"><span class="category-badge badge">${escapeHtml(p.category || getProductCategory(p.name).toUpperCase())}</span><span class="badge bg-warning text-dark"><i class="fa-solid fa-fire"></i> Hot</span></div>
-                <h6 class="fw-bold">${escapeHtml(p.name)}</h6>${p.description ? `<p class="small text-muted">${escapeHtml(p.description)}</p>` : ''}
-                <div>${variationHtml}</div>
-            </div></div>`;
+
+        const card = document.createElement('div');
+        card.className = 'col-12';
+        card.innerHTML = `
+            <div class="card product-card">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="category-badge">${escapeHtml(product.category || getProductCategory(product.name).toUpperCase())}</span>
+                    <span class="badge bg-warning text-dark"><i class="fa-solid fa-fire"></i> Hot</span>
+                </div>
+                <h6 class="fw-bold">${escapeHtml(product.name)}</h6>
+                ${product.description ? `<p class="small text-muted">${escapeHtml(product.description)}</p>` : ''}
+                <div class="row g-2 align-items-end">
+                    <div class="col-7">
+                        <label class="small fw-bold">Pilih Jenis</label>
+                        <select class="form-select form-select-sm product-select" data-prodid="${product.id}">
+                            ${optionsHtml}
+                        </select>
+                    </div>
+                    <div class="col-3">
+                        <label class="small fw-bold">Kuantiti</label>
+                        <input type="number" class="form-control form-control-sm product-qty" min="0" max="${defaultStock}" value="0" step="1">
+                    </div>
+                    <div class="col-2 text-end">
+                        <div class="product-price fw-bold">RM ${defaultPrice.toFixed(2)}</div>
+                        <small class="stock-info" id="stock-${product.id}">Stok: ${defaultStock}</small>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        container.appendChild(card);
+
+        // Get elements
+        const select = card.querySelector('.product-select');
+        const qtyInput = card.querySelector('.product-qty');
+        const priceSpan = card.querySelector('.product-price');
+        const stockSpan = card.querySelector('.stock-info');
+
+        // Function to update price and stock based on selected option
+        function updateSelection() {
+            const selected = select.options[select.selectedIndex];
+            const price = parseFloat(selected.dataset.price);
+            const stock = parseInt(selected.dataset.stock);
+            const size = selected.dataset.size;
+            const type = selected.dataset.type;
+            priceSpan.innerText = `RM ${price.toFixed(2)}`;
+            stockSpan.innerText = `Stok: ${stock}`;
+            qtyInput.max = stock;
+            if (parseInt(qtyInput.value) > stock) qtyInput.value = stock;
+            // Remove existing cart item for this product (any variant)
+            for (let k in cart) {
+                if (k.startsWith(product.id + '_')) {
+                    delete cart[k];
+                }
+            }
+            // If quantity > 0, add new item
+            let qty = parseInt(qtyInput.value);
+            if (!isNaN(qty) && qty > 0 && qty <= stock) {
+                const key = select.value;
+                const prodName = product.name;
+                cart[key] = {
+                    prodId: product.id,
+                    prodName: prodName,
+                    size: size,
+                    type: type,
+                    price: price,
+                    qty: qty
+                };
+            }
+            calculateTotal();
+            updateCartCount();
+        }
+
+        // Handle select change
+        select.addEventListener('change', () => {
+            // Reset quantity
+            qtyInput.value = 0;
+            updateSelection();
+        });
+
+        // Handle quantity change
+        qtyInput.addEventListener('change', () => {
+            let qty = parseInt(qtyInput.value);
+            const maxStock = parseInt(qtyInput.max);
+            if (isNaN(qty)) qty = 0;
+            if (qty > maxStock) {
+                qty = maxStock;
+                qtyInput.value = maxStock;
+                alert(`Stok hanya tinggal ${maxStock} unit`);
+            }
+            if (qty < 0) {
+                qtyInput.value = 0;
+                qty = 0;
+            }
+            // Remove existing cart entry for this product
+            for (let k in cart) {
+                if (k.startsWith(product.id + '_')) {
+                    delete cart[k];
+                }
+            }
+            if (qty > 0) {
+                const selected = select.options[select.selectedIndex];
+                const price = parseFloat(selected.dataset.price);
+                const size = selected.dataset.size;
+                const type = selected.dataset.type;
+                const key = select.value;
+                cart[key] = {
+                    prodId: product.id,
+                    prodName: product.name,
+                    size: size,
+                    type: type,
+                    price: price,
+                    qty: qty
+                };
+            }
+            calculateTotal();
+            updateCartCount();
+        });
+
+        // Initial cart sync (if product already in cart from previous render? no, fresh)
     });
 }
 
-function setupCategoryFilters() {
-    const btns = document.querySelectorAll('.cat-btn');
-    btns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            btns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            currentCategory = btn.dataset.cat;
-            renderProductsByCategory();
-        });
-    });
-}
-
-function escapeHtml(str) { 
-    if(!str) return ''; 
-    return str.replace(/[&<>"]/g, m => m==='&'?'&amp;':m==='<'?'&lt;':m==='>'?'&gt;':m==='"'?'&quot;':m); 
-}
-
-window.updateCart = function(input, prodId, prodName, size, type, price) {
-    const key = getVariationKey(prodId, size, type);
-    let qty = parseInt(input.value);
-    const maxStock = parseInt(input.getAttribute('data-max'));
-    if (isNaN(qty)) qty = 0;
-    if (qty > maxStock) { alert(`Stok hanya tinggal ${maxStock} unit`); input.value = maxStock; qty = maxStock; }
-    if (qty < 0) { input.value = 0; qty = 0; }
-    if (qty > 0) cart[key] = { prodId, prodName, size, type, price, qty }; else delete cart[key];
-    calculateTotal();
+function updateCartCount() {
     const totalItems = Object.values(cart).reduce((a,b)=>a+b.qty,0);
     document.getElementById('cart-count').innerText = totalItems;
-};
+}
 
 function calculateTotal() {
-    let productTotal = 0; for (let k in cart) productTotal += cart[k].price * cart[k].qty;
+    let productTotal = 0;
+    for (let k in cart) productTotal += cart[k].price * cart[k].qty;
     let grand = productTotal + currentShipping.cost;
     document.getElementById('grand-total').innerText = `RM ${grand.toFixed(2)}`;
     document.getElementById('breakdown-text').innerHTML = `(Produk: RM${productTotal.toFixed(2)} + Penghantaran: RM${currentShipping.cost.toFixed(2)})`;
@@ -587,31 +567,37 @@ function initShippingSelector() {
             opt.classList.add('selected');
             calculateTotal();
         });
-        if(opt.querySelector('input:checked')) { 
-            opt.classList.add('selected'); 
-            currentShipping = { code: opt.dataset.shipping, cost: parseFloat(opt.dataset.cost) }; 
-        }
+        if(opt.querySelector('input:checked')) { opt.classList.add('selected'); currentShipping = { code: opt.dataset.shipping, cost: parseFloat(opt.dataset.cost) }; }
     });
 }
+
+function setupCategoryFilters() {
+    const btns = document.querySelectorAll('.cat-btn');
+    btns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            btns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentCategory = btn.dataset.cat;
+            renderProductsByCategory();
+        });
+    });
+}
+
+function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>"]/g, m => m==='&'?'&amp;':m==='<'?'&lt;':m==='>'?'&gt;':m==='"'?'&quot;':m); }
 
 document.getElementById('checkoutBtn').addEventListener('click', () => {
     if (Object.values(cart).length === 0) { alert("Tiada item dalam keranjang."); return; }
     document.getElementById('shipping-form-section').scrollIntoView({ behavior: 'smooth', block: 'center' });
 });
 
-// ========== UPLOAD RESIT KE IMGBB (BUKAN FIREBASE STORAGE) ==========
+// ========== UPLOAD RESIT KE IMGBB ==========
 async function uploadReceiptToImgBB(file) {
     const formData = new FormData();
     formData.append('image', file);
-    const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-        method: 'POST',
-        body: formData
-    });
+    const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: formData });
     const data = await response.json();
-    if (!data.success) {
-        throw new Error(data.error?.message || 'Gagal upload ke ImgBB');
-    }
-    return data.data.url; // URL terus ke gambar
+    if (!data.success) throw new Error(data.error?.message || 'Gagal upload ke ImgBB');
+    return data.data.url;
 }
 
 const submitBtn = document.getElementById('submitOrderBtn');
@@ -697,14 +683,10 @@ orderForm.addEventListener('submit', async (e) => {
         cart = {};
         calculateTotal();
         document.getElementById('cart-count').innerText = '0';
-        document.querySelectorAll('.qty-input').forEach(inp => inp.value = '0');
-        document.getElementById('pay-receipt').value = '';
-        document.getElementById('pay-later').checked = false;
-        document.getElementById('payment-fields').style.display = 'block';
-        document.getElementById('order-form').reset();
-        alert("✅ Pesanan berjaya disimpan! Resit telah disimpan. Admin akan proses dalam masa 24 jam.");
+        // Reset all quantity inputs and selects (re-render will happen after reload, but we can also refresh)
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<i class="fa-solid fa-check"></i> Pesanan Dihantar!';
+        alert("✅ Pesanan berjaya disimpan! Resit telah disimpan. Admin akan proses dalam masa 24 jam.");
         setTimeout(() => location.reload(), 2000);
     } catch (err) {
         console.error(err);
