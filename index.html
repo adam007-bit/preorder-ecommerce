@@ -15,7 +15,7 @@
     <link rel="apple-touch-icon" href="icon.jpg">
 
     <style>
-        /* Semua CSS asal TIDAK DIUBAH – cuma tambah sedikit untuk compact card */
+        /* Semua CSS asal TIDAK DIUBAH */
         :root {
             --emerald-primary: #10b981;
             --emerald-dark: #059669;
@@ -105,6 +105,38 @@
         .product-qty { width: 80px; text-align: center; margin-left: 10px; }
         .product-price { font-weight: bold; color: var(--emerald-primary); }
         .stock-info { font-size: 0.7rem; color: #6c757d; margin-top: 4px; }
+        /* Protocol Dose section - kad gantian untuk iframe */
+        .protocol-section {
+            margin-top: 30px;
+            margin-bottom: 20px;
+        }
+        .protocol-card {
+            background: white;
+            border-radius: 24px;
+            padding: 1.5rem;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+            transition: 0.2s;
+        }
+        .protocol-card:hover {
+            border-color: var(--emerald-primary);
+            box-shadow: 0 8px 20px rgba(16,185,129,0.1);
+        }
+        .protocol-btn {
+            background: var(--emerald-grad);
+            border: none;
+            border-radius: 60px;
+            padding: 12px 28px;
+            color: white;
+            font-weight: 600;
+            margin-top: 15px;
+            display: inline-block;
+            text-decoration: none;
+        }
+        .protocol-btn:hover {
+            background: linear-gradient(135deg, #047857, #10b981);
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -158,7 +190,20 @@
         </div>
     </div>
 
-    <!-- FORM PENGHANTARAN (sama seperti asal) -->
+    <!-- ========== BAHAGIAN PROTOCOL DOSE (Pautan alternatif) ========== -->
+    <div class="protocol-section">
+        <div class="protocol-card">
+            <i class="fa-solid fa-flask fa-3x text-success mb-3"></i>
+            <h5 class="fw-bold">PROTOCOL DOSE DATABASE</h5>
+            <p class="small text-muted">Rujukan dos lengkap untuk semua peptide dan produk. <br>Klik butang di bawah untuk buka laman web rujukan.</p>
+            <a href="https://www.peptideprotocolportal.com/database" target="_blank" class="protocol-btn">
+                <i class="fa-solid fa-arrow-up-right-from-square me-2"></i> Buka Peptide Protocol Portal
+            </a>
+        </div>
+    </div>
+    <!-- ============================================================ -->
+
+    <!-- FORM PENGHANTARAN -->
     <div class="card form-card p-4 mt-4 shadow-sm" id="shipping-form-section">
         <div class="text-center mb-4">
             <div class="p-3 rounded-circle d-inline-block mb-2 shadow-sm" style="background: var(--emerald-grad); color: white;">
@@ -378,7 +423,34 @@ async function fetchProducts() {
         const snapshot = await getDocs(collection(db, "products"));
         allProducts = [];
         snapshot.forEach(doc => allProducts.push({ id: doc.id, ...doc.data() }));
+        
+        // ========== TAMBAH PRODUK BARU SECARA STATIK ==========
+        // Cek jika produk SLUPP-332 sudah ada
+        const existing = allProducts.find(p => p.name === "SLUPP-332 250mcg Tablet");
+        if (!existing) {
+            const newProduct = {
+                id: "slupp332_manual",
+                name: "SLUPP-332 250mcg Tablet",
+                category: "peptides",
+                description: "250mcg per tablet. 100 biji.",
+                variations: [
+                    {
+                        size: "250mcg",
+                        type: "Tablet (100 biji)",
+                        price: 50
+                    }
+                ]
+            };
+            allProducts.push(newProduct);
+        }
+        
         await fetchStock();
+        // Pastikan stok produk baru ada (jika tiada dalam Firestore)
+        const newKey = getVariationKey("slupp332_manual", "250mcg", "Tablet (100 biji)");
+        if (!stockMap.has(newKey)) {
+            stockMap.set(newKey, { stock: 100, initialStock: 100 });
+        }
+        
         renderProductsByCategory();
         initShippingSelector();
         setupCategoryFilters();
@@ -393,7 +465,6 @@ function renderProductsByCategory() {
     renderProducts(filtered);
 }
 
-// ========== FUNGSI BARU UNTUK COMPACT CARD ==========
 function renderProducts(products) {
     const container = document.getElementById('product-list');
     container.innerHTML = '';
@@ -404,7 +475,6 @@ function renderProducts(products) {
     products.forEach(product => {
         if (!product.variations || product.variations.length === 0) return;
 
-        // Generate options for select
         let optionsHtml = '';
         let defaultKey = '';
         let defaultPrice = 0;
@@ -453,13 +523,11 @@ function renderProducts(products) {
 
         container.appendChild(card);
 
-        // Get elements
         const select = card.querySelector('.product-select');
         const qtyInput = card.querySelector('.product-qty');
         const priceSpan = card.querySelector('.product-price');
         const stockSpan = card.querySelector('.stock-info');
 
-        // Function to update price and stock based on selected option
         function updateSelection() {
             const selected = select.options[select.selectedIndex];
             const price = parseFloat(selected.dataset.price);
@@ -476,7 +544,6 @@ function renderProducts(products) {
                     delete cart[k];
                 }
             }
-            // If quantity > 0, add new item
             let qty = parseInt(qtyInput.value);
             if (!isNaN(qty) && qty > 0 && qty <= stock) {
                 const key = select.value;
@@ -494,14 +561,11 @@ function renderProducts(products) {
             updateCartCount();
         }
 
-        // Handle select change
         select.addEventListener('change', () => {
-            // Reset quantity
             qtyInput.value = 0;
             updateSelection();
         });
 
-        // Handle quantity change
         qtyInput.addEventListener('change', () => {
             let qty = parseInt(qtyInput.value);
             const maxStock = parseInt(qtyInput.max);
@@ -515,7 +579,6 @@ function renderProducts(products) {
                 qtyInput.value = 0;
                 qty = 0;
             }
-            // Remove existing cart entry for this product
             for (let k in cart) {
                 if (k.startsWith(product.id + '_')) {
                     delete cart[k];
@@ -539,8 +602,6 @@ function renderProducts(products) {
             calculateTotal();
             updateCartCount();
         });
-
-        // Initial cart sync (if product already in cart from previous render? no, fresh)
     });
 }
 
@@ -683,7 +744,6 @@ orderForm.addEventListener('submit', async (e) => {
         cart = {};
         calculateTotal();
         document.getElementById('cart-count').innerText = '0';
-        // Reset all quantity inputs and selects (re-render will happen after reload, but we can also refresh)
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<i class="fa-solid fa-check"></i> Pesanan Dihantar!';
         alert("✅ Pesanan berjaya disimpan! Resit telah disimpan. Admin akan proses dalam masa 24 jam.");
