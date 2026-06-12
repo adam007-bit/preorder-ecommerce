@@ -15,7 +15,7 @@
     <link rel="apple-touch-icon" href="icon.jpg">
 
     <style>
-        /* Semua CSS asal TIDAK DIUBAH */
+        /* Semua CSS asal TIDAK DIUBAH - cuma tambah style untuk protocol dose cards */
         :root {
             --emerald-primary: #10b981;
             --emerald-dark: #059669;
@@ -31,7 +31,7 @@
         .step-guide-box { background: white; border-radius: 28px; box-shadow: var(--card-shadow); border: 1px solid #eef2ff; }
         .badge-step-title { background: var(--emerald-grad); box-shadow: 0 4px 10px rgba(16,185,129,0.25); }
         .step-item:hover { color: var(--emerald-primary) !important; }
-        .product-card { border: 1px solid #e2e8f0; border-radius: 24px; background: white; box-shadow: var(--card-shadow); transition: all 0.3s ease; margin-bottom: 16px; padding: 1rem; }
+        .product-card { border: 1px solid #e2e8f0; border-radius: 24px; background: white; box-shadow: var(--card-shadow); transition: all 0.3s ease; margin-bottom: 16px; padding: 1rem; position: relative; }
         .product-card:hover { transform: translateY(-3px); box-shadow: var(--hover-shadow); border-color: var(--emerald-primary); }
         .category-badge { background: var(--emerald-grad); color: white; font-size: 11px; padding: 4px 10px; border-radius: 30px; }
         .form-card { border: 1px solid #e2e8f0; border-radius: 32px; background: white; }
@@ -100,42 +100,104 @@
             border-color: var(--emerald-primary);
             color: var(--emerald-primary);
         }
-        /* Compact product card inner styles */
         .product-select { width: 100%; font-size: 0.85rem; border-radius: 12px; }
         .product-qty { width: 80px; text-align: center; margin-left: 10px; }
         .product-price { font-weight: bold; color: var(--emerald-primary); }
         .stock-info { font-size: 0.7rem; color: #6c757d; margin-top: 4px; }
-        /* Protocol Dose section - kad gantian untuk iframe */
-        .protocol-section {
+        .protocol-icon {
+            cursor: pointer;
+            color: var(--emerald-primary);
+            font-size: 0.85rem;
+            margin-left: 8px;
+            transition: 0.2s;
+            display: inline-block;
+        }
+        .protocol-icon:hover {
+            color: #047857;
+            transform: scale(1.1);
+        }
+        /* Modal ringkas */
+        .protocol-modal .modal-content {
+            border-radius: 24px;
+            border: none;
+        }
+        .protocol-modal .modal-header {
+            background: var(--emerald-grad);
+            color: white;
+            border-radius: 24px 24px 0 0;
+        }
+        /* ===== BAHAGIAN PROTOCOL DOSE - KAD KREATIF ===== */
+        .protocol-dose-section {
             margin-top: 30px;
             margin-bottom: 20px;
         }
-        .protocol-card {
-            background: white;
-            border-radius: 24px;
-            padding: 1.5rem;
-            text-align: center;
-            border: 1px solid #e2e8f0;
-            transition: 0.2s;
-        }
-        .protocol-card:hover {
-            border-color: var(--emerald-primary);
-            box-shadow: 0 8px 20px rgba(16,185,129,0.1);
-        }
-        .protocol-btn {
+        .protocol-dose-header {
             background: var(--emerald-grad);
-            border: none;
-            border-radius: 60px;
-            padding: 12px 28px;
             color: white;
-            font-weight: 600;
-            margin-top: 15px;
-            display: inline-block;
-            text-decoration: none;
+            padding: 12px 20px;
+            border-radius: 28px 28px 0 0;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        .protocol-btn:hover {
-            background: linear-gradient(135deg, #047857, #10b981);
-            color: white;
+        .protocol-dose-header h6 {
+            margin: 0;
+        }
+        .protocol-dose-container {
+            background: white;
+            border-radius: 0 0 28px 28px;
+            border: 1px solid #e2e8f0;
+            border-top: none;
+            padding: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .protocol-card-item {
+            background: #f9fafb;
+            border-radius: 20px;
+            padding: 12px;
+            margin-bottom: 12px;
+            transition: 0.2s;
+            border-left: 4px solid var(--emerald-primary);
+        }
+        .protocol-card-item:hover {
+            background: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            transform: translateX(4px);
+        }
+        .protocol-category-badge {
+            font-size: 10px;
+            background: #eef2ff;
+            padding: 2px 8px;
+            border-radius: 30px;
+            color: #1f2937;
+        }
+        .protocol-dosage {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--emerald-primary);
+        }
+        .protocol-route {
+            font-size: 11px;
+            background: #e2e8f0;
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 30px;
+        }
+        .protocol-search {
+            margin-bottom: 15px;
+        }
+        .protocol-search input {
+            border-radius: 40px;
+            padding: 8px 15px;
+            font-size: 13px;
+            border: 1px solid #e2e8f0;
+        }
+        @media (max-width: 640px) {
+            .protocol-card-item .row {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
@@ -147,6 +209,24 @@
         <i class="fa-solid fa-shield-halved fa-3x mb-3" style="color:#10b981;"></i>
         <h5 class="fw-bold">Terlalu Banyak Cubaan</h5>
         <p class="text-muted small">Anda telah menghantar terlalu banyak pesanan dalam masa singkat. Sila cuba lagi selepas <strong id="cooldown-timer">60</strong> saat.</p>
+    </div>
+</div>
+
+<!-- Modal untuk paparan protocol dose -->
+<div class="modal fade protocol-modal" id="protocolModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-flask me-2"></i>Protocol Dose</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="protocolModalBody">
+                Memuatkan...
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -190,18 +270,26 @@
         </div>
     </div>
 
-    <!-- ========== BAHAGIAN PROTOCOL DOSE (Pautan alternatif) ========== -->
-    <div class="protocol-section">
-        <div class="protocol-card">
-            <i class="fa-solid fa-flask fa-3x text-success mb-3"></i>
-            <h5 class="fw-bold">PROTOCOL DOSE DATABASE</h5>
-            <p class="small text-muted">Rujukan dos lengkap untuk semua peptide dan produk. <br>Klik butang di bawah untuk buka laman web rujukan.</p>
-            <a href="https://www.peptideprotocolportal.com/database" target="_blank" class="protocol-btn">
-                <i class="fa-solid fa-arrow-up-right-from-square me-2"></i> Buka Peptide Protocol Portal
-            </a>
+    <!-- ========== BAHAGIAN PROTOCOL DOSE - KREATIF (CARD GRID) ========== -->
+    <div class="protocol-dose-section">
+        <div class="protocol-dose-header">
+            <h6><i class="fa-solid fa-flask me-2"></i> PROTOCOL DOSE DATABASE</h6>
+            <i class="fa-regular fa-lightbulb"></i>
+        </div>
+        <div class="protocol-dose-container">
+            <div class="protocol-search">
+                <input type="text" id="protocolSearchInput" class="form-control" placeholder="🔍 Cari peptide... (cth: BPC, Semaglutide)">
+            </div>
+            <div id="protocolCardsContainer">
+                <!-- Dynamic cards will be inserted here -->
+                <div class="text-center py-3">Memuatkan data dos...</div>
+            </div>
+        </div>
+        <div class="protocol-note text-center small text-muted mt-2">
+            <i class="fa-regular fa-clock me-1"></i> Rujukan dos adalah daripada Peptide Protocol Portal. Sila rujuk profesional kesihatan sebelum penggunaan.
         </div>
     </div>
-    <!-- ============================================================ -->
+    <!-- ============================================================= -->
 
     <!-- FORM PENGHANTARAN -->
     <div class="card form-card p-4 mt-4 shadow-sm" id="shipping-form-section">
@@ -385,6 +473,49 @@ let stockMap = new Map();
 let allProducts = [];
 let currentCategory = 'all';
 
+// ========== DATA PROTOCOL DOS UNTUK RUJUKAN CEPAT (sama seperti asal) ==========
+const protocolData = [
+    ["BPC-157", "5mg", "250-750mcg (10-30 units)", "Daily", "SubQ/IM", "Healing & Repair", "Inject locally near injury. Synergistic with TB-500"],
+    ["BPC-157", "10mg", "250-750mcg (5-15 units)", "Daily", "SubQ/IM", "Healing & Repair", "Inject locally near injury. Synergistic with TB-500"],
+    ["TB-500", "5mg", "2.5-5mg (50-100 units)", "2x/week", "SubQ", "Healing & Repair", "Synergistic with BPC-157"],
+    ["BPC-157/TB-500 (Wolverine)", "5mg/5mg", "500mcg-2mg (5-20 units)", "5-7 days/week", "SubQ/IM", "Healing & Repair", "DO NOT inject near injury site"],
+    ["ARA-290", "10mg", "1.6-4mg (32-80 units)", "5-7 days/week x 30 days", "SubQ", "Recovery", "Reconstitute with pH 7.4 PBS - NOT bac water"],
+    ["AHK-Cu", "5mg", "200-500mcg (8-20 units)", "5 days on / 2 off", "SubQ", "Hair/Skin/Collagen", "Copper peptide. Wound healing, hair growth"],
+    ["Cartalax", "20mg", "2-5mg (20-50 units)", "5-7 days/week x 10-20 days", "SubQ/IM", "Recovery", "Cartilage and connective tissue regeneration"],
+    ["GLOW Blend (GHK-Cu/BPC-157/TB-500)", "70mg", "3.5-7mg (10-20 units)", "Daily x 20 days", "SubQ", "Hair/Skin/Collagen", "Skin, longevity, healing combo"],
+    ["KPV", "5mg/10mg", "250-500mcg (5-10 units)", "Based on illness", "SubQ", "Anti-Viral", "After surgery, preventative, IBD support"],
+    ["LL-37", "5mg", "100-500mcg (4-20 units)", "3x/week", "SubQ/IM", "Healing & Repair", "Antimicrobial, wound healing, immune"],
+    ["AOD-9604", "5mg/10mg", "500mcg-1mg (50-100 units)", "5 on / 2 off", "SubQ", "Weight Management", "Fasted before bed or upon waking"],
+    ["Cagrilintide", "10mg", "300mcg-4.5mg (6-90 units)", "1x/week", "SubQ", "Weight Management", "Add to GLP-1 to reduce dosage"],
+    ["Semaglutide", "5mg/10mg", "250mcg-2.5mg (5-50 units)", "1x/week", "SubQ", "Weight Management", "Starting dose 250mcg. Same day every week"],
+    ["Tirzepatide", "10mg", "2.5-15mg (titrate)", "1x/week", "SubQ", "Weight Management", "Starting dose 2.5mg. Dual GLP-1/GIP agonist"],
+    ["Retatrutide", "5mg/10mg", "2-12mg (20-120 units)", "1x/week", "SubQ", "Weight Management", "Triple receptor agonist. Starting dose 2mg"],
+    ["Survodutide", "10mg", "600mcg-4.5mg (6-45 units)", "1x/week", "SubQ", "Weight Management", "Dual GLP-1/Glucagon agonist. Start 600mcg"],
+    ["5-Amino-1MQ", "5mg/10mg", "5-10mg (100-200 units)", "1-3x/week", "SubQ", "Weight Management", "NNMT inhibitor. 2-4 week cycles"],
+    ["SLU-PP-332", "5mg", "2-5mg (40-100 units)", "Daily (5 on / 2 off)", "SubQ", "Weight Management", "UCP1 inducer. Thermogenic compound. 8-12 week cycles"],
+    ["MOTS-c", "10mg", "5-10mg (10-20 units)", "Daily x 10-20 days", "SubQ", "Weight Management", "Mitochondrial peptide. Inject before largest meal"],
+    ["CJC-1295 (No DAC)", "5mg/10mg", "200mcg-1mg (4-20 units)", "5 on / 2 off", "SubQ", "Growth Hormone", "Fasted - 45 min before/after injection"],
+    ["CJC-1295 (No DAC)/Ipamorelin", "5mg/5mg", "500mcg-1mg (10-20 units)", "5 on / 2 off", "SubQ", "Growth Hormone", "Fasted administration. Bedtime or AM"],
+    ["Tesamorelin", "5mg/10mg", "1-2mg (10-20 units)", "5 on / 2 off", "SubQ", "Growth Hormone", "Before bedtime. Decreases visceral fat"],
+    ["Adamax", "10mg", "100-500mcg (2-10 units)", "Daily or EOD", "Intranasal/SubQ", "Brain & Mood", "Intranasal preferred. Cycle 5/2 or 10/4"],
+    ["Cerebrolysin", "60mg", "60-120mg (120-240 units)", "Daily x 10-20 days", "IM", "Brain & Mood", "Neurotrophic peptide complex. 2-4 cycles/year"],
+    ["Dihexa", "5mg/10mg", "1-5mg (20-100 units)", "Daily (morning)", "SubQ", "Brain & Mood", "HGF/c-Met modulator. Avoid evening dosing"],
+    ["DSIP", "5mg", "500mcg-1mg (10-20 units)", "As needed before bed", "SubQ", "Delta Sleep", "Delta Sleep Inducing Peptide. Circadian reset"],
+    ["NAD+", "100mg", "50-150mg (100-200 units)", "Daily or 2x/week", "IM", "Brain & Mood", "Single dose not to exceed 250mg"],
+    ["Pinealon", "10mg", "100-300mcg (1-3 units)", "Daily x 10-20 days", "SubQ", "Brain & Mood", "Neuroprotective tripeptide. Maintenance 2-3x/week"],
+    ["Selank", "5mg/10mg", "250-500mcg (5-10 units)", "Daily", "SubQ", "Brain & Mood", "Anti-anxiety. Enhanced learning"],
+    ["Semax", "5mg/10mg", "500mcg-1mg (10-20 units)", "Daily", "SubQ", "Brain & Mood", "BDNF release. Neuroplasticity, brain blood flow"],
+    ["Epithalon", "10mg", "10mg (100 units)", "20 day cycle", "SubQ", "Longevity", "Telomere lengthening. 2-3x annually"],
+    ["GHK-Cu", "100mg", "1-2mg (2-4 units)", "30 days on / 14 off", "SubQ", "Hair/Skin/Collagen", "Wound healing, anti-aging"],
+    ["Melanotan-1", "10mg", "250-500mcg (5-10 units)", "Daily/EOD then weekly", "SubQ", "Melanin/Skin", "Photoprotection and tanning"],
+    ["Thymosin Alpha-1", "5mg/10mg", "1.5-8mg (15-80 units)", "2x/week when sick", "IM", "Immunity", "4x/year for immune support"],
+    ["Thymalin", "10mg", "5-10mg (50-100 units)", "Daily x 10 days", "SubQ/IM", "Immunity", "2-3x/year. Thymus gland support"],
+    ["VIP", "5mg/10mg", "50-200mcg (2-8 units)", "1-4x daily", "Intranasal/SubQ", "Immunity/Neuroimmune", "CIRS, dysautonomia, pulmonary support"],
+    ["PT-141", "5mg/10mg", "500mcg-1mg (10-20 units)", "2 hrs before activity", "SubQ", "Libido/ED", "Not to exceed 20 units. Consult doctor"],
+    ["SS-31", "10mg", "5-10mg (10-20 units)", "Daily x 20 days", "SubQ", "Longevity", "Mitochondrial peptide. 2-3 cycles/year"],
+    ["FOXO4-DRI", "2mg", "200-500mcg (2-5 units)", "Weekly", "SubQ", "Longevity", "Senolytic. Consult specialist before use"]
+];
+
 function getVariationKey(prodId, size, type) { return `${prodId}_${size}_${type}`.replace(/\s/g, '_'); }
 
 async function fetchStock() {
@@ -424,8 +555,6 @@ async function fetchProducts() {
         allProducts = [];
         snapshot.forEach(doc => allProducts.push({ id: doc.id, ...doc.data() }));
         
-        // ========== TAMBAH PRODUK BARU SECARA STATIK ==========
-        // Cek jika produk SLUPP-332 sudah ada
         const existing = allProducts.find(p => p.name === "SLUPP-332 250mcg Tablet");
         if (!existing) {
             const newProduct = {
@@ -445,7 +574,6 @@ async function fetchProducts() {
         }
         
         await fetchStock();
-        // Pastikan stok produk baru ada (jika tiada dalam Firestore)
         const newKey = getVariationKey("slupp332_manual", "250mcg", "Tablet (100 biji)");
         if (!stockMap.has(newKey)) {
             stockMap.set(newKey, { stock: 100, initialStock: 100 });
@@ -458,6 +586,68 @@ async function fetchProducts() {
         console.error(err);
         document.getElementById('product-list').innerHTML = '<div class="alert alert-danger">Gagal muat naik produk. Sila refresh.</div>';
     }
+}
+
+function findProtocolForProduct(productName) {
+    let searchTerm = productName.toLowerCase();
+    if (searchTerm.includes("slupp")) return protocolData.find(p => p[0].toLowerCase().includes("slupp"));
+    if (searchTerm.includes("bpc")) return protocolData.find(p => p[0].toLowerCase().includes("bpc"));
+    if (searchTerm.includes("tb-500")) return protocolData.find(p => p[0].toLowerCase().includes("tb-500"));
+    if (searchTerm.includes("wolverine")) return protocolData.find(p => p[0].toLowerCase().includes("wolverine"));
+    if (searchTerm.includes("ara-290")) return protocolData.find(p => p[0].toLowerCase().includes("ara-290"));
+    if (searchTerm.includes("ahk-cu")) return protocolData.find(p => p[0].toLowerCase().includes("ahk-cu"));
+    if (searchTerm.includes("cartalax")) return protocolData.find(p => p[0].toLowerCase().includes("cartalax"));
+    if (searchTerm.includes("glow")) return protocolData.find(p => p[0].toLowerCase().includes("glow"));
+    if (searchTerm.includes("kpv")) return protocolData.find(p => p[0].toLowerCase().includes("kpv"));
+    if (searchTerm.includes("ll-37")) return protocolData.find(p => p[0].toLowerCase().includes("ll-37"));
+    if (searchTerm.includes("aod")) return protocolData.find(p => p[0].toLowerCase().includes("aod"));
+    if (searchTerm.includes("cagrilintide")) return protocolData.find(p => p[0].toLowerCase().includes("cagrilintide"));
+    if (searchTerm.includes("semaglutide")) return protocolData.find(p => p[0].toLowerCase().includes("semaglutide"));
+    if (searchTerm.includes("tirzepatide")) return protocolData.find(p => p[0].toLowerCase().includes("tirzepatide"));
+    if (searchTerm.includes("retatrutide")) return protocolData.find(p => p[0].toLowerCase().includes("retatrutide"));
+    if (searchTerm.includes("survodutide")) return protocolData.find(p => p[0].toLowerCase().includes("survodutide"));
+    if (searchTerm.includes("5-amino") || searchTerm.includes("5 amino")) return protocolData.find(p => p[0].toLowerCase().includes("5-amino"));
+    if (searchTerm.includes("mots-c")) return protocolData.find(p => p[0].toLowerCase().includes("mots-c"));
+    if (searchTerm.includes("cjc")) return protocolData.find(p => p[0].toLowerCase().includes("cjc"));
+    if (searchTerm.includes("tesamorelin")) return protocolData.find(p => p[0].toLowerCase().includes("tesamorelin"));
+    if (searchTerm.includes("adamax")) return protocolData.find(p => p[0].toLowerCase().includes("adamax"));
+    if (searchTerm.includes("cerebrolysin")) return protocolData.find(p => p[0].toLowerCase().includes("cerebrolysin"));
+    if (searchTerm.includes("dihexa")) return protocolData.find(p => p[0].toLowerCase().includes("dihexa"));
+    if (searchTerm.includes("dsip")) return protocolData.find(p => p[0].toLowerCase().includes("dsip"));
+    if (searchTerm.includes("nad+")) return protocolData.find(p => p[0].toLowerCase().includes("nad+"));
+    if (searchTerm.includes("pinealon")) return protocolData.find(p => p[0].toLowerCase().includes("pinealon"));
+    if (searchTerm.includes("selank")) return protocolData.find(p => p[0].toLowerCase().includes("selank"));
+    if (searchTerm.includes("semax")) return protocolData.find(p => p[0].toLowerCase().includes("semax"));
+    if (searchTerm.includes("epithalon")) return protocolData.find(p => p[0].toLowerCase().includes("epithalon"));
+    if (searchTerm.includes("ghk-cu")) return protocolData.find(p => p[0].toLowerCase().includes("ghk-cu"));
+    if (searchTerm.includes("melanotan")) return protocolData.find(p => p[0].toLowerCase().includes("melanotan-1"));
+    if (searchTerm.includes("thymosin alpha")) return protocolData.find(p => p[0].toLowerCase().includes("thymosin alpha"));
+    if (searchTerm.includes("thymalin")) return protocolData.find(p => p[0].toLowerCase().includes("thymalin"));
+    if (searchTerm.includes("vip")) return protocolData.find(p => p[0].toLowerCase().includes("vip"));
+    if (searchTerm.includes("pt-141")) return protocolData.find(p => p[0].toLowerCase().includes("pt-141"));
+    if (searchTerm.includes("ss-31")) return protocolData.find(p => p[0].toLowerCase().includes("ss-31"));
+    if (searchTerm.includes("foxo4")) return protocolData.find(p => p[0].toLowerCase().includes("foxo4"));
+    return null;
+}
+
+function showProtocolModal(productName) {
+    const protocol = findProtocolForProduct(productName);
+    const modalBody = document.getElementById('protocolModalBody');
+    if (protocol) {
+        modalBody.innerHTML = `
+            <div class="mb-2"><strong class="text-success">Produk:</strong> ${protocol[0]}</div>
+            <div class="mb-2"><strong class="text-success">Jumlah:</strong> ${protocol[1]}</div>
+            <div class="mb-2"><strong class="text-success">Dos/Unit:</strong> ${protocol[2]}</div>
+            <div class="mb-2"><strong class="text-success">Kekerapan:</strong> ${protocol[3]}</div>
+            <div class="mb-2"><strong class="text-success">Laluan:</strong> ${protocol[4]}</div>
+            <div class="mb-2"><strong class="text-success">Kategori:</strong> ${protocol[5]}</div>
+            <div class="mb-2"><strong class="text-success">Nota:</strong> ${protocol[6]}</div>
+        `;
+    } else {
+        modalBody.innerHTML = `<div class="text-center text-muted">Tiada maklumat protocol dose untuk produk ini.</div>`;
+    }
+    const modal = new bootstrap.Modal(document.getElementById('protocolModal'));
+    modal.show();
 }
 
 function renderProductsByCategory() {
@@ -500,7 +690,10 @@ function renderProducts(products) {
                     <span class="category-badge">${escapeHtml(product.category || getProductCategory(product.name).toUpperCase())}</span>
                     <span class="badge bg-warning text-dark"><i class="fa-solid fa-fire"></i> Hot</span>
                 </div>
-                <h6 class="fw-bold">${escapeHtml(product.name)}</h6>
+                <div>
+                    <h6 class="fw-bold d-inline">${escapeHtml(product.name)}</h6>
+                    <i class="fa-regular fa-circle-question protocol-icon" data-product="${escapeHtml(product.name)}" title="Klik untuk lihat protocol dose"></i>
+                </div>
                 ${product.description ? `<p class="small text-muted">${escapeHtml(product.description)}</p>` : ''}
                 <div class="row g-2 align-items-end">
                     <div class="col-7">
@@ -523,6 +716,15 @@ function renderProducts(products) {
 
         container.appendChild(card);
 
+        const protocolIcon = card.querySelector('.protocol-icon');
+        if (protocolIcon) {
+            protocolIcon.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const productName = protocolIcon.dataset.product;
+                showProtocolModal(productName);
+            });
+        }
+
         const select = card.querySelector('.product-select');
         const qtyInput = card.querySelector('.product-qty');
         const priceSpan = card.querySelector('.product-price');
@@ -538,7 +740,6 @@ function renderProducts(products) {
             stockSpan.innerText = `Stok: ${stock}`;
             qtyInput.max = stock;
             if (parseInt(qtyInput.value) > stock) qtyInput.value = stock;
-            // Remove existing cart item for this product (any variant)
             for (let k in cart) {
                 if (k.startsWith(product.id + '_')) {
                     delete cart[k];
@@ -756,6 +957,65 @@ orderForm.addEventListener('submit', async (e) => {
     }
 });
 
+// ========== PROTOCOL DOSE - RENDER KARDS ==========
+function renderProtocolCards() {
+    const container = document.getElementById('protocolCardsContainer');
+    if (!container) return;
+    container.innerHTML = '';
+    protocolData.forEach(protocol => {
+        const [name, amount, dose, frequency, route, category, note] = protocol;
+        const categoryColors = {
+            "Weight Management": "warning",
+            "Healing & Repair": "success",
+            "Brain & Mood": "info",
+            "Growth Hormone": "primary",
+            "Hair/Skin/Collagen": "danger",
+            "Longevity": "dark",
+            "Immunity": "secondary",
+            "Melanin/Skin": "purple",
+            "Recovery": "success",
+            "Libido/ED": "pink",
+            "Delta Sleep": "secondary",
+            "Anti-Viral": "danger"
+        };
+        const color = categoryColors[category] || "emerald";
+        const cardHtml = `
+            <div class="protocol-card-item" data-name="${name.toLowerCase()}">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <strong class="text-dark">${name}</strong>
+                        <span class="protocol-category-badge ms-2">${category}</span>
+                    </div>
+                    <span class="protocol-dosage">${dose}</span>
+                </div>
+                <div class="mt-1">
+                    <span class="protocol-route">${route}</span>
+                    <span class="ms-2 small text-muted">${frequency}</span>
+                </div>
+                <div class="small text-muted mt-1">${note.substring(0, 80)}${note.length > 80 ? '...' : ''}</div>
+            </div>
+        `;
+        container.innerHTML += cardHtml;
+    });
+    // Add search functionality
+    const searchInput = document.getElementById('protocolSearchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const cards = document.querySelectorAll('.protocol-card-item');
+            cards.forEach(card => {
+                const name = card.dataset.name;
+                if (name.includes(term)) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    }
+}
+
+renderProtocolCards();
 fetchProducts();
 </script>
 
