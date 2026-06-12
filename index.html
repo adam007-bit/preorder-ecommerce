@@ -15,7 +15,7 @@
     <link rel="apple-touch-icon" href="icon.jpg">
 
     <style>
-        /* CSS asal dikekalkan sepenuhnya - hanya tambah sedikit untuk toast */
+        /* CSS asal dikekalkan - tambah sedikit untuk protocol icon */
         :root {
             --emerald-primary: #10b981;
             --emerald-dark: #059669;
@@ -29,7 +29,7 @@
         .navbar-brand-text { background: var(--emerald-grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; font-size: 18px; }
         .step-guide-box { background: white; border-radius: 28px; box-shadow: var(--card-shadow); border: 1px solid #eef2ff; }
         .badge-step-title { background: var(--emerald-grad); box-shadow: 0 4px 10px rgba(16,185,129,0.25); }
-        .product-card { border: 1px solid #e2e8f0; border-radius: 24px; background: white; box-shadow: var(--card-shadow); transition: 0.3s; margin-bottom: 16px; padding: 1rem; }
+        .product-card { border: 1px solid #e2e8f0; border-radius: 24px; background: white; box-shadow: var(--card-shadow); transition: 0.3s; margin-bottom: 16px; padding: 1rem; position: relative; }
         .product-card:hover { transform: translateY(-3px); box-shadow: var(--hover-shadow); border-color: var(--emerald-primary); }
         .category-badge { background: var(--emerald-grad); color: white; font-size: 11px; padding: 4px 10px; border-radius: 30px; }
         .form-control, .form-select { border-radius: 14px; border: 1px solid #e2e8f0; }
@@ -57,7 +57,7 @@
             gap: 10px;
             cursor: pointer;
         }
-        .hp-field { opacity: 0; position: absolute; height: 0; width: 0; }
+        .hp-field { opacity: 0; position: absolute; height: 0; width: 0; z-index: -1; }
         .rate-limit-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center; }
         .rate-limit-overlay.show { display:flex; }
         .rate-limit-box { background:white; border-radius:24px; padding:32px; text-align:center; max-width:320px; }
@@ -151,11 +151,97 @@
             pointer-events: none;
             white-space: nowrap;
         }
-        .toast-notif.show {
-            opacity: 1;
+        .toast-notif.show { opacity: 1; }
+        /* Protocol Dose Styles */
+        .protocol-dose-section {
+            margin-top: 30px;
+            margin-bottom: 20px;
+        }
+        .protocol-dose-header {
+            background: var(--emerald-grad);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 28px 28px 0 0;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .protocol-dose-container {
+            background: white;
+            border-radius: 0 0 28px 28px;
+            border: 1px solid #e2e8f0;
+            border-top: none;
+            padding: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .protocol-card-item {
+            background: #f9fafb;
+            border-radius: 20px;
+            padding: 12px;
+            margin-bottom: 12px;
+            transition: 0.2s;
+            border-left: 4px solid var(--emerald-primary);
+        }
+        .protocol-card-item:hover {
+            background: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            transform: translateX(4px);
+        }
+        .protocol-category-badge {
+            font-size: 10px;
+            background: #eef2ff;
+            padding: 2px 8px;
+            border-radius: 30px;
+            color: #1f2937;
+        }
+        .protocol-dosage {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--emerald-primary);
+        }
+        .protocol-route {
+            font-size: 11px;
+            background: #e2e8f0;
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 30px;
+        }
+        .protocol-search {
+            margin-bottom: 15px;
+        }
+        .protocol-search input {
+            border-radius: 40px;
+            padding: 8px 15px;
+            font-size: 13px;
+            border: 1px solid #e2e8f0;
+        }
+        .protocol-icon {
+            cursor: pointer;
+            color: var(--emerald-primary);
+            font-size: 0.85rem;
+            margin-left: 8px;
+            transition: 0.2s;
+            display: inline-block;
+        }
+        .protocol-icon:hover {
+            color: #047857;
+            transform: scale(1.1);
+        }
+        .protocol-modal .modal-content {
+            border-radius: 24px;
+            border: none;
+        }
+        .protocol-modal .modal-header {
+            background: var(--emerald-grad);
+            color: white;
+            border-radius: 24px 24px 0 0;
         }
         @media (max-width: 640px) {
-            .toast-notif { font-size: 12px; white-space: normal; text-align: center; width: 90%; }
+            .protocol-card-item .row {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
@@ -163,7 +249,40 @@
 
 <div class="toast-notif" id="toastMsg">✅ Berjaya</div>
 
-<!-- Modal Login (ringkas) -->
+<!-- Honeypot fields (keselamatan) -->
+<div class="hp-field" aria-hidden="true">
+    <input type="text" id="hp-website" name="website" tabindex="-1" autocomplete="off" placeholder="Jangan isi">
+    <input type="text" id="hp-email" name="email_address" tabindex="-1" autocomplete="off" placeholder="Jangan isi">
+</div>
+
+<!-- Rate limit overlay -->
+<div class="rate-limit-overlay" id="rateLimitOverlay">
+    <div class="rate-limit-box">
+        <i class="fa-solid fa-shield-halved fa-3x mb-3" style="color:#10b981;"></i>
+        <h5 class="fw-bold">Terlalu Banyak Cubaan</h5>
+        <p class="text-muted small">Sila cuba lagi selepas <strong id="cooldown-timer">60</strong> saat.</p>
+    </div>
+</div>
+
+<!-- Modal Protocol Dose -->
+<div class="modal fade protocol-modal" id="protocolModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-flask me-2"></i>Protocol Dose</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="protocolModalBody">
+                Memuatkan...
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Login -->
 <div class="modal fade" id="loginModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4">
@@ -173,9 +292,9 @@
             <div class="modal-body">
                 <div id="loginStep1">
                     <label class="form-label">Nama Penuh</label>
-                    <input type="text" id="loginName" class="form-control mb-3" placeholder="Ahmad Ali">
+                    <input type="text" id="loginName" class="form-control mb-3" placeholder="Ahmad Ali" maxlength="80">
                     <label class="form-label">Nombor WhatsApp / Telefon</label>
-                    <input type="tel" id="loginPhone" class="form-control mb-3" placeholder="0123456789">
+                    <input type="tel" id="loginPhone" class="form-control mb-3" placeholder="0123456789" maxlength="15">
                     <button id="loginBtn" class="btn btn-success w-100">Log Masuk / Daftar</button>
                 </div>
                 <div id="loginStep2" style="display:none;">
@@ -246,56 +365,75 @@
         <h6 class="fw-bold mb-3"><i class="fa-regular fa-receipt text-success me-2"></i>Pesanan Saya</h6>
         <div id="ordersListContainer"><div class="text-center text-muted py-4">Tiada pesanan.</div></div>
     </div>
-</div>
 
-<!-- Modal Checkout (borang seperti asal) -->
-<div class="modal fade" id="checkoutModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content rounded-4">
-            <div class="modal-header">
-                <h5 class="modal-title fw-bold"><i class="fa-solid fa-cart-shopping"></i> Selesaikan Pesanan</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <!-- Protocol Dose Section -->
+    <div class="protocol-dose-section">
+        <div class="protocol-dose-header">
+            <h6><i class="fa-solid fa-flask me-2"></i> PROTOCOL DOSE DATABASE</h6>
+            <i class="fa-regular fa-lightbulb"></i>
+        </div>
+        <div class="protocol-dose-container">
+            <div class="protocol-search">
+                <input type="text" id="protocolSearchInput" class="form-control" placeholder="🔍 Cari peptide... (cth: BPC, Semaglutide)">
             </div>
-            <div class="modal-body">
-                <div class="mb-3"><label class="form-label small fw-bold"><i class="fa-regular fa-user"></i> Nama Penuh</label><input type="text" id="checkoutName" class="form-control" required></div>
-                <div class="mb-3"><label class="form-label small fw-bold"><i class="fa-brands fa-whatsapp"></i> No. WhatsApp</label><input type="tel" id="checkoutPhone" class="form-control" readonly></div>
-                <div class="mb-3"><label class="form-label small fw-bold"><i class="fa-regular fa-map"></i> Alamat Lengkap</label><textarea id="checkoutAddress" class="form-control" rows="2" required></textarea></div>
-                <div class="row g-2 mb-3">
-                    <div class="col-6"><label class="small fw-bold">Poskod</label><input id="checkoutPostcode" class="form-control"></div>
-                    <div class="col-6"><label class="small fw-bold">Negeri</label><input id="checkoutState" class="form-control"></div>
-                </div>
+            <div id="protocolCardsContainer">
+                <div class="text-center py-3">Memuatkan data dos...</div>
+            </div>
+        </div>
+        <div class="protocol-note text-center small text-muted mt-2">
+            <i class="fa-regular fa-clock me-1"></i> Rujukan dos adalah daripada Peptide Protocol Portal. Sila rujuk profesional kesihatan sebelum penggunaan.
+        </div>
+    </div>
 
-                <div class="mb-4">
-                    <label class="form-label fw-bold small"><i class="fa-solid fa-truck-fast"></i> Pilih Kawasan Penghantaran</label>
-                    <div class="row g-2" id="checkoutShipping">
-                        <div class="col-4"><div class="shipping-option text-center p-2 selected" data-code="SM" data-cost="10">SM - RM10</div></div>
-                        <div class="col-4"><div class="shipping-option text-center p-2" data-code="SS" data-cost="20">SS - RM20</div></div>
-                        <div class="col-4"><div class="shipping-option text-center p-2" data-code="SG" data-cost="80">Singapore - RM80</div></div>
+    <!-- Modal Checkout -->
+    <div class="modal fade" id="checkoutModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content rounded-4">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold"><i class="fa-solid fa-cart-shopping"></i> Selesaikan Pesanan</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3"><label class="form-label small fw-bold"><i class="fa-regular fa-user"></i> Nama Penuh</label><input type="text" id="checkoutName" class="form-control" required maxlength="80"></div>
+                    <div class="mb-3"><label class="form-label small fw-bold"><i class="fa-brands fa-whatsapp"></i> No. WhatsApp</label><input type="tel" id="checkoutPhone" class="form-control" readonly></div>
+                    <div class="mb-3"><label class="form-label small fw-bold"><i class="fa-regular fa-map"></i> Alamat Lengkap</label><textarea id="checkoutAddress" class="form-control" rows="2" required maxlength="300"></textarea></div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6"><label class="small fw-bold">Poskod</label><input id="checkoutPostcode" class="form-control" maxlength="10"></div>
+                        <div class="col-6"><label class="small fw-bold">Negeri</label><input id="checkoutState" class="form-control" maxlength="50"></div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small"><i class="fa-solid fa-truck-fast"></i> Pilih Kawasan Penghantaran</label>
+                        <div class="row g-2" id="checkoutShipping">
+                            <div class="col-4"><div class="shipping-option text-center p-2 selected" data-code="SM" data-cost="10">SM - RM10</div></div>
+                            <div class="col-4"><div class="shipping-option text-center p-2" data-code="SS" data-cost="20">SS - RM20</div></div>
+                            <div class="col-4"><div class="shipping-option text-center p-2" data-code="SG" data-cost="80">Singapore - RM80</div></div>
+                        </div>
+                    </div>
+
+                    <div class="qr-placeholder text-center mb-4 shadow-sm p-4">
+                        <h6 class="fw-bold mb-3"><i class="fa-solid fa-building-columns text-emerald"></i> PEMBAYARAN</h6>
+                        <div class="p-3 border rounded-4 bg-white mb-3"><small class="text-muted">MAYBANK</small><br><strong class="fs-5">5521077466164</strong><br><small>VELXERA VENTURES</small></div>
+                        <div class="bg-white border rounded-4 d-inline-block p-2"><img src="qr-payment.jpg" alt="DuitNow QR" style="max-width: 140px;" onerror="this.src='https://placehold.co/140x140?text=QR+Code'"></div>
+                    </div>
+
+                    <div class="card p-3 border-0 rounded-4 bg-light mb-4">
+                        <div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="payLaterCheckbox"><label class="form-check-label small fw-bold">Bayar Kemudian (tanpa resit)</label></div>
+                        <div id="paymentFields">
+                            <div class="mb-2"><label class="form-label text-muted small">Nama Bank Pengirim</label><input type="text" class="form-control form-control-sm" id="bankName" placeholder="CIMB / Maybank" maxlength="50"></div>
+                            <div><label class="form-label text-muted small">Resit Pembayaran (Gambar)</label><input type="file" class="form-control form-control-sm" id="checkoutReceipt" accept="image/jpeg,image/png,image/webp,image/gif"><div id="checkoutProgress" class="progress-upload" style="display:none;">⏳ Memuat naik & memampatkan...</div></div>
+                        </div>
+                    </div>
+
+                    <div class="total-box text-center my-3 p-3 rounded-4" style="background: var(--emerald-grad); color: white;">
+                        <span class="small">TOTAL (Produk + Penghantaran)</span>
+                        <h3 class="fw-bold m-0" id="checkoutTotal">RM 0.00</h3>
                     </div>
                 </div>
-
-                <div class="qr-placeholder text-center mb-4 shadow-sm p-4">
-                    <h6 class="fw-bold mb-3"><i class="fa-solid fa-building-columns text-emerald"></i> PEMBAYARAN</h6>
-                    <div class="p-3 border rounded-4 bg-white mb-3"><small class="text-muted">MAYBANK</small><br><strong class="fs-5">5521077466164</strong><br><small>VELXERA VENTURES</small></div>
-                    <div class="bg-white border rounded-4 d-inline-block p-2"><img src="qr-payment.jpg" alt="DuitNow QR" style="max-width: 140px;" onerror="this.src='https://placehold.co/140x140?text=QR+Code'"></div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button id="placeOrderBtn" class="btn btn-success">Place Order <i class="fa-solid fa-check-circle"></i></button>
                 </div>
-
-                <div class="card p-3 border-0 rounded-4 bg-light mb-4">
-                    <div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="payLaterCheckbox"><label class="form-check-label small fw-bold">Bayar Kemudian (tanpa resit)</label></div>
-                    <div id="paymentFields">
-                        <div class="mb-2"><label class="form-label text-muted small">Nama Bank Pengirim</label><input type="text" class="form-control form-control-sm" id="bankName" placeholder="CIMB / Maybank"></div>
-                        <div><label class="form-label text-muted small">Resit Pembayaran (Gambar)</label><input type="file" class="form-control form-control-sm" id="checkoutReceipt" accept="image/jpeg,image/png,image/webp,image/gif"><div id="checkoutProgress" class="progress-upload" style="display:none;">⏳ Memuat naik & memampatkan...</div></div>
-                    </div>
-                </div>
-
-                <div class="total-box text-center my-3 p-3 rounded-4" style="background: var(--emerald-grad); color: white;">
-                    <span class="small">TOTAL (Produk + Penghantaran)</span>
-                    <h3 class="fw-bold m-0" id="checkoutTotal">RM 0.00</h3>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                <button id="placeOrderBtn" class="btn btn-success">Place Order <i class="fa-solid fa-check-circle"></i></button>
             </div>
         </div>
     </div>
@@ -319,47 +457,69 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-// ========== FUNGSI MAMPATAN IMEJ (UPLOAD LAGU) ==========
-async function compressImage(file, maxWidth = 900, quality = 0.7) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = (e) => {
-            const img = new Image();
-            img.src = e.target.result;
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                let width = img.width;
-                let height = img.height;
-                if (width > maxWidth) {
-                    height = (height * maxWidth) / width;
-                    width = maxWidth;
-                }
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
-                canvas.toBlob((blob) => {
-                    if (!blob) reject(new Error('Gagal memampatkan'));
-                    const compressedFile = new File([blob], file.name, { type: 'image/jpeg' });
-                    resolve(compressedFile);
-                }, 'image/jpeg', quality);
-            };
-            img.onerror = reject;
-        };
-        reader.onerror = reject;
-    });
+// ======================= KESELAMATAN =======================
+let orderAttempts = [];
+const RATE_LIMIT_MAX = 3;
+const RATE_LIMIT_WINDOW_MS = 60 * 1000;
+const RATE_LIMIT_COOLDOWN_S = 60;
+
+function isRateLimited() {
+    const now = Date.now();
+    orderAttempts = orderAttempts.filter(t => now - t < RATE_LIMIT_WINDOW_MS);
+    if (orderAttempts.length >= RATE_LIMIT_MAX) return true;
+    orderAttempts.push(now);
+    return false;
 }
 
-// Toast notification
-function showToast(msg, isError = false) {
-    const toast = document.getElementById('toastMsg');
-    toast.innerHTML = isError ? `⚠️ ${msg}` : `✅ ${msg}`;
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 3000);
+function showRateLimitOverlay() {
+    const overlay = document.getElementById('rateLimitOverlay');
+    const timerEl = document.getElementById('cooldown-timer');
+    overlay.classList.add('show');
+    let remaining = RATE_LIMIT_COOLDOWN_S;
+    timerEl.innerText = remaining;
+    const interval = setInterval(() => {
+        remaining--;
+        timerEl.innerText = remaining;
+        if (remaining <= 0) {
+            clearInterval(interval);
+            overlay.classList.remove('show');
+        }
+    }, 1000);
 }
 
-// Data oral peptides
+function isBotDetected() {
+    const hpWebsite = document.getElementById('hp-website')?.value || '';
+    const hpEmail = document.getElementById('hp-email')?.value || '';
+    return (hpWebsite !== '' || hpEmail !== '');
+}
+
+function sanitize(str) {
+    if (!str) return '';
+    return str.replace(/<[^>]*>/g, '').replace(/[<>"'`;\\]/g, '').trim().substring(0, 500);
+}
+
+function isValidName(name) {
+    return /^[a-zA-Z\u00C0-\u024F\u0400-\u04FF\s'.,-]{2,80}$/.test(name);
+}
+
+function isValidPhone(phone) {
+    const cleaned = phone.replace(/[\s\-\(\)\+]/g, '');
+    return /^(60|0)[1-9][0-9]{7,10}$/.test(cleaned) || /^(65)[6-9][0-9]{7}$/.test(cleaned);
+}
+
+function isValidPostcode(pc) {
+    return /^[0-9]{5,6}$/.test(pc.replace(/\s/g, ''));
+}
+
+function isValidReceipt(file) {
+    if (!file) return { ok: true };
+    const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!allowed.includes(file.type)) return { ok: false, msg: 'Format fail tidak sah (JPG/PNG/WEBP/GIF)' };
+    if (file.size > 5 * 1024 * 1024) return { ok: false, msg: 'Saiz maksimum 5MB' };
+    return { ok: true };
+}
+
+// ========== DATA ORAL PEPTIDES ==========
 const oralPeptidesData = [
     { id: "oral_5amino_1mq", name: "5-Amino-1MQ", category: "oral", description: "Supports metabolism, helps increase calorie burning, and may assist with fat loss.", variations: [{ size: "50mg", type: "60 Capsules", price: 210 }], stock: 100 },
     { id: "oral_bpc157", name: "BPC-157", category: "oral", description: "Supports recovery, tissue repair, gut health, and injury healing.", variations: [{ size: "500mcg", type: "100 Capsules", price: 160 }], stock: 100 },
@@ -369,6 +529,49 @@ const oralPeptidesData = [
     { id: "oral_orforglipron", name: "Orforglipron", category: "oral", description: "Helps reduce appetite, improve blood sugar control, and support weight management.", variations: [{ size: "6mg", type: "90 Capsules", price: 480 }], stock: 100 },
     { id: "oral_slupp332", name: "SLU-PP-332", category: "oral", description: "Designed to enhance endurance, increase energy utilization, and support fat burning.", variations: [{ size: "250mcg", type: "100 Capsules", price: 70 }], stock: 100 },
     { id: "oral_kpv", name: "KPV", category: "oral", description: "Used to calm inflammation in the gut, skin, and throughout the body.", variations: [{ size: "300mcg", type: "60 Capsules", price: 100 }], stock: 100 }
+];
+
+// ========== DATA PROTOCOL DOS ==========
+const protocolData = [
+    ["BPC-157", "5mg", "250-750mcg (10-30 units)", "Daily", "SubQ/IM", "Healing & Repair", "Inject locally near injury. Synergistic with TB-500"],
+    ["BPC-157", "10mg", "250-750mcg (5-15 units)", "Daily", "SubQ/IM", "Healing & Repair", "Inject locally near injury. Synergistic with TB-500"],
+    ["TB-500", "5mg", "2.5-5mg (50-100 units)", "2x/week", "SubQ", "Healing & Repair", "Synergistic with BPC-157"],
+    ["BPC-157/TB-500 (Wolverine)", "5mg/5mg", "500mcg-2mg (5-20 units)", "5-7 days/week", "SubQ/IM", "Healing & Repair", "DO NOT inject near injury site"],
+    ["ARA-290", "10mg", "1.6-4mg (32-80 units)", "5-7 days/week x 30 days", "SubQ", "Recovery", "Reconstitute with pH 7.4 PBS - NOT bac water"],
+    ["AHK-Cu", "5mg", "200-500mcg (8-20 units)", "5 days on / 2 off", "SubQ", "Hair/Skin/Collagen", "Copper peptide. Wound healing, hair growth"],
+    ["Cartalax", "20mg", "2-5mg (20-50 units)", "5-7 days/week x 10-20 days", "SubQ/IM", "Recovery", "Cartilage and connective tissue regeneration"],
+    ["GLOW Blend (GHK-Cu/BPC-157/TB-500)", "70mg", "3.5-7mg (10-20 units)", "Daily x 20 days", "SubQ", "Hair/Skin/Collagen", "Skin, longevity, healing combo"],
+    ["KPV", "5mg/10mg", "250-500mcg (5-10 units)", "Based on illness", "SubQ", "Anti-Viral", "After surgery, preventative, IBD support"],
+    ["LL-37", "5mg", "100-500mcg (4-20 units)", "3x/week", "SubQ/IM", "Healing & Repair", "Antimicrobial, wound healing, immune"],
+    ["AOD-9604", "5mg/10mg", "500mcg-1mg (50-100 units)", "5 on / 2 off", "SubQ", "Weight Management", "Fasted before bed or upon waking"],
+    ["Cagrilintide", "10mg", "300mcg-4.5mg (6-90 units)", "1x/week", "SubQ", "Weight Management", "Add to GLP-1 to reduce dosage"],
+    ["Semaglutide", "5mg/10mg", "250mcg-2.5mg (5-50 units)", "1x/week", "SubQ", "Weight Management", "Starting dose 250mcg. Same day every week"],
+    ["Tirzepatide", "10mg", "2.5-15mg (titrate)", "1x/week", "SubQ", "Weight Management", "Starting dose 2.5mg. Dual GLP-1/GIP agonist"],
+    ["Retatrutide", "5mg/10mg", "2-12mg (20-120 units)", "1x/week", "SubQ", "Weight Management", "Triple receptor agonist. Starting dose 2mg"],
+    ["Survodutide", "10mg", "600mcg-4.5mg (6-45 units)", "1x/week", "SubQ", "Weight Management", "Dual GLP-1/Glucagon agonist. Start 600mcg"],
+    ["5-Amino-1MQ", "5mg/10mg", "5-10mg (100-200 units)", "1-3x/week", "SubQ", "Weight Management", "NNMT inhibitor. 2-4 week cycles"],
+    ["SLU-PP-332", "5mg", "2-5mg (40-100 units)", "Daily (5 on / 2 off)", "SubQ", "Weight Management", "UCP1 inducer. Thermogenic compound. 8-12 week cycles"],
+    ["MOTS-c", "10mg", "5-10mg (10-20 units)", "Daily x 10-20 days", "SubQ", "Weight Management", "Mitochondrial peptide. Inject before largest meal"],
+    ["CJC-1295 (No DAC)", "5mg/10mg", "200mcg-1mg (4-20 units)", "5 on / 2 off", "SubQ", "Growth Hormone", "Fasted - 45 min before/after injection"],
+    ["CJC-1295 (No DAC)/Ipamorelin", "5mg/5mg", "500mcg-1mg (10-20 units)", "5 on / 2 off", "SubQ", "Growth Hormone", "Fasted administration. Bedtime or AM"],
+    ["Tesamorelin", "5mg/10mg", "1-2mg (10-20 units)", "5 on / 2 off", "SubQ", "Growth Hormone", "Before bedtime. Decreases visceral fat"],
+    ["Adamax", "10mg", "100-500mcg (2-10 units)", "Daily or EOD", "Intranasal/SubQ", "Brain & Mood", "Intranasal preferred. Cycle 5/2 or 10/4"],
+    ["Cerebrolysin", "60mg", "60-120mg (120-240 units)", "Daily x 10-20 days", "IM", "Brain & Mood", "Neurotrophic peptide complex. 2-4 cycles/year"],
+    ["Dihexa", "5mg/10mg", "1-5mg (20-100 units)", "Daily (morning)", "SubQ", "Brain & Mood", "HGF/c-Met modulator. Avoid evening dosing"],
+    ["DSIP", "5mg", "500mcg-1mg (10-20 units)", "As needed before bed", "SubQ", "Delta Sleep", "Delta Sleep Inducing Peptide. Circadian reset"],
+    ["NAD+", "100mg", "50-150mg (100-200 units)", "Daily or 2x/week", "IM", "Brain & Mood", "Single dose not to exceed 250mg"],
+    ["Pinealon", "10mg", "100-300mcg (1-3 units)", "Daily x 10-20 days", "SubQ", "Brain & Mood", "Neuroprotective tripeptide. Maintenance 2-3x/week"],
+    ["Selank", "5mg/10mg", "250-500mcg (5-10 units)", "Daily", "SubQ", "Brain & Mood", "Anti-anxiety. Enhanced learning"],
+    ["Semax", "5mg/10mg", "500mcg-1mg (10-20 units)", "Daily", "SubQ", "Brain & Mood", "BDNF release. Neuroplasticity, brain blood flow"],
+    ["Epithalon", "10mg", "10mg (100 units)", "20 day cycle", "SubQ", "Longevity", "Telomere lengthening. 2-3x annually"],
+    ["GHK-Cu", "100mg", "1-2mg (2-4 units)", "30 days on / 14 off", "SubQ", "Hair/Skin/Collagen", "Wound healing, anti-aging"],
+    ["Melanotan-1", "10mg", "250-500mcg (5-10 units)", "Daily/EOD then weekly", "SubQ", "Melanin/Skin", "Photoprotection and tanning"],
+    ["Thymosin Alpha-1", "5mg/10mg", "1.5-8mg (15-80 units)", "2x/week when sick", "IM", "Immunity", "4x/year for immune support"],
+    ["Thymalin", "10mg", "5-10mg (50-100 units)", "Daily x 10 days", "SubQ/IM", "Immunity", "2-3x/year. Thymus gland support"],
+    ["VIP", "5mg/10mg", "50-200mcg (2-8 units)", "1-4x daily", "Intranasal/SubQ", "Immunity/Neuroimmune", "CIRS, dysautonomia, pulmonary support"],
+    ["PT-141", "5mg/10mg", "500mcg-1mg (10-20 units)", "2 hrs before activity", "SubQ", "Libido/ED", "Not to exceed 20 units. Consult doctor"],
+    ["SS-31", "10mg", "5-10mg (10-20 units)", "Daily x 20 days", "SubQ", "Longevity", "Mitochondrial peptide. 2-3 cycles/year"],
+    ["FOXO4-DRI", "2mg", "200-500mcg (2-5 units)", "Weekly", "SubQ", "Longevity", "Senolytic. Consult specialist before use"]
 ];
 
 let allProducts = [];
@@ -405,6 +608,31 @@ function filterProducts(products, oralList, category) {
         if(category === 'beauty') return cat === 'beauty';
         return true;
     });
+}
+
+function findProtocolForProduct(productName) {
+    const searchTerm = productName.toLowerCase();
+    return protocolData.find(p => p[0].toLowerCase().includes(searchTerm) || searchTerm.includes(p[0].toLowerCase())) || null;
+}
+
+function showProtocolModal(productName) {
+    const protocol = findProtocolForProduct(productName);
+    const modalBody = document.getElementById('protocolModalBody');
+    if (protocol) {
+        modalBody.innerHTML = `
+            <div class="mb-2"><strong class="text-success">Produk:</strong> ${protocol[0]}</div>
+            <div class="mb-2"><strong class="text-success">Jumlah:</strong> ${protocol[1]}</div>
+            <div class="mb-2"><strong class="text-success">Dos/Unit:</strong> ${protocol[2]}</div>
+            <div class="mb-2"><strong class="text-success">Kekerapan:</strong> ${protocol[3]}</div>
+            <div class="mb-2"><strong class="text-success">Laluan:</strong> ${protocol[4]}</div>
+            <div class="mb-2"><strong class="text-success">Kategori:</strong> ${protocol[5]}</div>
+            <div class="mb-2"><strong class="text-success">Nota:</strong> ${protocol[6]}</div>
+        `;
+    } else {
+        modalBody.innerHTML = `<div class="text-center text-muted">Tiada maklumat protocol dose untuk produk ini.</div>`;
+    }
+    const modal = new bootstrap.Modal(document.getElementById('protocolModal'));
+    modal.show();
 }
 
 async function fetchAndRenderProducts() {
@@ -446,8 +674,14 @@ function renderProducts(products) {
         card.className = 'col-12';
         card.innerHTML = `
             <div class="card product-card">
-                <div class="d-flex justify-content-between mb-2"><span class="category-badge">${escapeHtml(badge)}</span><span class="badge bg-warning text-dark">Hot</span></div>
-                <h6 class="fw-bold">${escapeHtml(p.name)}</h6>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="category-badge">${escapeHtml(badge)}</span>
+                    <span class="badge bg-warning text-dark">Hot</span>
+                </div>
+                <div>
+                    <h6 class="fw-bold d-inline">${escapeHtml(p.name)}</h6>
+                    <i class="fa-regular fa-circle-question protocol-icon" data-product="${escapeHtml(p.name)}" title="Klik untuk lihat protocol dose"></i>
+                </div>
                 <div class="row g-2 align-items-end mt-2">
                     <div class="col-7"><label class="small fw-bold">Pilih Jenis</label><select class="form-select form-select-sm product-select" data-id="${p.id}">${options}</select></div>
                     <div class="col-3"><label class="small fw-bold">Kuantiti</label><input type="number" class="form-control form-control-sm product-qty" value="0" min="0" max="${defaultStock}" step="1"></div>
@@ -457,6 +691,17 @@ function renderProducts(products) {
             </div>
         `;
         container.appendChild(card);
+        
+        // Attach protocol icon event
+        const protocolIcon = card.querySelector('.protocol-icon');
+        if (protocolIcon) {
+            protocolIcon.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const productName = protocolIcon.dataset.product;
+                showProtocolModal(productName);
+            });
+        }
+        
         const select = card.querySelector('.product-select');
         const qtyInp = card.querySelector('.product-qty');
         const priceSpan = card.querySelector('.product-price');
@@ -507,7 +752,6 @@ function setupCategoryFilters() {
     });
 }
 
-// Cart
 function saveCart() { localStorage.setItem('velxera_cart', JSON.stringify(cart)); }
 function loadCart() { const c = localStorage.getItem('velxera_cart'); if(c) cart = JSON.parse(c); else cart = []; updateCartUI(); }
 function updateCartUI() {
@@ -562,7 +806,13 @@ function updateCartUI() {
     });
 }
 
-// Login
+function showToast(msg, isError = false) {
+    const toast = document.getElementById('toastMsg');
+    toast.innerHTML = isError ? `⚠️ ${msg}` : `✅ ${msg}`;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
 function showLoginModal() {
     document.getElementById('loginName').value = '';
     document.getElementById('loginPhone').value = '';
@@ -570,13 +820,16 @@ function showLoginModal() {
     document.getElementById('loginStep2').style.display = 'none';
     new bootstrap.Modal(document.getElementById('loginModal')).show();
 }
+
 document.getElementById('loginBtn').addEventListener('click', async () => {
-    const name = document.getElementById('loginName').value.trim();
+    let name = document.getElementById('loginName').value.trim();
     let phone = document.getElementById('loginPhone').value.trim();
     if(!name || !phone) { showToast('Sila isi nama dan nombor telefon', true); return; }
+    name = sanitize(name);
+    if(!isValidName(name)) { showToast('Nama tidak sah (hanya huruf, ruang, titik, koma)', true); return; }
     phone = phone.replace(/[\s\-\(\)\+]/g, '');
     if(phone.startsWith('0')) phone = '60' + phone.substring(1);
-    if(!phone.match(/^60[0-9]{9,11}$/)) { showToast('Nombor telefon tidak sah', true); return; }
+    if(!isValidPhone(phone)) { showToast('Nombor telefon tidak sah', true); return; }
     const userRef = doc(db, "users", phone);
     await setDoc(userRef, { name, phone }, { merge: true });
     currentUser = { name, phone };
@@ -589,13 +842,13 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
         loadUserOrders();
     }, 1000);
 });
+
 function checkUserSession() {
     const saved = sessionStorage.getItem('velxera_user');
     if(saved) { currentUser = JSON.parse(saved); loadUserOrders(); }
     else showLoginModal();
 }
 
-// User orders
 async function loadUserOrders() {
     if(!currentUser) return;
     const q = query(collection(db, "orders"), where("customer.phone", "==", currentUser.phone));
@@ -630,7 +883,6 @@ async function loadUserOrders() {
     container.innerHTML = html;
 }
 
-// Checkout modal
 async function showCheckoutModal() {
     if(!currentUser) { showToast('Sila log masuk', true); showLoginModal(); return; }
     if(!cart.length) { showToast('Keranjang kosong', true); return; }
@@ -660,30 +912,74 @@ async function showCheckoutModal() {
     new bootstrap.Modal(document.getElementById('checkoutModal')).show();
 }
 
-// Place order with compressed upload
+async function compressImage(file, maxWidth = 900, quality = 0.7) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (e) => {
+            const img = new Image();
+            img.src = e.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                if (width > maxWidth) {
+                    height = (height * maxWidth) / width;
+                    width = maxWidth;
+                }
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                canvas.toBlob((blob) => {
+                    if (!blob) reject(new Error('Mampatan gagal'));
+                    const compressedFile = new File([blob], file.name, { type: 'image/jpeg' });
+                    resolve(compressedFile);
+                }, 'image/jpeg', quality);
+            };
+            img.onerror = reject;
+        };
+        reader.onerror = reject;
+    });
+}
+
 document.getElementById('placeOrderBtn').addEventListener('click', async () => {
-    const name = document.getElementById('checkoutName').value.trim();
-    const address = document.getElementById('checkoutAddress').value.trim();
-    const postcode = document.getElementById('checkoutPostcode').value.trim();
-    const state = document.getElementById('checkoutState').value.trim();
+    if (isRateLimited()) { showRateLimitOverlay(); return; }
+    if (isBotDetected()) { showToast('Akses tidak dibenarkan', true); return; }
+    
+    let name = document.getElementById('checkoutName').value.trim();
+    let address = document.getElementById('checkoutAddress').value.trim();
+    let postcode = document.getElementById('checkoutPostcode').value.trim();
+    let state = document.getElementById('checkoutState').value.trim();
     const payLater = document.getElementById('payLaterCheckbox').checked;
     const receiptFile = document.getElementById('checkoutReceipt').files[0];
-    const bankName = document.getElementById('bankName').value.trim() || "Tiada";
+    let bankName = document.getElementById('bankName').value.trim() || "Tiada";
+    
+    name = sanitize(name);
+    address = sanitize(address);
+    postcode = sanitize(postcode);
+    state = sanitize(state);
+    bankName = sanitize(bankName);
+    
     if(!name || !address || !postcode || !state) { showToast('Sila lengkapkan alamat', true); return; }
+    if(!isValidName(name)) { showToast('Nama tidak sah', true); return; }
+    if(!isValidPostcode(postcode)) { showToast('Poskod tidak sah (5-6 digit angka)', true); return; }
     if(!payLater && !receiptFile) { showToast('Sila muat naik resit atau pilih Bayar Kemudian', true); return; }
+    
     let receiptUrl = null;
     const progressDiv = document.getElementById('checkoutProgress');
     if(!payLater && receiptFile) {
+        const receiptCheck = isValidReceipt(receiptFile);
+        if(!receiptCheck.ok) { showToast(receiptCheck.msg, true); return; }
         progressDiv.style.display = 'block';
         progressDiv.innerHTML = '🖼️ Memampatkan imej...';
         let compressedFile;
         try {
             compressedFile = await compressImage(receiptFile, 900, 0.7);
             progressDiv.innerHTML = `⬆️ Memuat naik (${(compressedFile.size/1024).toFixed(0)}KB)...`;
-        } catch(err) { progressDiv.innerHTML = '❌ Gagal memampatkan'; showToast('Gagal memampatkan imej', true); return; }
+        } catch(err) { progressDiv.style.display = 'none'; showToast('Gagal memampatkan imej', true); return; }
         try {
-            const ext = 'jpg';
-            const fileName = `receipt_${Date.now()}_${Math.random().toString(36).substr(2,6)}.${ext}`;
+            const fileName = `receipt_${Date.now()}_${Math.random().toString(36).substr(2,6)}.jpg`;
             const storageRef = ref(storage, `receipts/${fileName}`);
             const uploadTask = uploadBytesResumable(storageRef, compressedFile);
             await new Promise((resolve, reject) => {
@@ -699,10 +995,11 @@ document.getElementById('placeOrderBtn').addEventListener('click', async () => {
             setTimeout(() => progressDiv.style.display = 'none', 2000);
         } catch(err) { progressDiv.style.display = 'none'; showToast('Gagal muat naik resit', true); return; }
     }
-    // update user address
+    
     const userRef = doc(db, "users", currentUser.phone);
     await setDoc(userRef, { name, address, postcode, state }, { merge: true });
     currentUser.name = name;
+    
     const subtotal = cart.reduce((s,i) => s + i.price * i.qty, 0);
     const grandTotal = subtotal + checkoutShippingCost;
     const shippingRegion = checkoutShippingCode === 'SM' ? 'Semenanjung Malaysia' : (checkoutShippingCode === 'SS' ? 'Sabah/Sarawak' : 'Singapura');
@@ -742,6 +1039,48 @@ document.getElementById('placeOrderBtn').addEventListener('click', async () => {
     }
 });
 
+// Protocol dose render
+function renderProtocolCards() {
+    const container = document.getElementById('protocolCardsContainer');
+    if (!container) return;
+    container.innerHTML = '';
+    protocolData.forEach(protocol => {
+        const [name, amount, dose, frequency, route, category, note] = protocol;
+        const cardHtml = `
+            <div class="protocol-card-item" data-name="${name.toLowerCase()}">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <strong class="text-dark">${name}</strong>
+                        <span class="protocol-category-badge ms-2">${category}</span>
+                    </div>
+                    <span class="protocol-dosage">${dose}</span>
+                </div>
+                <div class="mt-1">
+                    <span class="protocol-route">${route}</span>
+                    <span class="ms-2 small text-muted">${frequency}</span>
+                </div>
+                <div class="small text-muted mt-1">${note.substring(0, 80)}${note.length > 80 ? '...' : ''}</div>
+            </div>
+        `;
+        container.innerHTML += cardHtml;
+    });
+    const searchInput = document.getElementById('protocolSearchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const cards = document.querySelectorAll('.protocol-card-item');
+            cards.forEach(card => {
+                const name = card.dataset.name;
+                if (name.includes(term)) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    }
+}
+
 // Tabs
 document.querySelectorAll('.tab-link').forEach(link => {
     link.addEventListener('click', () => {
@@ -755,15 +1094,18 @@ document.querySelectorAll('.tab-link').forEach(link => {
         if(tab === 'cart') updateCartUI();
     });
 });
+
 document.getElementById('proceedToCheckoutBtn').addEventListener('click', showCheckoutModal);
 document.getElementById('payLaterCheckbox').addEventListener('change', (e) => {
     document.getElementById('paymentFields').style.display = e.target.checked ? 'none' : 'block';
 });
+
 function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => m==='&'?'&amp;':m==='<'?'&lt;':m==='>'?'&gt;':m); }
 
 fetchAndRenderProducts();
 loadCart();
 checkUserSession();
+renderProtocolCards();
 </script>
 </body>
 </html>
