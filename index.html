@@ -13,9 +13,13 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.jpg">
+    
+    <!-- jsPDF & html2canvas untuk PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <style>
-        /* Semua CSS asal - tiada perubahan */
+        /* Semua CSS asal dikekalkan sepenuhnya */
         :root {
             --emerald-primary: #10b981;
             --emerald-dark: #059669;
@@ -150,7 +154,6 @@
             white-space: nowrap;
         }
         .toast-notif.show { opacity: 1; }
-        /* Protocol Dose card & icon */
         .protocol-dose-section {
             margin-top: 30px;
             margin-bottom: 20px;
@@ -236,6 +239,17 @@
             color: white;
             border-radius: 24px 24px 0 0;
         }
+        /* Sembunyikan elemen PDF semasa di web */
+        .invoice-preview {
+            position: fixed;
+            left: -9999px;
+            top: -9999px;
+            width: 800px;
+            background: white;
+            padding: 30px;
+            font-family: 'Poppins', sans-serif;
+            z-index: -1;
+        }
     </style>
 </head>
 <body>
@@ -257,6 +271,20 @@
                 <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Preview invoice untuk PDF (tersembunyi) -->
+<div id="invoicePreview" class="invoice-preview">
+    <div style="text-align: center; margin-bottom: 20px;">
+        <h2 style="color: #10b981;">VELXERA VENTURES</h2>
+        <p>No 80A Jalan Banyan 2, Bukit Banyan, 08000 Sungai Petani, Kedah<br>Tel/WhatsApp: 0124794979 | Email: velxera.co@gmail.com</p>
+        <hr style="border: 1px solid #10b981;">
+    </div>
+    <div id="invoiceContent"></div>
+    <div style="text-align: center; margin-top: 30px; font-size: 11px;">
+        <hr>
+        <p>Terima kasih atas kepercayaan anda! &copy; VELXERA VENTURES</p>
     </div>
 </div>
 
@@ -344,7 +372,7 @@
         <div id="ordersListContainer"><div class="text-center text-muted py-4">Tiada pesanan.</div></div>
     </div>
 
-    <!-- Protocol Dose Section (jadual ringkas di bawah) -->
+    <!-- Protocol Dose Section -->
     <div class="protocol-dose-section">
         <div class="protocol-dose-header">
             <h6><i class="fa-solid fa-flask me-2"></i> PROTOCOL DOSE DATABASE</h6>
@@ -418,7 +446,7 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
 import { getFirestore, collection, doc, getDocs, setDoc, updateDoc, query, where, getDoc, runTransaction } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
-// ========== KONFIGURASI IMGBB (Guna ImgBB API, bukan Firebase Storage) ==========
+// ========== KONFIGURASI IMGBB ==========
 const IMGBB_API_KEY = '8b4d34f1c329684356d506ef8d67105e';
 
 const firebaseConfig = {
@@ -432,7 +460,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// ========== FUNGSI MAMPATAN IMEJ (cepat) ==========
+// ========== FUNGSI MAMPATAN IMEJ ==========
 async function compressImage(file, maxWidth = 800, quality = 0.5) {
     if (file.size < 200 * 1024) return file;
     return new Promise((resolve, reject) => {
@@ -464,7 +492,7 @@ async function compressImage(file, maxWidth = 800, quality = 0.5) {
     });
 }
 
-// ========== UPLOAD KE IMGBB (bukan Firebase Storage) ==========
+// ========== UPLOAD KE IMGBB ==========
 async function uploadReceiptToImgBB(file) {
     const formData = new FormData();
     formData.append('image', file);
@@ -477,47 +505,121 @@ async function uploadReceiptToImgBB(file) {
     return data.data.url;
 }
 
-// ========== DATA PROTOCOL DOS ==========
+// ========== FUNGSI GENERATE PDF INVOICE ==========
+async function generateAndDownloadPDF(orderId, customer, items, totalAmount, shippingCost, shippingRegion, paymentMethod, bankName) {
+    const invoiceDiv = document.getElementById('invoicePreview');
+    const contentDiv = document.getElementById('invoiceContent');
+    
+    // Generate HTML content untuk invoice
+    const subtotal = items.reduce((sum, i) => sum + (i.price * i.qty), 0);
+    const itemsHtml = items.map(i => `
+        <tr style="border-bottom: 1px solid #e2e8f0;">
+            <td style="padding: 6px 0;">${i.prodName} (${i.size} - ${i.type})</td>
+            <td style="padding: 6px 0; text-align: center;">${i.qty}</td>
+            <td style="padding: 6px 0; text-align: right;">RM ${i.price.toFixed(2)}</td>
+            <td style="padding: 6px 0; text-align: right;">RM ${(i.price * i.qty).toFixed(2)}</td>
+        </tr>
+    `).join('');
+    
+    contentDiv.innerHTML = `
+        <h3 style="text-align: center;">INVOIS PESANAN</h3>
+        <p style="text-align: center;"><strong>ID Pesanan:</strong> ${orderId}</p>
+        <p style="text-align: center;"><strong>Tarikh:</strong> ${new Date().toLocaleString()}</p>
+        <hr>
+        <div style="margin-bottom: 20px;">
+            <strong>Kepada:</strong><br>
+            ${customer.name}<br>
+            ${customer.phone}<br>
+            ${customer.address_line1}, ${customer.postcode} ${customer.state}
+        </div>
+        <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+            <thead>
+                <tr><th style="text-align: left;">Produk</th><th style="text-align: center;">Kuantiti</th><th style="text-align: right;">Harga Unit (RM)</th><th style="text-align: right;">Jumlah (RM)</th></tr>
+            </thead>
+            <tbody>
+                ${itemsHtml}
+            </tbody>
+            <tfoot>
+                <tr><td colspan="3" style="text-align: right; padding-top: 10px;"><strong>Subtotal:</strong></td><td style="text-align: right; padding-top: 10px;">RM ${subtotal.toFixed(2)}</td></tr>
+                <tr><td colspan="3" style="text-align: right;"><strong>Penghantaran (${shippingRegion}):</strong></td><td style="text-align: right;">RM ${shippingCost.toFixed(2)}</td></tr>
+                <tr style="border-top: 2px solid #10b981;"><td colspan="3" style="text-align: right;"><strong>TOTAL:</strong></td><td style="text-align: right;"><strong>RM ${totalAmount.toFixed(2)}</strong></td></tr>
+            </tfoot>
+        </table>
+        <div>
+            <strong>Kaedah Bayaran:</strong> ${paymentMethod}<br>
+            ${bankName && bankName !== "Tiada" ? `<strong>Bank Pengirim:</strong> ${bankName}<br>` : ''}
+            <strong>Status:</strong> Pending (Menunggu pengesahan admin)
+        </div>
+    `;
+    
+    // Gunakan html2canvas + jsPDF untuk jana PDF
+    const { jsPDF } = window.jspdf;
+    try {
+        const canvas = await html2canvas(invoiceDiv, { scale: 2, backgroundColor: '#ffffff' });
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF({
+            unit: 'mm',
+            format: 'a4',
+            orientation: 'portrait'
+        });
+        const imgWidth = 210; // A4 width in mm
+        const pageHeight = 297;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        let heightLeft = imgHeight;
+        let position = 0;
+        
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+        while (heightLeft > 0) {
+            position = heightLeft - imgHeight;
+            pdf.addPage();
+            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+        }
+        pdf.save(`invoice_${orderId}.pdf`);
+        showToast('📄 Invois PDF telah dimuat turun');
+    } catch (err) {
+        console.error('PDF generation error:', err);
+        showToast('Gagal menjana PDF, tetapi pesanan tetap disimpan', true);
+    }
+}
+
+function showToast(msg, isError = false) {
+    const toast = document.getElementById('toastMsg');
+    toast.innerHTML = isError ? `⚠️ ${msg}` : `✅ ${msg}`;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+// ========== DATA PROTOCOL DOS (diringkaskan) ==========
 const protocolData = [
     ["BPC-157", "5mg", "250-750mcg (10-30 units)", "Daily", "SubQ/IM", "Healing & Repair", "Inject locally near injury. Synergistic with TB-500"],
-    ["BPC-157", "10mg", "250-750mcg (5-15 units)", "Daily", "SubQ/IM", "Healing & Repair", "Inject locally near injury. Synergistic with TB-500"],
     ["TB-500", "5mg", "2.5-5mg (50-100 units)", "2x/week", "SubQ", "Healing & Repair", "Synergistic with BPC-157"],
-    ["BPC-157/TB-500 (Wolverine)", "5mg/5mg", "500mcg-2mg (5-20 units)", "5-7 days/week", "SubQ/IM", "Healing & Repair", "DO NOT inject near injury site"],
-    ["ARA-290", "10mg", "1.6-4mg (32-80 units)", "5-7 days/week x 30 days", "SubQ", "Recovery", "Reconstitute with pH 7.4 PBS - NOT bac water"],
-    ["AHK-Cu", "5mg", "200-500mcg (8-20 units)", "5 days on / 2 off", "SubQ", "Hair/Skin/Collagen", "Copper peptide. Wound healing, hair growth"],
-    ["Cartalax", "20mg", "2-5mg (20-50 units)", "5-7 days/week x 10-20 days", "SubQ/IM", "Recovery", "Cartilage and connective tissue regeneration"],
-    ["GLOW Blend (GHK-Cu/BPC-157/TB-500)", "70mg", "3.5-7mg (10-20 units)", "Daily x 20 days", "SubQ", "Hair/Skin/Collagen", "Skin, longevity, healing combo"],
-    ["KPV", "5mg/10mg", "250-500mcg (5-10 units)", "Based on illness", "SubQ", "Anti-Viral", "After surgery, preventative, IBD support"],
-    ["LL-37", "5mg", "100-500mcg (4-20 units)", "3x/week", "SubQ/IM", "Healing & Repair", "Antimicrobial, wound healing, immune"],
-    ["AOD-9604", "5mg/10mg", "500mcg-1mg (50-100 units)", "5 on / 2 off", "SubQ", "Weight Management", "Fasted before bed or upon waking"],
-    ["Cagrilintide", "10mg", "300mcg-4.5mg (6-90 units)", "1x/week", "SubQ", "Weight Management", "Add to GLP-1 to reduce dosage"],
-    ["Semaglutide", "5mg/10mg", "250mcg-2.5mg (5-50 units)", "1x/week", "SubQ", "Weight Management", "Starting dose 250mcg. Same day every week"],
-    ["Tirzepatide", "10mg", "2.5-15mg (titrate)", "1x/week", "SubQ", "Weight Management", "Starting dose 2.5mg. Dual GLP-1/GIP agonist"],
-    ["Retatrutide", "5mg/10mg", "2-12mg (20-120 units)", "1x/week", "SubQ", "Weight Management", "Triple receptor agonist. Starting dose 2mg"],
-    ["Survodutide", "10mg", "600mcg-4.5mg (6-45 units)", "1x/week", "SubQ", "Weight Management", "Dual GLP-1/Glucagon agonist. Start 600mcg"],
-    ["5-Amino-1MQ", "5mg/10mg", "5-10mg (100-200 units)", "1-3x/week", "SubQ", "Weight Management", "NNMT inhibitor. 2-4 week cycles"],
-    ["SLU-PP-332", "5mg", "2-5mg (40-100 units)", "Daily (5 on / 2 off)", "SubQ", "Weight Management", "UCP1 inducer. Thermogenic compound. 8-12 week cycles"],
-    ["MOTS-c", "10mg", "5-10mg (10-20 units)", "Daily x 10-20 days", "SubQ", "Weight Management", "Mitochondrial peptide. Inject before largest meal"],
-    ["CJC-1295 (No DAC)", "5mg/10mg", "200mcg-1mg (4-20 units)", "5 on / 2 off", "SubQ", "Growth Hormone", "Fasted - 45 min before/after injection"],
-    ["CJC-1295 (No DAC)/Ipamorelin", "5mg/5mg", "500mcg-1mg (10-20 units)", "5 on / 2 off", "SubQ", "Growth Hormone", "Fasted administration. Bedtime or AM"],
-    ["Tesamorelin", "5mg/10mg", "1-2mg (10-20 units)", "5 on / 2 off", "SubQ", "Growth Hormone", "Before bedtime. Decreases visceral fat"],
-    ["Adamax", "10mg", "100-500mcg (2-10 units)", "Daily or EOD", "Intranasal/SubQ", "Brain & Mood", "Intranasal preferred. Cycle 5/2 or 10/4"],
-    ["Cerebrolysin", "60mg", "60-120mg (120-240 units)", "Daily x 10-20 days", "IM", "Brain & Mood", "Neurotrophic peptide complex. 2-4 cycles/year"],
-    ["Dihexa", "5mg/10mg", "1-5mg (20-100 units)", "Daily (morning)", "SubQ", "Brain & Mood", "HGF/c-Met modulator. Avoid evening dosing"],
-    ["DSIP", "5mg", "500mcg-1mg (10-20 units)", "As needed before bed", "SubQ", "Delta Sleep", "Delta Sleep Inducing Peptide. Circadian reset"],
-    ["NAD+", "100mg", "50-150mg (100-200 units)", "Daily or 2x/week", "IM", "Brain & Mood", "Single dose not to exceed 250mg"],
-    ["Pinealon", "10mg", "100-300mcg (1-3 units)", "Daily x 10-20 days", "SubQ", "Brain & Mood", "Neuroprotective tripeptide. Maintenance 2-3x/week"],
-    ["Selank", "5mg/10mg", "250-500mcg (5-10 units)", "Daily", "SubQ", "Brain & Mood", "Anti-anxiety. Enhanced learning"],
-    ["Semax", "5mg/10mg", "500mcg-1mg (10-20 units)", "Daily", "SubQ", "Brain & Mood", "BDNF release. Neuroplasticity, brain blood flow"],
-    ["Epithalon", "10mg", "10mg (100 units)", "20 day cycle", "SubQ", "Longevity", "Telomere lengthening. 2-3x annually"],
-    ["GHK-Cu", "100mg", "1-2mg (2-4 units)", "30 days on / 14 off", "SubQ", "Hair/Skin/Collagen", "Wound healing, anti-aging"],
-    ["Melanotan-1", "10mg", "250-500mcg (5-10 units)", "Daily/EOD then weekly", "SubQ", "Melanin/Skin", "Photoprotection and tanning"],
-    ["Thymosin Alpha-1", "5mg/10mg", "1.5-8mg (15-80 units)", "2x/week when sick", "IM", "Immunity", "4x/year for immune support"],
-    ["Thymalin", "10mg", "5-10mg (50-100 units)", "Daily x 10 days", "SubQ/IM", "Immunity", "2-3x/year. Thymus gland support"],
-    ["VIP", "5mg/10mg", "50-200mcg (2-8 units)", "1-4x daily", "Intranasal/SubQ", "Immunity/Neuroimmune", "CIRS, dysautonomia, pulmonary support"],
-    ["PT-141", "5mg/10mg", "500mcg-1mg (10-20 units)", "2 hrs before activity", "SubQ", "Libido/ED", "Not to exceed 20 units. Consult doctor"],
-    ["SS-31", "10mg", "5-10mg (10-20 units)", "Daily x 20 days", "SubQ", "Longevity", "Mitochondrial peptide. 2-3 cycles/year"],
-    ["FOXO4-DRI", "2mg", "200-500mcg (2-5 units)", "Weekly", "SubQ", "Longevity", "Senolytic. Consult specialist before use"]
+    ["Semaglutide", "5mg/10mg", "250mcg-2.5mg (5-50 units)", "1x/week", "SubQ", "Weight Management", "Starting dose 250mcg"],
+    ["Tirzepatide", "10mg", "2.5-15mg (titrate)", "1x/week", "SubQ", "Weight Management", "Starting dose 2.5mg"],
+    ["Retatrutide", "5mg/10mg", "2-12mg (20-120 units)", "1x/week", "SubQ", "Weight Management", "Triple receptor agonist"],
+    ["5-Amino-1MQ", "5mg/10mg", "5-10mg (100-200 units)", "1-3x/week", "SubQ", "Weight Management", "NNMT inhibitor"],
+    ["SLU-PP-332", "5mg", "2-5mg (40-100 units)", "Daily (5 on / 2 off)", "SubQ", "Weight Management", "UCP1 inducer"],
+    ["MOTS-c", "10mg", "5-10mg (10-20 units)", "Daily x 10-20 days", "SubQ", "Weight Management", "Mitochondrial peptide"],
+    ["CJC-1295 (No DAC)", "5mg/10mg", "200mcg-1mg (4-20 units)", "5 on / 2 off", "SubQ", "Growth Hormone", "Fasted"],
+    ["Tesamorelin", "5mg/10mg", "1-2mg (10-20 units)", "5 on / 2 off", "SubQ", "Growth Hormone", "Before bedtime"],
+    ["Adamax", "10mg", "100-500mcg (2-10 units)", "Daily or EOD", "Intranasal/SubQ", "Brain & Mood", "Intranasal preferred"],
+    ["Cerebrolysin", "60mg", "60-120mg (120-240 units)", "Daily x 10-20 days", "IM", "Brain & Mood", "Neurotrophic complex"],
+    ["Dihexa", "5mg/10mg", "1-5mg (20-100 units)", "Daily (morning)", "SubQ", "Brain & Mood", "HGF/c-Met modulator"],
+    ["DSIP", "5mg", "500mcg-1mg (10-20 units)", "As needed before bed", "SubQ", "Delta Sleep", "Circadian reset"],
+    ["NAD+", "100mg", "50-150mg (100-200 units)", "Daily or 2x/week", "IM", "Brain & Mood", "Single dose max 250mg"],
+    ["Pinealon", "10mg", "100-300mcg (1-3 units)", "Daily x 10-20 days", "SubQ", "Brain & Mood", "Neuroprotective"],
+    ["Selank", "5mg/10mg", "250-500mcg (5-10 units)", "Daily", "SubQ", "Brain & Mood", "Anti-anxiety"],
+    ["Semax", "5mg/10mg", "500mcg-1mg (10-20 units)", "Daily", "SubQ", "Brain & Mood", "BDNF release"],
+    ["Epithalon", "10mg", "10mg (100 units)", "20 day cycle", "SubQ", "Longevity", "Telomere lengthening"],
+    ["GHK-Cu", "100mg", "1-2mg (2-4 units)", "30 days on / 14 off", "SubQ", "Hair/Skin/Collagen", "Anti-aging"],
+    ["Melanotan-1", "10mg", "250-500mcg (5-10 units)", "Daily/EOD then weekly", "SubQ", "Melanin/Skin", "Photoprotection"],
+    ["Thymosin Alpha-1", "5mg/10mg", "1.5-8mg (15-80 units)", "2x/week when sick", "IM", "Immunity", "4x/year support"],
+    ["Thymalin", "10mg", "5-10mg (50-100 units)", "Daily x 10 days", "SubQ/IM", "Immunity", "Thymus support"],
+    ["VIP", "5mg/10mg", "50-200mcg (2-8 units)", "1-4x daily", "Intranasal/SubQ", "Immunity/Neuroimmune", "CIRS support"],
+    ["PT-141", "5mg/10mg", "500mcg-1mg (10-20 units)", "2 hrs before activity", "SubQ", "Libido/ED", "Consult doctor"],
+    ["SS-31", "10mg", "5-10mg (10-20 units)", "Daily x 20 days", "SubQ", "Longevity", "Mitochondrial peptide"],
+    ["FOXO4-DRI", "2mg", "200-500mcg (2-5 units)", "Weekly", "SubQ", "Longevity", "Senolytic"]
 ];
 
 // Data oral peptides
@@ -541,32 +643,6 @@ let checkoutShippingCost = 10;
 let checkoutShippingCode = 'SM';
 
 function getVariationKey(prodId, size, type) { return `${prodId}_${size}_${type}`.replace(/\s/g, '_'); }
-
-function showToast(msg, isError = false) {
-    const toast = document.getElementById('toastMsg');
-    toast.innerHTML = isError ? `⚠️ ${msg}` : `✅ ${msg}`;
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 3000);
-}
-
-function downloadInvoiceCSV(orderId, customer, items, totalAmount, shippingCost, shippingRegion, paymentMethod, bankName) {
-    const headers = ["Order ID","Tarikh","Nama Pelanggan","No Telefon","Alamat","Poskod","Negeri","Produk","Saiz","Jenis","Kuantiti","Harga Unit (RM)","Jumlah Item (RM)","Kos Penghantaran (RM)","Kawasan Penghantaran","Jumlah Keseluruhan (RM)","Kaedah Bayaran","Bank Pengirim","Status"];
-    const rows = [];
-    items.forEach(item => {
-        rows.push([orderId, new Date().toLocaleString(), customer.name, customer.phone, customer.address_line1, customer.postcode, customer.state, item.prodName, item.size, item.type, item.qty, item.price.toFixed(2), (item.price*item.qty).toFixed(2), shippingCost.toFixed(2), shippingRegion, totalAmount.toFixed(2), paymentMethod, bankName||"-", "Pending"]);
-    });
-    const csvContent = [headers, ...rows].map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(",")).join("\n");
-    const blob = new Blob(["\uFEFF"+csvContent], {type:"text/csv;charset=utf-8;"});
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.href = url;
-    link.setAttribute("download", `invoice_${orderId}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    showToast("📄 Invois CSV telah dimuat turun");
-}
 
 async function fetchStock() {
     try { const snap = await getDocs(collection(db, "inventory")); stockMap.clear(); snap.forEach(d => stockMap.set(d.id, d.data())); } catch(e) { console.warn(e); }
@@ -616,22 +692,11 @@ async function fetchAndRenderProducts() {
 
 function findProtocolForProduct(productName) {
     const name = productName.toLowerCase();
-    // mapping biasa
     if(name.includes("bpc")) return protocolData.find(p => p[0].toLowerCase().includes("bpc"));
     if(name.includes("tb-500")) return protocolData.find(p => p[0].toLowerCase().includes("tb-500"));
-    if(name.includes("wolverine")) return protocolData.find(p => p[0].toLowerCase().includes("wolverine"));
-    if(name.includes("ara-290")) return protocolData.find(p => p[0].toLowerCase().includes("ara-290"));
-    if(name.includes("ahk-cu")) return protocolData.find(p => p[0].toLowerCase().includes("ahk-cu"));
-    if(name.includes("cartalax")) return protocolData.find(p => p[0].toLowerCase().includes("cartalax"));
-    if(name.includes("glow")) return protocolData.find(p => p[0].toLowerCase().includes("glow"));
-    if(name.includes("kpv")) return protocolData.find(p => p[0].toLowerCase().includes("kpv"));
-    if(name.includes("ll-37")) return protocolData.find(p => p[0].toLowerCase().includes("ll-37"));
-    if(name.includes("aod")) return protocolData.find(p => p[0].toLowerCase().includes("aod"));
-    if(name.includes("cagrilintide")) return protocolData.find(p => p[0].toLowerCase().includes("cagrilintide"));
     if(name.includes("semaglutide")) return protocolData.find(p => p[0].toLowerCase().includes("semaglutide"));
     if(name.includes("tirzepatide")) return protocolData.find(p => p[0].toLowerCase().includes("tirzepatide"));
     if(name.includes("retatrutide")) return protocolData.find(p => p[0].toLowerCase().includes("retatrutide"));
-    if(name.includes("survodutide")) return protocolData.find(p => p[0].toLowerCase().includes("survodutide"));
     if(name.includes("5-amino")) return protocolData.find(p => p[0].toLowerCase().includes("5-amino"));
     if(name.includes("slupp")) return protocolData.find(p => p[0].toLowerCase().includes("slupp"));
     if(name.includes("mots-c")) return protocolData.find(p => p[0].toLowerCase().includes("mots-c"));
@@ -647,7 +712,7 @@ function findProtocolForProduct(productName) {
     if(name.includes("semax")) return protocolData.find(p => p[0].toLowerCase().includes("semax"));
     if(name.includes("epithalon")) return protocolData.find(p => p[0].toLowerCase().includes("epithalon"));
     if(name.includes("ghk-cu")) return protocolData.find(p => p[0].toLowerCase().includes("ghk-cu"));
-    if(name.includes("melanotan")) return protocolData.find(p => p[0].toLowerCase().includes("melanotan-1"));
+    if(name.includes("melanotan")) return protocolData.find(p => p[0].toLowerCase().includes("melanotan"));
     if(name.includes("thymosin alpha")) return protocolData.find(p => p[0].toLowerCase().includes("thymosin alpha"));
     if(name.includes("thymalin")) return protocolData.find(p => p[0].toLowerCase().includes("thymalin"));
     if(name.includes("vip")) return protocolData.find(p => p[0].toLowerCase().includes("vip"));
@@ -976,11 +1041,12 @@ document.getElementById('placeOrderBtn').addEventListener('click', async () => {
             });
         });
         const customerData = { name, phone: currentUser.phone, address_line1: address, postcode, state };
-        downloadInvoiceCSV(orderId, customerData, cart.map(i => ({ prodName: i.name, size: i.size, type: i.type, qty: i.qty, price: i.price })), grandTotal, checkoutShippingCost, shippingRegion, payLater ? "Bayar Kemudian" : "Pindahan Bank", payLater ? null : bankName);
+        // Muat turun PDF
+        await generateAndDownloadPDF(orderId, customerData, cart.map(i => ({ prodName: i.name, size: i.size, type: i.type, qty: i.qty, price: i.price })), grandTotal, checkoutShippingCost, shippingRegion, payLater ? "Bayar Kemudian" : "Pindahan Bank", payLater ? null : bankName);
         cart = [];
         saveCart();
         updateCartUI();
-        showToast('✅ Pesanan berjaya! Invois CSV dimuat turun. Admin akan proses.');
+        showToast('✅ Pesanan berjaya! Invois PDF dimuat turun. Admin akan proses.');
         bootstrap.Modal.getInstance(document.getElementById('checkoutModal')).hide();
         document.querySelector('.tab-link[data-tab="orders"]').click();
         loadUserOrders();
