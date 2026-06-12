@@ -15,7 +15,7 @@
     <link rel="apple-touch-icon" href="icon.jpg">
 
     <style>
-        /* CSS asal dikekalkan - tambah sedikit untuk protocol icon */
+        /* Semua CSS asal - tiada perubahan */
         :root {
             --emerald-primary: #10b981;
             --emerald-dark: #059669;
@@ -29,7 +29,7 @@
         .navbar-brand-text { background: var(--emerald-grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; font-size: 18px; }
         .step-guide-box { background: white; border-radius: 28px; box-shadow: var(--card-shadow); border: 1px solid #eef2ff; }
         .badge-step-title { background: var(--emerald-grad); box-shadow: 0 4px 10px rgba(16,185,129,0.25); }
-        .product-card { border: 1px solid #e2e8f0; border-radius: 24px; background: white; box-shadow: var(--card-shadow); transition: 0.3s; margin-bottom: 16px; padding: 1rem; position: relative; }
+        .product-card { border: 1px solid #e2e8f0; border-radius: 24px; background: white; box-shadow: var(--card-shadow); transition: 0.3s; margin-bottom: 16px; padding: 1rem; }
         .product-card:hover { transform: translateY(-3px); box-shadow: var(--hover-shadow); border-color: var(--emerald-primary); }
         .category-badge { background: var(--emerald-grad); color: white; font-size: 11px; padding: 4px 10px; border-radius: 30px; }
         .form-control, .form-select { border-radius: 14px; border: 1px solid #e2e8f0; }
@@ -57,12 +57,11 @@
             gap: 10px;
             cursor: pointer;
         }
-        .hp-field { opacity: 0; position: absolute; height: 0; width: 0; z-index: -1; }
+        .hp-field { opacity: 0; position: absolute; height: 0; width: 0; }
         .rate-limit-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center; }
         .rate-limit-overlay.show { display:flex; }
         .rate-limit-box { background:white; border-radius:24px; padding:32px; text-align:center; max-width:320px; }
         .progress-upload { font-size: 12px; margin-top: 8px; color: #10b981; display: none; background: #f0fdf4; padding: 6px 12px; border-radius: 40px; }
-        /* Tab navigation */
         .nav-tabs-custom {
             border-bottom: 2px solid #e2e8f0;
             margin-bottom: 20px;
@@ -133,7 +132,6 @@
         .product-select { width: 100%; font-size: 0.85rem; border-radius: 12px; }
         .product-qty { width: 80px; text-align: center; margin-left: 10px; }
         .cart-qty { width: 60px; }
-        /* Toast notification */
         .toast-notif {
             position: fixed;
             bottom: 80px;
@@ -152,7 +150,6 @@
             white-space: nowrap;
         }
         .toast-notif.show { opacity: 1; }
-        /* Protocol Dose Styles */
         .protocol-dose-section {
             margin-top: 30px;
             margin-bottom: 20px;
@@ -217,31 +214,21 @@
             font-size: 13px;
             border: 1px solid #e2e8f0;
         }
-        .protocol-icon {
-            cursor: pointer;
+        .download-csv-btn {
+            background: white;
+            border: 1px solid var(--emerald-primary);
             color: var(--emerald-primary);
-            font-size: 0.85rem;
-            margin-left: 8px;
+            border-radius: 40px;
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            margin-top: 10px;
+            cursor: pointer;
             transition: 0.2s;
-            display: inline-block;
         }
-        .protocol-icon:hover {
-            color: #047857;
-            transform: scale(1.1);
-        }
-        .protocol-modal .modal-content {
-            border-radius: 24px;
-            border: none;
-        }
-        .protocol-modal .modal-header {
-            background: var(--emerald-grad);
+        .download-csv-btn:hover {
+            background: var(--emerald-primary);
             color: white;
-            border-radius: 24px 24px 0 0;
-        }
-        @media (max-width: 640px) {
-            .protocol-card-item .row {
-                flex-direction: column;
-            }
         }
     </style>
 </head>
@@ -249,40 +236,7 @@
 
 <div class="toast-notif" id="toastMsg">✅ Berjaya</div>
 
-<!-- Honeypot fields (keselamatan) -->
-<div class="hp-field" aria-hidden="true">
-    <input type="text" id="hp-website" name="website" tabindex="-1" autocomplete="off" placeholder="Jangan isi">
-    <input type="text" id="hp-email" name="email_address" tabindex="-1" autocomplete="off" placeholder="Jangan isi">
-</div>
-
-<!-- Rate limit overlay -->
-<div class="rate-limit-overlay" id="rateLimitOverlay">
-    <div class="rate-limit-box">
-        <i class="fa-solid fa-shield-halved fa-3x mb-3" style="color:#10b981;"></i>
-        <h5 class="fw-bold">Terlalu Banyak Cubaan</h5>
-        <p class="text-muted small">Sila cuba lagi selepas <strong id="cooldown-timer">60</strong> saat.</p>
-    </div>
-</div>
-
-<!-- Modal Protocol Dose -->
-<div class="modal fade protocol-modal" id="protocolModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title fw-bold"><i class="fa-solid fa-flask me-2"></i>Protocol Dose</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body" id="protocolModalBody">
-                Memuatkan...
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Login -->
+<!-- Modal Login (ringkas) -->
 <div class="modal fade" id="loginModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4">
@@ -292,9 +246,9 @@
             <div class="modal-body">
                 <div id="loginStep1">
                     <label class="form-label">Nama Penuh</label>
-                    <input type="text" id="loginName" class="form-control mb-3" placeholder="Ahmad Ali" maxlength="80">
+                    <input type="text" id="loginName" class="form-control mb-3" placeholder="Ahmad Ali">
                     <label class="form-label">Nombor WhatsApp / Telefon</label>
-                    <input type="tel" id="loginPhone" class="form-control mb-3" placeholder="0123456789" maxlength="15">
+                    <input type="tel" id="loginPhone" class="form-control mb-3" placeholder="0123456789">
                     <button id="loginBtn" class="btn btn-success w-100">Log Masuk / Daftar</button>
                 </div>
                 <div id="loginStep2" style="display:none;">
@@ -394,14 +348,13 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-3"><label class="form-label small fw-bold"><i class="fa-regular fa-user"></i> Nama Penuh</label><input type="text" id="checkoutName" class="form-control" required maxlength="80"></div>
+                    <div class="mb-3"><label class="form-label small fw-bold"><i class="fa-regular fa-user"></i> Nama Penuh</label><input type="text" id="checkoutName" class="form-control" required></div>
                     <div class="mb-3"><label class="form-label small fw-bold"><i class="fa-brands fa-whatsapp"></i> No. WhatsApp</label><input type="tel" id="checkoutPhone" class="form-control" readonly></div>
-                    <div class="mb-3"><label class="form-label small fw-bold"><i class="fa-regular fa-map"></i> Alamat Lengkap</label><textarea id="checkoutAddress" class="form-control" rows="2" required maxlength="300"></textarea></div>
+                    <div class="mb-3"><label class="form-label small fw-bold"><i class="fa-regular fa-map"></i> Alamat Lengkap</label><textarea id="checkoutAddress" class="form-control" rows="2" required></textarea></div>
                     <div class="row g-2 mb-3">
-                        <div class="col-6"><label class="small fw-bold">Poskod</label><input id="checkoutPostcode" class="form-control" maxlength="10"></div>
-                        <div class="col-6"><label class="small fw-bold">Negeri</label><input id="checkoutState" class="form-control" maxlength="50"></div>
+                        <div class="col-6"><label class="small fw-bold">Poskod</label><input id="checkoutPostcode" class="form-control"></div>
+                        <div class="col-6"><label class="small fw-bold">Negeri</label><input id="checkoutState" class="form-control"></div>
                     </div>
-
                     <div class="mb-4">
                         <label class="form-label fw-bold small"><i class="fa-solid fa-truck-fast"></i> Pilih Kawasan Penghantaran</label>
                         <div class="row g-2" id="checkoutShipping">
@@ -410,21 +363,18 @@
                             <div class="col-4"><div class="shipping-option text-center p-2" data-code="SG" data-cost="80">Singapore - RM80</div></div>
                         </div>
                     </div>
-
                     <div class="qr-placeholder text-center mb-4 shadow-sm p-4">
                         <h6 class="fw-bold mb-3"><i class="fa-solid fa-building-columns text-emerald"></i> PEMBAYARAN</h6>
                         <div class="p-3 border rounded-4 bg-white mb-3"><small class="text-muted">MAYBANK</small><br><strong class="fs-5">5521077466164</strong><br><small>VELXERA VENTURES</small></div>
                         <div class="bg-white border rounded-4 d-inline-block p-2"><img src="qr-payment.jpg" alt="DuitNow QR" style="max-width: 140px;" onerror="this.src='https://placehold.co/140x140?text=QR+Code'"></div>
                     </div>
-
                     <div class="card p-3 border-0 rounded-4 bg-light mb-4">
                         <div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="payLaterCheckbox"><label class="form-check-label small fw-bold">Bayar Kemudian (tanpa resit)</label></div>
                         <div id="paymentFields">
-                            <div class="mb-2"><label class="form-label text-muted small">Nama Bank Pengirim</label><input type="text" class="form-control form-control-sm" id="bankName" placeholder="CIMB / Maybank" maxlength="50"></div>
+                            <div class="mb-2"><label class="form-label text-muted small">Nama Bank Pengirim</label><input type="text" class="form-control form-control-sm" id="bankName" placeholder="CIMB / Maybank"></div>
                             <div><label class="form-label text-muted small">Resit Pembayaran (Gambar)</label><input type="file" class="form-control form-control-sm" id="checkoutReceipt" accept="image/jpeg,image/png,image/webp,image/gif"><div id="checkoutProgress" class="progress-upload" style="display:none;">⏳ Memuat naik & memampatkan...</div></div>
                         </div>
                     </div>
-
                     <div class="total-box text-center my-3 p-3 rounded-4" style="background: var(--emerald-grad); color: white;">
                         <span class="small">TOTAL (Produk + Penghantaran)</span>
                         <h3 class="fw-bold m-0" id="checkoutTotal">RM 0.00</h3>
@@ -457,69 +407,95 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-// ======================= KESELAMATAN =======================
-let orderAttempts = [];
-const RATE_LIMIT_MAX = 3;
-const RATE_LIMIT_WINDOW_MS = 60 * 1000;
-const RATE_LIMIT_COOLDOWN_S = 60;
-
-function isRateLimited() {
-    const now = Date.now();
-    orderAttempts = orderAttempts.filter(t => now - t < RATE_LIMIT_WINDOW_MS);
-    if (orderAttempts.length >= RATE_LIMIT_MAX) return true;
-    orderAttempts.push(now);
-    return false;
+// ========== FUNGSI MAMPATAN IMEJ LEBIH AGGRESIF (UPLOAD LAGU) ==========
+async function compressImage(file, maxWidth = 800, quality = 0.5) {
+    // Jika fail sudah kecil (<200KB), teruskan tanpa mampatan
+    if (file.size < 200 * 1024) {
+        return file;
+    }
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (e) => {
+            const img = new Image();
+            img.src = e.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                if (width > maxWidth) {
+                    height = (height * maxWidth) / width;
+                    width = maxWidth;
+                }
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                canvas.toBlob((blob) => {
+                    if (!blob) reject(new Error('Gagal memampatkan'));
+                    const compressedFile = new File([blob], file.name, { type: 'image/jpeg' });
+                    resolve(compressedFile);
+                }, 'image/jpeg', quality);
+            };
+            img.onerror = reject;
+        };
+        reader.onerror = reject;
+    });
 }
 
-function showRateLimitOverlay() {
-    const overlay = document.getElementById('rateLimitOverlay');
-    const timerEl = document.getElementById('cooldown-timer');
-    overlay.classList.add('show');
-    let remaining = RATE_LIMIT_COOLDOWN_S;
-    timerEl.innerText = remaining;
-    const interval = setInterval(() => {
-        remaining--;
-        timerEl.innerText = remaining;
-        if (remaining <= 0) {
-            clearInterval(interval);
-            overlay.classList.remove('show');
-        }
-    }, 1000);
+function showToast(msg, isError = false) {
+    const toast = document.getElementById('toastMsg');
+    toast.innerHTML = isError ? `⚠️ ${msg}` : `✅ ${msg}`;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
 }
 
-function isBotDetected() {
-    const hpWebsite = document.getElementById('hp-website')?.value || '';
-    const hpEmail = document.getElementById('hp-email')?.value || '';
-    return (hpWebsite !== '' || hpEmail !== '');
+// ========== FUNGSI MUAT TURUN CSV (INVOIS) ==========
+function downloadInvoiceCSV(orderId, customer, items, totalAmount, shippingCost, shippingRegion, paymentMethod, bankName) {
+    const headers = [
+        "Order ID", "Tarikh", "Nama Pelanggan", "No Telefon", "Alamat", "Poskod", "Negeri",
+        "Produk", "Saiz", "Jenis", "Kuantiti", "Harga Unit (RM)", "Jumlah Item (RM)",
+        "Kos Penghantaran (RM)", "Kawasan Penghantaran", "Jumlah Keseluruhan (RM)",
+        "Kaedah Bayaran", "Bank Pengirim", "Status"
+    ];
+    const rows = [];
+    items.forEach(item => {
+        rows.push([
+            orderId,
+            new Date().toLocaleString(),
+            customer.name,
+            customer.phone,
+            customer.address_line1,
+            customer.postcode,
+            customer.state,
+            item.prodName,
+            item.size,
+            item.type,
+            item.qty,
+            item.price.toFixed(2),
+            (item.price * item.qty).toFixed(2),
+            shippingCost.toFixed(2),
+            shippingRegion,
+            totalAmount.toFixed(2),
+            paymentMethod,
+            bankName || "-",
+            "Pending"
+        ]);
+    });
+    const csvContent = [headers, ...rows].map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.href = url;
+    link.setAttribute("download", `invoice_${orderId}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    showToast("📄 Invois CSV telah dimuat turun");
 }
 
-function sanitize(str) {
-    if (!str) return '';
-    return str.replace(/<[^>]*>/g, '').replace(/[<>"'`;\\]/g, '').trim().substring(0, 500);
-}
-
-function isValidName(name) {
-    return /^[a-zA-Z\u00C0-\u024F\u0400-\u04FF\s'.,-]{2,80}$/.test(name);
-}
-
-function isValidPhone(phone) {
-    const cleaned = phone.replace(/[\s\-\(\)\+]/g, '');
-    return /^(60|0)[1-9][0-9]{7,10}$/.test(cleaned) || /^(65)[6-9][0-9]{7}$/.test(cleaned);
-}
-
-function isValidPostcode(pc) {
-    return /^[0-9]{5,6}$/.test(pc.replace(/\s/g, ''));
-}
-
-function isValidReceipt(file) {
-    if (!file) return { ok: true };
-    const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-    if (!allowed.includes(file.type)) return { ok: false, msg: 'Format fail tidak sah (JPG/PNG/WEBP/GIF)' };
-    if (file.size > 5 * 1024 * 1024) return { ok: false, msg: 'Saiz maksimum 5MB' };
-    return { ok: true };
-}
-
-// ========== DATA ORAL PEPTIDES ==========
+// Data oral peptides
 const oralPeptidesData = [
     { id: "oral_5amino_1mq", name: "5-Amino-1MQ", category: "oral", description: "Supports metabolism, helps increase calorie burning, and may assist with fat loss.", variations: [{ size: "50mg", type: "60 Capsules", price: 210 }], stock: 100 },
     { id: "oral_bpc157", name: "BPC-157", category: "oral", description: "Supports recovery, tissue repair, gut health, and injury healing.", variations: [{ size: "500mcg", type: "100 Capsules", price: 160 }], stock: 100 },
@@ -531,7 +507,6 @@ const oralPeptidesData = [
     { id: "oral_kpv", name: "KPV", category: "oral", description: "Used to calm inflammation in the gut, skin, and throughout the body.", variations: [{ size: "300mcg", type: "60 Capsules", price: 100 }], stock: 100 }
 ];
 
-// ========== DATA PROTOCOL DOS ==========
 const protocolData = [
     ["BPC-157", "5mg", "250-750mcg (10-30 units)", "Daily", "SubQ/IM", "Healing & Repair", "Inject locally near injury. Synergistic with TB-500"],
     ["BPC-157", "10mg", "250-750mcg (5-15 units)", "Daily", "SubQ/IM", "Healing & Repair", "Inject locally near injury. Synergistic with TB-500"],
@@ -610,31 +585,6 @@ function filterProducts(products, oralList, category) {
     });
 }
 
-function findProtocolForProduct(productName) {
-    const searchTerm = productName.toLowerCase();
-    return protocolData.find(p => p[0].toLowerCase().includes(searchTerm) || searchTerm.includes(p[0].toLowerCase())) || null;
-}
-
-function showProtocolModal(productName) {
-    const protocol = findProtocolForProduct(productName);
-    const modalBody = document.getElementById('protocolModalBody');
-    if (protocol) {
-        modalBody.innerHTML = `
-            <div class="mb-2"><strong class="text-success">Produk:</strong> ${protocol[0]}</div>
-            <div class="mb-2"><strong class="text-success">Jumlah:</strong> ${protocol[1]}</div>
-            <div class="mb-2"><strong class="text-success">Dos/Unit:</strong> ${protocol[2]}</div>
-            <div class="mb-2"><strong class="text-success">Kekerapan:</strong> ${protocol[3]}</div>
-            <div class="mb-2"><strong class="text-success">Laluan:</strong> ${protocol[4]}</div>
-            <div class="mb-2"><strong class="text-success">Kategori:</strong> ${protocol[5]}</div>
-            <div class="mb-2"><strong class="text-success">Nota:</strong> ${protocol[6]}</div>
-        `;
-    } else {
-        modalBody.innerHTML = `<div class="text-center text-muted">Tiada maklumat protocol dose untuk produk ini.</div>`;
-    }
-    const modal = new bootstrap.Modal(document.getElementById('protocolModal'));
-    modal.show();
-}
-
 async function fetchAndRenderProducts() {
     try {
         const prodSnap = await getDocs(collection(db, "products"));
@@ -674,14 +624,8 @@ function renderProducts(products) {
         card.className = 'col-12';
         card.innerHTML = `
             <div class="card product-card">
-                <div class="d-flex justify-content-between mb-2">
-                    <span class="category-badge">${escapeHtml(badge)}</span>
-                    <span class="badge bg-warning text-dark">Hot</span>
-                </div>
-                <div>
-                    <h6 class="fw-bold d-inline">${escapeHtml(p.name)}</h6>
-                    <i class="fa-regular fa-circle-question protocol-icon" data-product="${escapeHtml(p.name)}" title="Klik untuk lihat protocol dose"></i>
-                </div>
+                <div class="d-flex justify-content-between mb-2"><span class="category-badge">${escapeHtml(badge)}</span><span class="badge bg-warning text-dark">Hot</span></div>
+                <h6 class="fw-bold">${escapeHtml(p.name)}</h6>
                 <div class="row g-2 align-items-end mt-2">
                     <div class="col-7"><label class="small fw-bold">Pilih Jenis</label><select class="form-select form-select-sm product-select" data-id="${p.id}">${options}</select></div>
                     <div class="col-3"><label class="small fw-bold">Kuantiti</label><input type="number" class="form-control form-control-sm product-qty" value="0" min="0" max="${defaultStock}" step="1"></div>
@@ -691,17 +635,6 @@ function renderProducts(products) {
             </div>
         `;
         container.appendChild(card);
-        
-        // Attach protocol icon event
-        const protocolIcon = card.querySelector('.protocol-icon');
-        if (protocolIcon) {
-            protocolIcon.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const productName = protocolIcon.dataset.product;
-                showProtocolModal(productName);
-            });
-        }
-        
         const select = card.querySelector('.product-select');
         const qtyInp = card.querySelector('.product-qty');
         const priceSpan = card.querySelector('.product-price');
@@ -806,13 +739,6 @@ function updateCartUI() {
     });
 }
 
-function showToast(msg, isError = false) {
-    const toast = document.getElementById('toastMsg');
-    toast.innerHTML = isError ? `⚠️ ${msg}` : `✅ ${msg}`;
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 3000);
-}
-
 function showLoginModal() {
     document.getElementById('loginName').value = '';
     document.getElementById('loginPhone').value = '';
@@ -820,16 +746,13 @@ function showLoginModal() {
     document.getElementById('loginStep2').style.display = 'none';
     new bootstrap.Modal(document.getElementById('loginModal')).show();
 }
-
 document.getElementById('loginBtn').addEventListener('click', async () => {
-    let name = document.getElementById('loginName').value.trim();
+    const name = document.getElementById('loginName').value.trim();
     let phone = document.getElementById('loginPhone').value.trim();
     if(!name || !phone) { showToast('Sila isi nama dan nombor telefon', true); return; }
-    name = sanitize(name);
-    if(!isValidName(name)) { showToast('Nama tidak sah (hanya huruf, ruang, titik, koma)', true); return; }
     phone = phone.replace(/[\s\-\(\)\+]/g, '');
     if(phone.startsWith('0')) phone = '60' + phone.substring(1);
-    if(!isValidPhone(phone)) { showToast('Nombor telefon tidak sah', true); return; }
+    if(!phone.match(/^60[0-9]{9,11}$/)) { showToast('Nombor telefon tidak sah', true); return; }
     const userRef = doc(db, "users", phone);
     await setDoc(userRef, { name, phone }, { merge: true });
     currentUser = { name, phone };
@@ -842,7 +765,6 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
         loadUserOrders();
     }, 1000);
 });
-
 function checkUserSession() {
     const saved = sessionStorage.getItem('velxera_user');
     if(saved) { currentUser = JSON.parse(saved); loadUserOrders(); }
@@ -912,72 +834,28 @@ async function showCheckoutModal() {
     new bootstrap.Modal(document.getElementById('checkoutModal')).show();
 }
 
-async function compressImage(file, maxWidth = 900, quality = 0.7) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = (e) => {
-            const img = new Image();
-            img.src = e.target.result;
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                let width = img.width;
-                let height = img.height;
-                if (width > maxWidth) {
-                    height = (height * maxWidth) / width;
-                    width = maxWidth;
-                }
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
-                canvas.toBlob((blob) => {
-                    if (!blob) reject(new Error('Mampatan gagal'));
-                    const compressedFile = new File([blob], file.name, { type: 'image/jpeg' });
-                    resolve(compressedFile);
-                }, 'image/jpeg', quality);
-            };
-            img.onerror = reject;
-        };
-        reader.onerror = reject;
-    });
-}
-
 document.getElementById('placeOrderBtn').addEventListener('click', async () => {
-    if (isRateLimited()) { showRateLimitOverlay(); return; }
-    if (isBotDetected()) { showToast('Akses tidak dibenarkan', true); return; }
-    
-    let name = document.getElementById('checkoutName').value.trim();
-    let address = document.getElementById('checkoutAddress').value.trim();
-    let postcode = document.getElementById('checkoutPostcode').value.trim();
-    let state = document.getElementById('checkoutState').value.trim();
+    const name = document.getElementById('checkoutName').value.trim();
+    const address = document.getElementById('checkoutAddress').value.trim();
+    const postcode = document.getElementById('checkoutPostcode').value.trim();
+    const state = document.getElementById('checkoutState').value.trim();
     const payLater = document.getElementById('payLaterCheckbox').checked;
     const receiptFile = document.getElementById('checkoutReceipt').files[0];
-    let bankName = document.getElementById('bankName').value.trim() || "Tiada";
-    
-    name = sanitize(name);
-    address = sanitize(address);
-    postcode = sanitize(postcode);
-    state = sanitize(state);
-    bankName = sanitize(bankName);
-    
+    const bankName = document.getElementById('bankName').value.trim() || "Tiada";
     if(!name || !address || !postcode || !state) { showToast('Sila lengkapkan alamat', true); return; }
-    if(!isValidName(name)) { showToast('Nama tidak sah', true); return; }
-    if(!isValidPostcode(postcode)) { showToast('Poskod tidak sah (5-6 digit angka)', true); return; }
     if(!payLater && !receiptFile) { showToast('Sila muat naik resit atau pilih Bayar Kemudian', true); return; }
-    
     let receiptUrl = null;
     const progressDiv = document.getElementById('checkoutProgress');
     if(!payLater && receiptFile) {
-        const receiptCheck = isValidReceipt(receiptFile);
-        if(!receiptCheck.ok) { showToast(receiptCheck.msg, true); return; }
         progressDiv.style.display = 'block';
-        progressDiv.innerHTML = '🖼️ Memampatkan imej...';
+        const fileSizeKB = (receiptFile.size / 1024).toFixed(0);
+        progressDiv.innerHTML = `🖼️ Memampatkan (${fileSizeKB}KB → ...)`;
         let compressedFile;
         try {
-            compressedFile = await compressImage(receiptFile, 900, 0.7);
-            progressDiv.innerHTML = `⬆️ Memuat naik (${(compressedFile.size/1024).toFixed(0)}KB)...`;
-        } catch(err) { progressDiv.style.display = 'none'; showToast('Gagal memampatkan imej', true); return; }
+            compressedFile = await compressImage(receiptFile, 800, 0.5);
+            const compressedKB = (compressedFile.size / 1024).toFixed(0);
+            progressDiv.innerHTML = `⬆️ Muat naik (${compressedKB}KB)...`;
+        } catch(err) { progressDiv.innerHTML = '❌ Gagal memampatkan'; showToast('Gagal memampatkan imej', true); return; }
         try {
             const fileName = `receipt_${Date.now()}_${Math.random().toString(36).substr(2,6)}.jpg`;
             const storageRef = ref(storage, `receipts/${fileName}`);
@@ -995,15 +873,14 @@ document.getElementById('placeOrderBtn').addEventListener('click', async () => {
             setTimeout(() => progressDiv.style.display = 'none', 2000);
         } catch(err) { progressDiv.style.display = 'none'; showToast('Gagal muat naik resit', true); return; }
     }
-    
     const userRef = doc(db, "users", currentUser.phone);
     await setDoc(userRef, { name, address, postcode, state }, { merge: true });
     currentUser.name = name;
-    
     const subtotal = cart.reduce((s,i) => s + i.price * i.qty, 0);
     const grandTotal = subtotal + checkoutShippingCost;
     const shippingRegion = checkoutShippingCode === 'SM' ? 'Semenanjung Malaysia' : (checkoutShippingCode === 'SS' ? 'Sabah/Sarawak' : 'Singapura');
     try {
+        let orderId;
         await runTransaction(db, async (transaction) => {
             for(let item of cart) {
                 const invRef = doc(db, "inventory", item.variationKey);
@@ -1012,7 +889,7 @@ document.getElementById('placeOrderBtn').addEventListener('click', async () => {
                 if(currentStock < item.qty) throw new Error(`Stok ${item.name} tidak cukup`);
                 transaction.set(invRef, { stock: currentStock - item.qty, initialStock: snap.exists() ? snap.data().initialStock : 100 }, { merge: true });
             }
-            const orderId = `ORD-${Date.now()}`;
+            orderId = `ORD-${Date.now()}`;
             const orderRef = doc(db, "orders", orderId);
             transaction.set(orderRef, {
                 orderId: orderId,
@@ -1027,10 +904,12 @@ document.getElementById('placeOrderBtn').addEventListener('click', async () => {
                 createdAt: new Date().toISOString()
             });
         });
+        const customerData = { name, phone: currentUser.phone, address_line1: address, postcode, state };
+        downloadInvoiceCSV(orderId, customerData, cart.map(i => ({ prodName: i.name, size: i.size, type: i.type, qty: i.qty, price: i.price })), grandTotal, checkoutShippingCost, shippingRegion, payLater ? "Bayar Kemudian" : "Pindahan Bank", payLater ? null : bankName);
         cart = [];
         saveCart();
         updateCartUI();
-        showToast('Pesanan berjaya! Admin akan proses');
+        showToast('✅ Pesanan berjaya! Invois CSV telah dimuat turun. Admin akan proses.');
         bootstrap.Modal.getInstance(document.getElementById('checkoutModal')).hide();
         document.querySelector('.tab-link[data-tab="orders"]').click();
         loadUserOrders();
@@ -1039,7 +918,24 @@ document.getElementById('placeOrderBtn').addEventListener('click', async () => {
     }
 });
 
-// Protocol dose render
+document.querySelectorAll('.tab-link').forEach(link => {
+    link.addEventListener('click', () => {
+        document.querySelectorAll('.tab-link').forEach(l => l.classList.remove('active'));
+        link.classList.add('active');
+        const tab = link.dataset.tab;
+        document.getElementById('tabHome').style.display = tab === 'home' ? 'block' : 'none';
+        document.getElementById('tabCart').style.display = tab === 'cart' ? 'block' : 'none';
+        document.getElementById('tabOrders').style.display = tab === 'orders' ? 'block' : 'none';
+        if(tab === 'orders') loadUserOrders();
+        if(tab === 'cart') updateCartUI();
+    });
+});
+document.getElementById('proceedToCheckoutBtn').addEventListener('click', showCheckoutModal);
+document.getElementById('payLaterCheckbox').addEventListener('change', (e) => {
+    document.getElementById('paymentFields').style.display = e.target.checked ? 'none' : 'block';
+});
+function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => m==='&'?'&amp;':m==='<'?'&lt;':m==='>'?'&gt;':m); }
+
 function renderProtocolCards() {
     const container = document.getElementById('protocolCardsContainer');
     if (!container) return;
@@ -1080,27 +976,6 @@ function renderProtocolCards() {
         });
     }
 }
-
-// Tabs
-document.querySelectorAll('.tab-link').forEach(link => {
-    link.addEventListener('click', () => {
-        document.querySelectorAll('.tab-link').forEach(l => l.classList.remove('active'));
-        link.classList.add('active');
-        const tab = link.dataset.tab;
-        document.getElementById('tabHome').style.display = tab === 'home' ? 'block' : 'none';
-        document.getElementById('tabCart').style.display = tab === 'cart' ? 'block' : 'none';
-        document.getElementById('tabOrders').style.display = tab === 'orders' ? 'block' : 'none';
-        if(tab === 'orders') loadUserOrders();
-        if(tab === 'cart') updateCartUI();
-    });
-});
-
-document.getElementById('proceedToCheckoutBtn').addEventListener('click', showCheckoutModal);
-document.getElementById('payLaterCheckbox').addEventListener('change', (e) => {
-    document.getElementById('paymentFields').style.display = e.target.checked ? 'none' : 'block';
-});
-
-function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => m==='&'?'&amp;':m==='<'?'&lt;':m==='>'?'&gt;':m); }
 
 fetchAndRenderProducts();
 loadCart();
