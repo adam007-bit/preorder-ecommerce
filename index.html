@@ -14,7 +14,7 @@
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.jpg">
     
-    <!-- jsPDF & html2canvas untuk PDF (tidak diubah) -->
+    <!-- jsPDF & html2canvas untuk PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
@@ -239,7 +239,6 @@
             color: white;
             border-radius: 24px 24px 0 0;
         }
-        /* Sembunyikan elemen PDF semasa di web */
         .invoice-preview {
             position: fixed;
             left: -9999px;
@@ -249,6 +248,21 @@
             padding: 30px;
             font-family: 'Poppins', sans-serif;
             z-index: -1;
+        }
+        .lang-btn {
+            background: transparent;
+            border: 1px solid #fff;
+            border-radius: 30px;
+            padding: 4px 12px;
+            color: white;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .lang-btn:hover {
+            background: white;
+            color: #10b981;
         }
     </style>
 </head>
@@ -293,18 +307,18 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4">
             <div class="modal-header border-0">
-                <h5 class="modal-title fw-bold"><i class="fa-regular fa-user text-success"></i> Log Masuk / Daftar</h5>
+                <h5 class="modal-title fw-bold"><i class="fa-regular fa-user text-success"></i> <span class="lang-login">Log Masuk / Daftar</span></h5>
             </div>
             <div class="modal-body">
                 <div id="loginStep1">
-                    <label class="form-label">Nama Penuh</label>
+                    <label class="form-label"><span class="lang-fullname">Nama Penuh</span></label>
                     <input type="text" id="loginName" class="form-control mb-3" placeholder="Ahmad Ali">
-                    <label class="form-label">Nombor WhatsApp / Telefon</label>
+                    <label class="form-label"><span class="lang-phone">Nombor WhatsApp / Telefon</span></label>
                     <input type="tel" id="loginPhone" class="form-control mb-3" placeholder="0123456789">
-                    <button id="loginBtn" class="btn btn-success w-100">Log Masuk / Daftar</button>
+                    <button id="loginBtn" class="btn btn-success w-100"><span class="lang-loginbtn">Log Masuk / Daftar</span></button>
                 </div>
                 <div id="loginStep2" style="display:none;">
-                    <div class="alert alert-success">Log masuk berjaya!</div>
+                    <div class="alert alert-success"><span class="lang-loginsuccess">Log masuk berjaya!</span></div>
                 </div>
             </div>
         </div>
@@ -312,70 +326,73 @@
 </div>
 
 <nav class="navbar navbar-light custom-navbar sticky-top">
-    <div class="container text-center">
-        <span class="navbar-brand mx-auto navbar-brand-text">
+    <div class="container d-flex justify-content-between align-items-center">
+        <span class="navbar-brand navbar-brand-text">
             <i class="fa-solid fa-leaf me-2" style="color: #10b981;"></i> VELXERA VENTURES
         </span>
+        <div>
+            <button id="langToggle" class="lang-btn">🇬🇧 EN</button>
+        </div>
     </div>
 </nav>
 
 <div class="container my-4" style="max-width: 680px;">
     <div class="step-guide-box text-center shadow p-4 mb-4">
-        <span class="badge badge-step-title mb-3">3 LANGKAH MUDAH</span>
+        <span class="badge badge-step-title mb-3"><span class="lang-step1">3 LANGKAH MUDAH</span></span>
         <div class="d-flex justify-content-around align-items-center text-muted small">
-            <div class="step-item fw-bold"><i class="fa-solid fa-basket-shopping"></i> 1. Pilih Item</div>
+            <div class="step-item fw-bold"><i class="fa-solid fa-basket-shopping"></i> <span class="lang-step-pilih">1. Pilih Item</span></div>
             <i class="fa-solid fa-circle-chevron-right"></i>
-            <div class="step-item fw-bold"><i class="fa-solid fa-cart-shopping"></i> 2. Checkout</div>
+            <div class="step-item fw-bold"><i class="fa-solid fa-cart-shopping"></i> <span class="lang-step-checkout">2. Checkout</span></div>
             <i class="fa-solid fa-circle-chevron-right"></i>
-            <div class="step-item fw-bold"><i class="fa-solid fa-credit-card"></i> 3. Bayar & Upload</div>
+            <div class="step-item fw-bold"><i class="fa-solid fa-credit-card"></i> <span class="lang-step-bayar">3. Bayar & Upload</span></div>
         </div>
     </div>
 
     <div class="nav-tabs-custom">
-        <div class="tab-link active" data-tab="home"><i class="fa-solid fa-house"></i> Home</div>
-        <div class="tab-link" data-tab="cart"><i class="fa-solid fa-cart-shopping"></i> Cart <span id="cartCountBadge" class="badge bg-success rounded-pill ms-1" style="display:none;">0</span></div>
-        <div class="tab-link" data-tab="orders"><i class="fa-regular fa-receipt"></i> My Orders</div>
+        <div class="tab-link active" data-tab="home"><i class="fa-solid fa-house"></i> <span class="lang-home">Home</span></div>
+        <div class="tab-link" data-tab="cart"><i class="fa-solid fa-cart-shopping"></i> <span class="lang-cart">Cart</span> <span id="cartCountBadge" class="badge bg-success rounded-pill ms-1" style="display:none;">0</span></div>
+        <div class="tab-link" data-tab="orders"><i class="fa-regular fa-receipt"></i> <span class="lang-myorders">My Orders</span></div>
     </div>
 
     <!-- Tab Home -->
     <div id="tabHome" class="tab-content active">
         <div class="d-flex align-items-center my-3">
-            <h6 class="fw-bold m-0" style="color: #059669;"><i class="fa-solid fa-sparkles me-2 text-warning"></i>Katalog Eksklusif Viral</h6>
+            <h6 class="fw-bold m-0" style="color: #059669;"><i class="fa-solid fa-sparkles me-2 text-warning"></i><span class="lang-catalog">Katalog Eksklusif Viral</span></h6>
             <div class="flex-grow-1 ms-3 border-bottom" style="border-color: #10b981;"></div>
         </div>
         <div class="category-filters" id="homeFilters">
-            <button class="cat-btn active" data-cat="all">Semua</button>
-            <button class="cat-btn" data-cat="peptides">Peptides</button>
-            <button class="cat-btn" data-cat="beauty">Beauty Line</button>
-            <button class="cat-btn" data-cat="readystock">Ready Stock</button>
-            <button class="cat-btn" data-cat="oral">Oral Peptides</button>
+            <button class="cat-btn active" data-cat="all"><span class="lang-all">Semua</span></button>
+            <button class="cat-btn" data-cat="peptides"><span class="lang-peptides">Peptides</span></button>
+            <button class="cat-btn" data-cat="beauty"><span class="lang-beauty">Beauty Line</span></button>
+            <button class="cat-btn" data-cat="readystock"><span class="lang-readystock">Ready Stock</span></button>
+            <button class="cat-btn" data-cat="oral"><span class="lang-oral">Oral Peptides</span></button>
         </div>
         <div id="product-list" class="row g-3">
-            <div class="text-center py-5"><div class="spinner-border text-emerald"></div><p>Memuatkan produk...</p></div>
+            <div class="text-center py-5"><div class="spinner-border text-emerald"></div><p><span class="lang-loading">Memuatkan produk...</span></p></div>
         </div>
     </div>
 
     <!-- Tab Cart -->
     <div id="tabCart" class="tab-content" style="display:none;">
-        <h6 class="fw-bold mb-3"><i class="fa-solid fa-cart-shopping text-success me-2"></i>Keranjang Saya</h6>
-        <div id="cartItemsContainer"><div class="text-center text-muted py-4">Keranjang kosong</div></div>
+        <h6 class="fw-bold mb-3"><i class="fa-solid fa-cart-shopping text-success me-2"></i><span class="lang-carttitle">Keranjang Saya</span></h6>
+        <div id="cartItemsContainer"><div class="text-center text-muted py-4"><span class="lang-cartempty">Keranjang kosong</span></div></div>
         <div id="cartSummary" style="display:none;" class="mt-3 p-3 bg-white rounded-4 shadow-sm">
-            <div class="d-flex justify-content-between mb-2"><span>Jumlah item:</span><span id="cartTotalItems">0</span></div>
-            <div class="d-flex justify-content-between mb-3 fw-bold"><span>Total (RM):</span><span id="cartTotalPrice">0.00</span></div>
-            <button id="proceedToCheckoutBtn" class="btn btn-success w-100">Proceed to Checkout <i class="fa-solid fa-arrow-right"></i></button>
+            <div class="d-flex justify-content-between mb-2"><span><span class="lang-totalitems">Jumlah item:</span></span><span id="cartTotalItems">0</span></div>
+            <div class="d-flex justify-content-between mb-3 fw-bold"><span><span class="lang-totalprice">Total (RM):</span></span><span id="cartTotalPrice">0.00</span></div>
+            <button id="proceedToCheckoutBtn" class="btn btn-success w-100"><span class="lang-proceed">Proceed to Checkout</span> <i class="fa-solid fa-arrow-right"></i></button>
         </div>
     </div>
 
     <!-- Tab My Orders -->
     <div id="tabOrders" class="tab-content" style="display:none;">
-        <h6 class="fw-bold mb-3"><i class="fa-regular fa-receipt text-success me-2"></i>Pesanan Saya</h6>
-        <div id="ordersListContainer"><div class="text-center text-muted py-4">Tiada pesanan.</div></div>
+        <h6 class="fw-bold mb-3"><i class="fa-regular fa-receipt text-success me-2"></i><span class="lang-myorderstitle">Pesanan Saya</span></h6>
+        <div id="ordersListContainer"><div class="text-center text-muted py-4"><span class="lang-noorders">Tiada pesanan.</span></div></div>
     </div>
 
     <!-- Protocol Dose Section -->
     <div class="protocol-dose-section">
         <div class="protocol-dose-header">
-            <h6><i class="fa-solid fa-flask me-2"></i> PROTOCOL DOSE DATABASE</h6>
+            <h6><i class="fa-solid fa-flask me-2"></i> <span class="lang-protocol">PROTOCOL DOSE DATABASE</span></h6>
             <i class="fa-regular fa-lightbulb"></i>
         </div>
         <div class="protocol-dose-container">
@@ -387,7 +404,7 @@
             </div>
         </div>
         <div class="protocol-note text-center small text-muted mt-2">
-            <i class="fa-regular fa-clock me-1"></i> Rujukan dos adalah daripada Peptide Protocol Portal.
+            <i class="fa-regular fa-clock me-1"></i> <span class="lang-protocolnote">Rujukan dos adalah daripada Peptide Protocol Portal.</span>
         </div>
     </div>
 
@@ -396,19 +413,19 @@
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content rounded-4">
                 <div class="modal-header">
-                    <h5 class="modal-title fw-bold"><i class="fa-solid fa-cart-shopping"></i> Selesaikan Pesanan</h5>
+                    <h5 class="modal-title fw-bold"><i class="fa-solid fa-cart-shopping"></i> <span class="lang-checkouttitle">Selesaikan Pesanan</span></h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-3"><label class="form-label small fw-bold"><i class="fa-regular fa-user"></i> Nama Penuh</label><input type="text" id="checkoutName" class="form-control" required></div>
-                    <div class="mb-3"><label class="form-label small fw-bold"><i class="fa-brands fa-whatsapp"></i> No. WhatsApp</label><input type="tel" id="checkoutPhone" class="form-control" readonly></div>
-                    <div class="mb-3"><label class="form-label small fw-bold"><i class="fa-regular fa-map"></i> Alamat Lengkap</label><textarea id="checkoutAddress" class="form-control" rows="2" required></textarea></div>
+                    <div class="mb-3"><label class="form-label small fw-bold"><i class="fa-regular fa-user"></i> <span class="lang-fullname">Nama Penuh</span></label><input type="text" id="checkoutName" class="form-control" required></div>
+                    <div class="mb-3"><label class="form-label small fw-bold"><i class="fa-brands fa-whatsapp"></i> <span class="lang-phone">No. WhatsApp</span></label><input type="tel" id="checkoutPhone" class="form-control" readonly></div>
+                    <div class="mb-3"><label class="form-label small fw-bold"><i class="fa-regular fa-map"></i> <span class="lang-address">Alamat Lengkap</span></label><textarea id="checkoutAddress" class="form-control" rows="2" required></textarea></div>
                     <div class="row g-2 mb-3">
-                        <div class="col-6"><label class="small fw-bold">Poskod</label><input id="checkoutPostcode" class="form-control"></div>
-                        <div class="col-6"><label class="small fw-bold">Negeri</label><input id="checkoutState" class="form-control"></div>
+                        <div class="col-6"><label class="small fw-bold"><span class="lang-postcode">Poskod</span></label><input id="checkoutPostcode" class="form-control"></div>
+                        <div class="col-6"><label class="small fw-bold"><span class="lang-state">Negeri</span></label><input id="checkoutState" class="form-control"></div>
                     </div>
                     <div class="mb-4">
-                        <label class="form-label fw-bold small"><i class="fa-solid fa-truck-fast"></i> Pilih Kawasan Penghantaran</label>
+                        <label class="form-label fw-bold small"><i class="fa-solid fa-truck-fast"></i> <span class="lang-shippingarea">Pilih Kawasan Penghantaran</span></label>
                         <div class="row g-2" id="checkoutShipping">
                             <div class="col-4"><div class="shipping-option text-center p-2 selected" data-code="SM" data-cost="10">SM - RM10</div></div>
                             <div class="col-4"><div class="shipping-option text-center p-2" data-code="SS" data-cost="20">SS - RM20</div></div>
@@ -416,25 +433,25 @@
                         </div>
                     </div>
                     <div class="qr-placeholder text-center mb-4 shadow-sm p-4">
-                        <h6 class="fw-bold mb-3"><i class="fa-solid fa-building-columns text-emerald"></i> PEMBAYARAN</h6>
+                        <h6 class="fw-bold mb-3"><i class="fa-solid fa-building-columns text-emerald"></i> <span class="lang-payment">PEMBAYARAN</span></h6>
                         <div class="p-3 border rounded-4 bg-white mb-3"><small class="text-muted">MAYBANK</small><br><strong class="fs-5">5521077466164</strong><br><small>VELXERA VENTURES</small></div>
                         <div class="bg-white border rounded-4 d-inline-block p-2"><img src="qr-payment.jpg" alt="DuitNow QR" style="max-width: 140px;" onerror="this.src='https://placehold.co/140x140?text=QR+Code'"></div>
                     </div>
                     <div class="card p-3 border-0 rounded-4 bg-light mb-4">
-                        <div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="payLaterCheckbox"><label class="form-check-label small fw-bold">Bayar Kemudian (tanpa resit)</label></div>
+                        <div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="payLaterCheckbox"><label class="form-check-label small fw-bold"><span class="lang-paylater">Bayar Kemudian (tanpa resit)</span></label></div>
                         <div id="paymentFields">
-                            <div class="mb-2"><label class="form-label text-muted small">Nama Bank Pengirim</label><input type="text" class="form-control form-control-sm" id="bankName" placeholder="CIMB / Maybank"></div>
-                            <div><label class="form-label text-muted small">Resit Pembayaran (Gambar)</label><input type="file" class="form-control form-control-sm" id="checkoutReceipt" accept="image/jpeg,image/png,image/webp,image/gif"><div id="checkoutProgress" class="progress-upload" style="display:none;">⏳ Memuat naik & memampatkan...</div></div>
+                            <div class="mb-2"><label class="form-label text-muted small"><span class="lang-bankname">Nama Bank Pengirim</span></label><input type="text" class="form-control form-control-sm" id="bankName" placeholder="CIMB / Maybank"></div>
+                            <div><label class="form-label text-muted small"><span class="lang-receipt">Resit Pembayaran (Gambar)</span></label><input type="file" class="form-control form-control-sm" id="checkoutReceipt" accept="image/jpeg,image/png,image/webp,image/gif"><div id="checkoutProgress" class="progress-upload" style="display:none;">⏳ Memuat naik & memampatkan...</div></div>
                         </div>
                     </div>
                     <div class="total-box text-center my-3 p-3 rounded-4" style="background: var(--emerald-grad); color: white;">
-                        <span class="small">TOTAL (Produk + Penghantaran)</span>
+                        <span class="small"><span class="lang-total">TOTAL (Produk + Penghantaran)</span></span>
                         <h3 class="fw-bold m-0" id="checkoutTotal">RM 0.00</h3>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button id="placeOrderBtn" class="btn btn-success">Place Order <i class="fa-solid fa-check-circle"></i></button>
+                    <button class="btn btn-secondary" data-bs-dismiss="modal"><span class="lang-cancel">Batal</span></button>
+                    <button id="placeOrderBtn" class="btn btn-success"><span class="lang-placeorder">Place Order</span> <i class="fa-solid fa-check-circle"></i></button>
                 </div>
             </div>
         </div>
@@ -446,7 +463,6 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
 import { getFirestore, collection, doc, getDocs, setDoc, updateDoc, query, where, getDoc, runTransaction } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
-// ========== KONFIGURASI IMGBB ==========
 const IMGBB_API_KEY = '8b4d34f1c329684356d506ef8d67105e';
 
 const firebaseConfig = {
@@ -460,7 +476,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// ========== FUNGSI MAMPATAN IMEJ ==========
 async function compressImage(file, maxWidth = 800, quality = 0.5) {
     if (file.size < 200 * 1024) return file;
     return new Promise((resolve, reject) => {
@@ -492,7 +507,6 @@ async function compressImage(file, maxWidth = 800, quality = 0.5) {
     });
 }
 
-// ========== UPLOAD KE IMGBB ==========
 async function uploadReceiptToImgBB(file) {
     const formData = new FormData();
     formData.append('image', file);
@@ -505,12 +519,9 @@ async function uploadReceiptToImgBB(file) {
     return data.data.url;
 }
 
-// ========== FUNGSI GENERATE PDF INVOICE ==========
 async function generateAndDownloadPDF(orderId, customer, items, totalAmount, shippingCost, shippingRegion, paymentMethod, bankName) {
     const invoiceDiv = document.getElementById('invoicePreview');
     const contentDiv = document.getElementById('invoiceContent');
-    
-    // Generate HTML content untuk invoice
     const subtotal = items.reduce((sum, i) => sum + (i.price * i.qty), 0);
     const itemsHtml = items.map(i => `
         <tr style="border-bottom: 1px solid #e2e8f0;">
@@ -518,56 +529,27 @@ async function generateAndDownloadPDF(orderId, customer, items, totalAmount, shi
             <td style="padding: 6px 0; text-align: center;">${i.qty}</td>
             <td style="padding: 6px 0; text-align: right;">RM ${i.price.toFixed(2)}</td>
             <td style="padding: 6px 0; text-align: right;">RM ${(i.price * i.qty).toFixed(2)}</td>
-        </tr>
+        <table>
     `).join('');
-    
     contentDiv.innerHTML = `
         <h3 style="text-align: center;">INVOIS PESANAN</h3>
         <p style="text-align: center;"><strong>ID Pesanan:</strong> ${orderId}</p>
         <p style="text-align: center;"><strong>Tarikh:</strong> ${new Date().toLocaleString()}</p>
         <hr>
-        <div style="margin-bottom: 20px;">
-            <strong>Kepada:</strong><br>
-            ${customer.name}<br>
-            ${customer.phone}<br>
-            ${customer.address_line1}, ${customer.postcode} ${customer.state}
-        </div>
-        <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
-            <thead>
-                <tr><th style="text-align: left;">Produk</th><th style="text-align: center;">Kuantiti</th><th style="text-align: right;">Harga Unit (RM)</th><th style="text-align: right;">Jumlah (RM)</th></tr>
-            </thead>
-            <tbody>
-                ${itemsHtml}
-            </tbody>
-            <tfoot>
-                <tr><td colspan="3" style="text-align: right; padding-top: 10px;"><strong>Subtotal:</strong></td><td style="text-align: right; padding-top: 10px;">RM ${subtotal.toFixed(2)}</td></tr>
-                <tr><td colspan="3" style="text-align: right;"><strong>Penghantaran (${shippingRegion}):</strong></td><td style="text-align: right;">RM ${shippingCost.toFixed(2)}</td></tr>
-                <tr style="border-top: 2px solid #10b981;"><td colspan="3" style="text-align: right;"><strong>TOTAL:</strong></td><td style="text-align: right;"><strong>RM ${totalAmount.toFixed(2)}</strong></td></tr>
-            </tfoot>
-        </table>
-        <div>
-            <strong>Kaedah Bayaran:</strong> ${paymentMethod}<br>
-            ${bankName && bankName !== "Tiada" ? `<strong>Bank Pengirim:</strong> ${bankName}<br>` : ''}
-            <strong>Status:</strong> Pending (Menunggu pengesahan admin)
-        </div>
+        <div style="margin-bottom: 20px;"><strong>Kepada:</strong><br>${customer.name}<br>${customer.phone}<br>${customer.address_line1}, ${customer.postcode} ${customer.state}</div>
+        <table style="width:100%; border-collapse:collapse; margin:20px 0;"><thead><tr><th style="text-align:left;">Produk</th><th style="text-align:center;">Kuantiti</th><th style="text-align:right;">Harga Unit (RM)</th><th style="text-align:right;">Jumlah (RM)</th></tr></thead><tbody>${itemsHtml}</tbody><tfoot><tr><td colspan="3" style="text-align:right; padding-top:10px;"><strong>Subtotal:</strong></td><td style="text-align:right; padding-top:10px;">RM ${subtotal.toFixed(2)}</td></tr><tr><td colspan="3" style="text-align:right;"><strong>Penghantaran (${shippingRegion}):</strong></td><td style="text-align:right;">RM ${shippingCost.toFixed(2)}</td></tr><tr style="border-top:2px solid #10b981;"><td colspan="3" style="text-align:right;"><strong>TOTAL:</strong></td><td style="text-align:right;"><strong>RM ${totalAmount.toFixed(2)}</strong></td></tr></tfoot></table>
+        <div><strong>Kaedah Bayaran:</strong> ${paymentMethod}<br>${bankName && bankName !== "Tiada" ? `<strong>Bank Pengirim:</strong> ${bankName}<br>` : ''}<strong>Status:</strong> Pending (Menunggu pengesahan admin)</div>
     `;
-    
-    // Gunakan html2canvas + jsPDF untuk jana PDF
     const { jsPDF } = window.jspdf;
     try {
         const canvas = await html2canvas(invoiceDiv, { scale: 2, backgroundColor: '#ffffff' });
         const imgData = canvas.toDataURL('image/png');
-        const pdf = new jsPDF({
-            unit: 'mm',
-            format: 'a4',
-            orientation: 'portrait'
-        });
-        const imgWidth = 210; // A4 width in mm
+        const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+        const imgWidth = 210;
         const pageHeight = 297;
         const imgHeight = (canvas.height * imgWidth) / canvas.width;
         let heightLeft = imgHeight;
         let position = 0;
-        
         pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
         heightLeft -= pageHeight;
         while (heightLeft > 0) {
@@ -591,7 +573,7 @@ function showToast(msg, isError = false) {
     setTimeout(() => toast.classList.remove('show'), 3000);
 }
 
-// ========== DATA PROTOCOL DOS (diringkaskan) ==========
+// ========== DATA PROTOCOL DOS (ringkas) ==========
 const protocolData = [
     ["BPC-157", "5mg", "250-750mcg (10-30 units)", "Daily", "SubQ/IM", "Healing & Repair", "Inject locally near injury. Synergistic with TB-500"],
     ["TB-500", "5mg", "2.5-5mg (50-100 units)", "2x/week", "SubQ", "Healing & Repair", "Synergistic with BPC-157"],
@@ -619,10 +601,9 @@ const protocolData = [
     ["VIP", "5mg/10mg", "50-200mcg (2-8 units)", "1-4x daily", "Intranasal/SubQ", "Immunity/Neuroimmune", "CIRS support"],
     ["PT-141", "5mg/10mg", "500mcg-1mg (10-20 units)", "2 hrs before activity", "SubQ", "Libido/ED", "Consult doctor"],
     ["SS-31", "10mg", "5-10mg (10-20 units)", "Daily x 20 days", "SubQ", "Longevity", "Mitochondrial peptide"],
-    ["FOXO4-DRI", "2mg", "200-500mcg (2-5 units)", "Weekly", "SubQ", "Longevity", "Senolytic"]
+    ["FOXO4-DRI", "2mg", "200-500mcg (2-5 units)", "Weekly", "SubQ", "Longevity", "Senolytic. Consult specialist before use"]
 ];
 
-// Data oral peptides
 const oralPeptidesData = [
     { id: "oral_5amino_1mq", name: "5-Amino-1MQ", category: "oral", description: "Supports metabolism, helps increase calorie burning, and may assist with fat loss.", variations: [{ size: "50mg", type: "60 Capsules", price: 210 }], stock: 100 },
     { id: "oral_bpc157", name: "BPC-157", category: "oral", description: "Supports recovery, tissue repair, gut health, and injury healing.", variations: [{ size: "500mcg", type: "100 Capsules", price: 160 }], stock: 100 },
@@ -632,6 +613,16 @@ const oralPeptidesData = [
     { id: "oral_orforglipron", name: "Orforglipron", category: "oral", description: "Helps reduce appetite, improve blood sugar control, and support weight management.", variations: [{ size: "6mg", type: "90 Capsules", price: 480 }], stock: 100 },
     { id: "oral_slupp332", name: "SLU-PP-332", category: "oral", description: "Designed to enhance endurance, increase energy utilization, and support fat burning.", variations: [{ size: "250mcg", type: "100 Capsules", price: 70 }], stock: 100 },
     { id: "oral_kpv", name: "KPV", category: "oral", description: "Used to calm inflammation in the gut, skin, and throughout the body.", variations: [{ size: "300mcg", type: "60 Capsules", price: 100 }], stock: 100 }
+];
+
+// Tambahan produk kecantikan + USP Bac Water
+const additionalBeautyProducts = [
+    { id: "beauty_pigment_serum", name: "Pigment Serum", category: "beauty", description: "Brightening and spot fading serum.", variations: [{ size: "10ml", type: "Serum", price: 10 }], stock: 100 },
+    { id: "beauty_fiona_masker", name: "Fiona Masker", category: "beauty", description: "Moisturizing and brightening sheet mask.", variations: [{ size: "10mg", type: "Mask", price: 15 }], stock: 100 },
+    { id: "beauty_oligo_peptide24", name: "Oligo Peptide 24", category: "beauty", description: "Anti-aging peptide complex.", variations: [{ size: "10mg", type: "Peptide", price: 15 }], stock: 100 },
+    { id: "beauty_vitamin_c_tablet", name: "Vitamin C Tablet With Essense", category: "beauty", description: "Vitamin C brightening tablets with essence.", variations: [{ size: "10pcs", type: "Tablet", price: 20 }], stock: 100 },
+    { id: "beauty_acne_serum", name: "Acne Serum", category: "beauty", description: "Anti-acne and soothing serum.", variations: [{ size: "5ml", type: "Serum", price: 10 }], stock: 100 },
+    { id: "solvent_bac_water", name: "USP Bac Water", category: "peptides", description: "Bacteriostatic water for reconstitution.", variations: [{ size: "10ml", type: "Vial", price: 12 }], stock: 100 }
 ];
 
 let allProducts = [];
@@ -650,7 +641,7 @@ async function fetchStock() {
 
 function getProductCategory(name) {
     const n = name.toLowerCase();
-    const beauty = ['ghk-cu','ahk-cu','glutathione','glow','klow','snap-8','matrixyl','ggh','exosome','pdrn','botulinum toxin','hyaluronic acid','pink hyaluronic','whitening','spotfading','snake venom','lipo c','fat blaster','lemon bottle','super human blend','super shred','shred','immunological enhancement','sz352','vitamin b','vitamin c','vitamin d2','super beauty','hhb','bac water','acetic acid'];
+    const beauty = ['ghk-cu','ahk-cu','glutathione','glow','klow','snap-8','matrixyl','ggh','exosome','pdrn','botulinum toxin','hyaluronic acid','pink hyaluronic','whitening','spotfading','snake venom','lipo c','fat blaster','lemon bottle','super human blend','super shred','shred','immunological enhancement','sz352','vitamin b','vitamin c','vitamin d2','super beauty','hhb','bac water','acetic acid','pigment serum','fiona masker','oligo peptide','vitamin c tablet','acne serum'];
     for(let kw of beauty) if(n.includes(kw)) return 'beauty';
     return 'peptides';
 }
@@ -678,7 +669,24 @@ async function fetchAndRenderProducts() {
         if(!allProducts.find(p => p.name === "SLUPP-332 250mcg Tablet")) {
             allProducts.push({ id: "slupp332_manual", name: "SLUPP-332 250mcg Tablet", category: "peptides", description: "250mcg per tablet. 100 biji.", variations: [{ size: "250mcg", type: "Tablet (100 biji)", price: 50 }] });
         }
+        for (const prod of additionalBeautyProducts) {
+            if (!allProducts.find(p => p.id === prod.id)) {
+                allProducts.push(prod);
+            }
+        }
+        const foxoProduct = allProducts.find(p => p.name && p.name.toLowerCase().includes("foxo4-dri"));
+        if (foxoProduct && foxoProduct.variations && foxoProduct.variations.length > 0) {
+            foxoProduct.variations.forEach(v => { v.price = 30; });
+        }
         await fetchStock();
+        for (const prod of additionalBeautyProducts) {
+            for (const v of prod.variations) {
+                const key = getVariationKey(prod.id, v.size, v.type);
+                if (!stockMap.has(key)) {
+                    stockMap.set(key, { stock: prod.stock || 100, initialStock: prod.stock || 100 });
+                }
+            }
+        }
         oralPeptidesData.forEach(p => {
             p.variations.forEach(v => {
                 const key = getVariationKey(p.id, v.size, v.type);
@@ -1041,7 +1049,6 @@ document.getElementById('placeOrderBtn').addEventListener('click', async () => {
             });
         });
         const customerData = { name, phone: currentUser.phone, address_line1: address, postcode, state };
-        // Muat turun PDF
         await generateAndDownloadPDF(orderId, customerData, cart.map(i => ({ prodName: i.name, size: i.size, type: i.type, qty: i.qty, price: i.price })), grandTotal, checkoutShippingCost, shippingRegion, payLater ? "Bayar Kemudian" : "Pindahan Bank", payLater ? null : bankName);
         cart = [];
         saveCart();
@@ -1102,21 +1109,100 @@ function renderProtocolCards() {
     }
 }
 
+// ========== DWIBAHASA (LENGKAP) ==========
+let currentLang = 'ms';
+const translations = {
+    ms: {
+        step1: "3 LANGKAH MUDAH", step_pilih: "1. Pilih Item", step_checkout: "2. Checkout", step_bayar: "3. Bayar & Upload",
+        home: "Home", cart: "Cart", myorders: "My Orders",
+        catalog: "Katalog Eksklusif Viral", all: "Semua", peptides: "Peptides", beauty: "Beauty Line", readystock: "Ready Stock", oral: "Oral Peptides", loading: "Memuatkan produk...",
+        carttitle: "Keranjang Saya", cartempty: "Keranjang kosong", totalitems: "Jumlah item:", totalprice: "Total (RM):", proceed: "Proceed to Checkout",
+        myorderstitle: "Pesanan Saya", noorders: "Tiada pesanan.",
+        protocol: "PROTOCOL DOSE DATABASE", protocolnote: "Rujukan dos adalah daripada Peptide Protocol Portal.",
+        checkouttitle: "Selesaikan Pesanan", fullname: "Nama Penuh", phone: "No. WhatsApp", address: "Alamat Lengkap", postcode: "Poskod", state: "Negeri",
+        shippingarea: "Pilih Kawasan Penghantaran", payment: "PEMBAYARAN", paylater: "Bayar Kemudian (tanpa resit)", bankname: "Nama Bank Pengirim", receipt: "Resit Pembayaran (Gambar)", total: "TOTAL (Produk + Penghantaran)", cancel: "Batal", placeorder: "Place Order",
+        login: "Log Masuk / Daftar", fullname_label: "Nama Penuh", phone_label: "Nombor WhatsApp / Telefon", loginbtn: "Log Masuk / Daftar", loginsuccess: "Log masuk berjaya!"
+    },
+    en: {
+        step1: "3 EASY STEPS", step_pilih: "1. Select Item", step_checkout: "2. Checkout", step_bayar: "3. Pay & Upload",
+        home: "Home", cart: "Cart", myorders: "My Orders",
+        catalog: "Viral Exclusive Catalog", all: "All", peptides: "Peptides", beauty: "Beauty Line", readystock: "Ready Stock", oral: "Oral Peptides", loading: "Loading products...",
+        carttitle: "My Cart", cartempty: "Cart is empty", totalitems: "Total items:", totalprice: "Total (RM):", proceed: "Proceed to Checkout",
+        myorderstitle: "My Orders", noorders: "No orders.",
+        protocol: "PROTOCOL DOSE DATABASE", protocolnote: "Dosage reference from Peptide Protocol Portal.",
+        checkouttitle: "Complete Order", fullname: "Full Name", phone: "WhatsApp Number", address: "Full Address", postcode: "Postcode", state: "State",
+        shippingarea: "Select Shipping Area", payment: "PAYMENT", paylater: "Pay Later (no receipt)", bankname: "Sender's Bank Name", receipt: "Payment Receipt (Image)", total: "TOTAL (Product + Shipping)", cancel: "Cancel", placeorder: "Place Order",
+        login: "Login / Register", fullname_label: "Full Name", phone_label: "WhatsApp Number", loginbtn: "Login / Register", loginsuccess: "Login successful!"
+    }
+};
+
+function setLanguage(lang) {
+    currentLang = lang;
+    const t = translations[lang];
+    document.querySelectorAll('[class^="lang-"]').forEach(el => {
+        const key = el.className.split(' ').find(c => c.startsWith('lang-')).substring(5);
+        if (t[key]) el.innerText = t[key];
+    });
+    document.querySelector('.badge-step-title .lang-step1').innerText = t.step1;
+    document.querySelector('.lang-step-pilih').innerText = t.step_pilih;
+    document.querySelector('.lang-step-checkout').innerText = t.step_checkout;
+    document.querySelector('.lang-step-bayar').innerText = t.step_bayar;
+    document.querySelector('.lang-home').innerText = t.home;
+    document.querySelector('.lang-cart').innerText = t.cart;
+    document.querySelector('.lang-myorders').innerText = t.myorders;
+    document.querySelector('.lang-catalog').innerText = t.catalog;
+    document.querySelectorAll('.lang-all').forEach(el => el.innerText = t.all);
+    document.querySelectorAll('.lang-peptides').forEach(el => el.innerText = t.peptides);
+    document.querySelectorAll('.lang-beauty').forEach(el => el.innerText = t.beauty);
+    document.querySelectorAll('.lang-readystock').forEach(el => el.innerText = t.readystock);
+    document.querySelectorAll('.lang-oral').forEach(el => el.innerText = t.oral);
+    document.querySelector('.lang-loading').innerText = t.loading;
+    document.querySelector('.lang-carttitle').innerText = t.carttitle;
+    document.querySelector('.lang-cartempty').innerText = t.cartempty;
+    document.querySelector('.lang-totalitems').innerText = t.totalitems;
+    document.querySelector('.lang-totalprice').innerText = t.totalprice;
+    document.querySelector('.lang-proceed').innerText = t.proceed;
+    document.querySelector('.lang-myorderstitle').innerText = t.myorderstitle;
+    document.querySelector('.lang-noorders').innerText = t.noorders;
+    document.querySelector('.lang-protocol').innerText = t.protocol;
+    document.querySelector('.lang-protocolnote').innerText = t.protocolnote;
+    document.querySelector('.lang-checkouttitle').innerText = t.checkouttitle;
+    document.querySelectorAll('.lang-fullname').forEach(el => el.innerText = t.fullname);
+    document.querySelectorAll('.lang-phone').forEach(el => el.innerText = t.phone);
+    document.querySelector('.lang-address').innerText = t.address;
+    document.querySelector('.lang-postcode').innerText = t.postcode;
+    document.querySelector('.lang-state').innerText = t.state;
+    document.querySelector('.lang-shippingarea').innerText = t.shippingarea;
+    document.querySelector('.lang-payment').innerText = t.payment;
+    document.querySelector('.lang-paylater').innerText = t.paylater;
+    document.querySelector('.lang-bankname').innerText = t.bankname;
+    document.querySelector('.lang-receipt').innerText = t.receipt;
+    document.querySelector('.lang-total').innerText = t.total;
+    document.querySelector('.lang-cancel').innerText = t.cancel;
+    document.querySelector('.lang-placeorder').innerText = t.placeorder;
+    document.querySelector('.lang-login').innerText = t.login;
+    document.querySelector('.lang-loginbtn').innerText = t.loginbtn;
+    document.querySelector('.lang-loginsuccess').innerText = t.loginsuccess;
+    document.getElementById('langToggle').innerHTML = currentLang === 'ms' ? '🇬🇧 EN' : '🇲🇾 MS';
+}
+
+document.getElementById('langToggle').addEventListener('click', () => {
+    currentLang = currentLang === 'ms' ? 'en' : 'ms';
+    setLanguage(currentLang);
+});
+
 fetchAndRenderProducts();
 loadCart();
 checkUserSession();
 renderProtocolCards();
+setLanguage('ms');
 </script>
 
-<!-- ========== TAMBAHAN: SERVICE WORKER UNTUK PWA ========== -->
+<!-- Service Worker untuk PWA -->
 <script>
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('sw.js').then(reg => {
-                console.log('✅ Service Worker registered for customer app:', reg.scope);
-            }).catch(err => {
-                console.warn('Service Worker registration failed:', err);
-            });
+            navigator.serviceWorker.register('sw.js').then(reg => console.log('✅ Service Worker registered')).catch(err => console.warn(err));
         });
     }
 </script>
