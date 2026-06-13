@@ -1,6 +1,7 @@
-const CACHE_NAME = 'velxera-customer-v1';
+const CACHE_NAME = 'velxera-v1';
 const urlsToCache = [
   'index.html',
+  'admin.html',
   'manifest.json',
   'icon.jpg'
 ];
