@@ -19,7 +19,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <style>
-        /* Semua CSS asal dikekalkan sepenuhnya – tiada perubahan */
+        /* Semua CSS asal dikekalkan sepenuhnya */
         :root {
             --emerald-primary: #10b981;
             --emerald-dark: #059669;
@@ -525,20 +525,22 @@ async function generateAndDownloadPDF(orderId, customer, items, totalAmount, shi
     const subtotal = items.reduce((sum, i) => sum + (i.price * i.qty), 0);
     const itemsHtml = items.map(i => `
         <tr style="border-bottom: 1px solid #e2e8f0;">
-            <td style="padding: 6px 0;">${i.prodName} (${i.size} - ${i.type})</td>
-            <td style="padding: 6px 0; text-align: center;">${i.qty}</td>
-            <td style="padding: 6px 0; text-align: right;">RM ${i.price.toFixed(2)}</td>
-            <td style="padding: 6px 0; text-align: right;">RM ${(i.price * i.qty).toFixed(2)}</td>
-        <table>
+            <td style="padding: 6px 0;">${i.prodName} (${i.size} - ${i.type})<\/td>
+            <td style="padding: 6px 0; text-align: center;">${i.qty}<\/td>
+            <td style="padding: 6px 0; text-align: right;">RM ${i.price.toFixed(2)}<\/td>
+            <td style="padding: 6px 0; text-align: right;">RM ${(i.price * i.qty).toFixed(2)}<\/td>
+         <\/tr>
     `).join('');
     contentDiv.innerHTML = `
-        <h3 style="text-align: center;">INVOIS PESANAN</h3>
-        <p style="text-align: center;"><strong>ID Pesanan:</strong> ${orderId}</p>
-        <p style="text-align: center;"><strong>Tarikh:</strong> ${new Date().toLocaleString()}</p>
+        <h3 style="text-align: center;">INVOIS PESANAN<\/h3>
+        <p style="text-align: center;"><strong>ID Pesanan:<\/strong> ${orderId}<\/p>
+        <p style="text-align: center;"><strong>Tarikh:<\/strong> ${new Date().toLocaleString()}<\/p>
         <hr>
-        <div style="margin-bottom: 20px;"><strong>Kepada:</strong><br>${customer.name}<br>${customer.phone}<br>${customer.address_line1}, ${customer.postcode} ${customer.state}</div>
-        <table style="width:100%; border-collapse:collapse; margin:20px 0;"><thead><tr><th style="text-align:left;">Produk</th><th style="text-align:center;">Kuantiti</th><th style="text-align:right;">Harga Unit (RM)</th><th style="text-align:right;">Jumlah (RM)</th></tr></thead><tbody>${itemsHtml}</tbody><tfoot><tr><td colspan="3" style="text-align:right; padding-top:10px;"><strong>Subtotal:</strong></td><td style="text-align:right; padding-top:10px;">RM ${subtotal.toFixed(2)}</td></tr><tr><td colspan="3" style="text-align:right;"><strong>Penghantaran (${shippingRegion}):</strong></td><td style="text-align:right;">RM ${shippingCost.toFixed(2)}</td></tr><tr style="border-top:2px solid #10b981;"><td colspan="3" style="text-align:right;"><strong>TOTAL:</strong></td><td style="text-align:right;"><strong>RM ${totalAmount.toFixed(2)}</strong></td></tr></tfoot></table>
-        <div><strong>Kaedah Bayaran:</strong> ${paymentMethod}<br>${bankName && bankName !== "Tiada" ? `<strong>Bank Pengirim:</strong> ${bankName}<br>` : ''}<strong>Status:</strong> Pending (Menunggu pengesahan admin)</div>
+        <div style="margin-bottom: 20px;"><strong>Kepada:<\/strong><br>${customer.name}<br>${customer.phone}<br>${customer.address_line1}, ${customer.postcode} ${customer.state}<\/div>
+        <table style="width:100%; border-collapse:collapse; margin:20px 0;"><thead><tr><th style="text-align:left;">Produk<\/th><th style="text-align:center;">Kuantiti<\/th><th style="text-align:right;">Harga Unit (RM)<\/th><th style="text-align:right;">Jumlah (RM)<\/th><\/tr><\/thead><tbody>${itemsHtml}<\/tbody><tfoot><tr><td colspan="3" style="text-align:right; padding-top:10px;"><strong>Subtotal:<\/strong><\/td><td style="text-align:right; padding-top:10px;">RM ${subtotal.toFixed(2)}<\/td><\/tr>
+        <tr><td colspan="3" style="text-align:right;"><strong>Penghantaran (${shippingRegion}):<\/strong><\/td><td style="text-align:right;">RM ${shippingCost.toFixed(2)}<\/td><\/tr>
+        <tr style="border-top:2px solid #10b981;"><td colspan="3" style="text-align:right;"><strong>TOTAL:<\/strong><\/td><td style="text-align:right;"><strong>RM ${totalAmount.toFixed(2)}<\/strong><\/td><\/tr><\/tfoot><\/table>
+        <div><strong>Kaedah Bayaran:<\/strong> ${paymentMethod}<br>${bankName && bankName !== "Tiada" ? `<strong>Bank Pengirim:<\/strong> ${bankName}<br>` : ''}<strong>Status:<\/strong> Pending (Menunggu pengesahan admin)<\/div>
     `;
     const { jsPDF } = window.jspdf;
     try {
@@ -775,7 +777,7 @@ function renderProducts(products) {
                     <div class="col-3"><label class="small fw-bold">Kuantiti</label><input type="number" class="form-control form-control-sm product-qty" value="0" min="0" max="${defaultStock}" step="1"></div>
                     <div class="col-2 text-end"><div class="product-price fw-bold text-success">RM ${defaultPrice.toFixed(2)}</div><small class="stock-info text-muted">Stok: ${defaultStock}</small></div>
                 </div>
-                <button class="btn btn-sm btn-outline-success mt-2 w-100 add-to-cart"><i class="fa-solid fa-cart-plus"></i> Tambah ke Keranjang</button>
+                <button class="btn btn-sm btn-outline-success mt-2 w-100 add-to-cart"><i class="fa-solid fa-cart-plus"></i> <span class="lang-addtocart">Tambah ke Keranjang</span></button>
             </div>
         `;
         container.appendChild(card);
@@ -792,6 +794,8 @@ function renderProducts(products) {
         const priceSpan = card.querySelector('.product-price');
         const stockSpan = card.querySelector('.stock-info');
         const addBtn = card.querySelector('.add-to-cart');
+        
+        // Function to update price and stock when selection changes
         select.addEventListener('change', () => {
             const opt = select.options[select.selectedIndex];
             const price = parseFloat(opt.dataset.price);
@@ -799,26 +803,50 @@ function renderProducts(products) {
             priceSpan.innerText = `RM ${price.toFixed(2)}`;
             stockSpan.innerText = `Stok: ${stock}`;
             qtyInp.max = stock;
-            if(qtyInp.value > stock) qtyInp.value = stock;
+            if(parseInt(qtyInp.value) > stock) qtyInp.value = stock;
         });
+        
+        // Add to cart button click handler
         addBtn.addEventListener('click', () => {
-            if(!currentUser) { showToast('Sila log masuk', true); showLoginModal(); return; }
+            if(!currentUser) { 
+                showToast('Sila log masuk', true); 
+                showLoginModal(); 
+                return; 
+            }
             let qty = parseInt(qtyInp.value);
-            if(isNaN(qty) || qty <= 0) { showToast('Sila masukkan kuantiti', true); return; }
+            if(isNaN(qty) || qty <= 0) { 
+                showToast('Sila masukkan kuantiti', true); 
+                return; 
+            }
             const opt = select.options[select.selectedIndex];
             const price = parseFloat(opt.dataset.price);
             const stock = parseInt(opt.dataset.stock);
-            if(qty > stock) { showToast(`Stok hanya ${stock}`, true); return; }
+            if(qty > stock) { 
+                showToast(`Stok hanya ${stock}`, true); 
+                return; 
+            }
             const size = opt.dataset.size;
             const type = opt.dataset.type;
             const varKey = select.value;
             const existingIdx = cart.findIndex(i => i.variationKey === varKey);
             if(existingIdx !== -1) {
                 const newQty = cart[existingIdx].qty + qty;
-                if(newQty > stock) { showToast(`Stok tidak cukup`, true); return; }
+                if(newQty > stock) { 
+                    showToast(`Stok tidak cukup`, true); 
+                    return; 
+                }
                 cart[existingIdx].qty = newQty;
             } else {
-                cart.push({ id: p.id, name: p.name, size, type, price, qty, variationKey: varKey, prodId: p.id });
+                cart.push({ 
+                    id: p.id, 
+                    name: p.name, 
+                    size: size, 
+                    type: type, 
+                    price: price, 
+                    qty: qty, 
+                    variationKey: varKey, 
+                    prodId: p.id 
+                });
             }
             saveCart();
             updateCartUI();
@@ -1109,7 +1137,7 @@ function renderProtocolCards() {
     }
 }
 
-// ========== DWIBAHASA (LENGKAP) ==========
+// ========== DWIBAHASA (LENGKAP DENGAN ADD TO CART) ==========
 let currentLang = 'ms';
 const translations = {
     ms: {
@@ -1121,7 +1149,8 @@ const translations = {
         protocol: "PROTOCOL DOSE DATABASE", protocolnote: "Rujukan dos adalah daripada Peptide Protocol Portal.",
         checkouttitle: "Selesaikan Pesanan", fullname: "Nama Penuh", phone: "No. WhatsApp", address: "Alamat Lengkap", postcode: "Poskod", state: "Negeri",
         shippingarea: "Pilih Kawasan Penghantaran", payment: "PEMBAYARAN", paylater: "Bayar Kemudian (tanpa resit)", bankname: "Nama Bank Pengirim", receipt: "Resit Pembayaran (Gambar)", total: "TOTAL (Produk + Penghantaran)", cancel: "Batal", placeorder: "Place Order",
-        login: "Log Masuk / Daftar", fullname_label: "Nama Penuh", phone_label: "Nombor WhatsApp / Telefon", loginbtn: "Log Masuk / Daftar", loginsuccess: "Log masuk berjaya!"
+        login: "Log Masuk / Daftar", fullname_label: "Nama Penuh", phone_label: "Nombor WhatsApp / Telefon", loginbtn: "Log Masuk / Daftar", loginsuccess: "Log masuk berjaya!",
+        addtocart: "Tambah ke Keranjang"
     },
     en: {
         step1: "3 EASY STEPS", step_pilih: "1. Select Item", step_checkout: "2. Checkout", step_bayar: "3. Pay & Upload",
@@ -1132,7 +1161,8 @@ const translations = {
         protocol: "PROTOCOL DOSE DATABASE", protocolnote: "Dosage reference from Peptide Protocol Portal.",
         checkouttitle: "Complete Order", fullname: "Full Name", phone: "WhatsApp Number", address: "Full Address", postcode: "Postcode", state: "State",
         shippingarea: "Select Shipping Area", payment: "PAYMENT", paylater: "Pay Later (no receipt)", bankname: "Sender's Bank Name", receipt: "Payment Receipt (Image)", total: "TOTAL (Product + Shipping)", cancel: "Cancel", placeorder: "Place Order",
-        login: "Login / Register", fullname_label: "Full Name", phone_label: "WhatsApp Number", loginbtn: "Login / Register", loginsuccess: "Login successful!"
+        login: "Login / Register", fullname_label: "Full Name", phone_label: "WhatsApp Number", loginbtn: "Login / Register", loginsuccess: "Login successful!",
+        addtocart: "Add to Cart"
     }
 };
 
@@ -1183,6 +1213,7 @@ function setLanguage(lang) {
     document.querySelector('.lang-login').innerText = t.login;
     document.querySelector('.lang-loginbtn').innerText = t.loginbtn;
     document.querySelector('.lang-loginsuccess').innerText = t.loginsuccess;
+    document.querySelectorAll('.lang-addtocart').forEach(el => el.innerText = t.addtocart);
     document.getElementById('langToggle').innerHTML = currentLang === 'ms' ? '🇬🇧 EN' : '🇲🇾 MS';
 }
 
