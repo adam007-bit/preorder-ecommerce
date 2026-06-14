@@ -315,7 +315,7 @@
                     <label class="form-label"><span class="lang-fullname">Nama Penuh</span></label>
                     <input type="text" id="loginName" class="form-control mb-3" placeholder="Ahmad Ali">
                     <label class="form-label"><span class="lang-phone">Nombor WhatsApp / Telefon</span></label>
-                    <input type="tel" id="loginPhone" class="form-control mb-3" placeholder="0123456789">
+                    <input type="tel" id="loginPhone" class="form-control mb-3" placeholder="0123456789 atau 6512345678">
                     <button id="loginBtn" class="btn btn-success w-100"><span class="lang-loginbtn">Log Masuk / Daftar</span></button>
                 </div>
                 <div id="loginStep2" style="display:none;">
@@ -619,14 +619,14 @@ const oralPeptidesDataMovedToPeptides = [
     { id: "oral_kpv", name: "KPV", category: "peptides", description: "Used to calm inflammation in the gut, skin, and throughout the body.", variations: [{ size: "300mcg", type: "60 Capsules", price: 100 }], stock: 100 }
 ];
 
-// ========== PRODUK TAMBAHAN (digabungkan mengikut nama asas, setiap produk hanya muncul sekali dengan pelbagai variasi) ==========
+// ========== PRODUK TAMBAHAN (digabungkan mengikut nama asas, setiap produk hanya muncul sekali) ==========
 const additionalProducts = [
-    // ========== SOLVENT (4 item, setiap satu berlainan nama) ==========
+    // ========== SOLVENT ==========
     { id: "solvent_bac_water", name: "Bac Water", category: "solvent", description: "Bacteriostatic water for reconstitution.", variations: [{ size: "3ml", type: "Vial", price: 4 }, { size: "10ml", type: "Vial", price: 5 }], stock: 100 },
     { id: "solvent_steriled_water", name: "Sterilized Water", category: "solvent", description: "Sterile water for injection.", variations: [{ size: "10ml", type: "Vial", price: 5 }], stock: 100 },
     { id: "solvent_acetic_acid", name: "Acetic Acid", category: "solvent", description: "For peptide reconstitution.", variations: [{ size: "10ml", type: "Vial", price: 5 }], stock: 100 },
 
-    // ========== BEAUTY PEPTIDES (setiap nama asas digabungkan) ==========
+    // ========== BEAUTY PEPTIDES ==========
     { id: "beauty_ghk_cu", name: "GHK-Cu", category: "beauty", description: "Copper peptide for hair and skin (injectable).", variations: [{ size: "50mg", type: "Vial", price: 12 }, { size: "100mg", type: "Vial", price: 15 }], stock: 100 },
     { id: "beauty_ahk_cu", name: "AHK-CU", category: "beauty", description: "Copper peptide for hair growth.", variations: [{ size: "50mg", type: "Vial", price: 20 }, { size: "100mg", type: "Vial", price: 35 }], stock: 100 },
     { id: "beauty_glutathione", name: "Glutathione", category: "beauty", description: "Antioxidant for skin brightening.", variations: [{ size: "600mg", type: "Vial", price: 15 }, { size: "1500mg", type: "Vial", price: 35 }], stock: 100 },
@@ -645,7 +645,6 @@ const additionalProducts = [
     { id: "beauty_whitening_spot", name: "Whitening & Spot Fading", category: "beauty", description: "Skin lightening complex.", variations: [{ size: "5ml", type: "Vial", price: 30 }], stock: 100 },
     { id: "beauty_snake_venom", name: "Snake Venom", category: "beauty", description: "Synthetic peptide for anti-wrinkle.", variations: [{ size: "5ml", type: "Vial", price: 10 }], stock: 100 },
     { id: "beauty_pe_22_28", name: "PE 22 28", category: "beauty", description: "Anti-aging peptide.", variations: [{ size: "5mg", type: "Vial", price: 25 }, { size: "10mg", type: "Vial", price: 40 }], stock: 100 },
-    // Skincare topical / serum
     { id: "beauty_pigment_serum", name: "Pigment Serum", category: "beauty", description: "Brightening and spot fading serum.", variations: [{ size: "10ml", type: "Serum", price: 10 }], stock: 100 },
     { id: "beauty_oligo_peptide24", name: "Oligo Peptide 24", category: "beauty", description: "Anti-aging peptide complex.", variations: [{ size: "10mg", type: "Peptide", price: 15 }], stock: 100 },
     { id: "beauty_vitamin_c_tablet", name: "Vitamin C Tablet With Essense", category: "beauty", description: "Vitamin C brightening tablets with essence.", variations: [{ size: "10pcs", type: "Tablet", price: 20 }], stock: 100 },
@@ -656,186 +655,104 @@ const additionalProducts = [
     { id: "beauty_ghkcu_topical", name: "GHK-Cu Topical 1000mg", category: "beauty", description: "Copper peptide topical.", variations: [{ size: "1 vial (1000mg)", type: "Topical", price: 40 }], stock: 100 },
     { id: "beauty_fiona_masker", name: "Fiona Masker", category: "beauty", description: "Facial mask.", variations: [{ size: "1pc", type: "Mask", price: 15 }], stock: 100 },
 
-    // ========== PEPTIDES (injectable & fat loss) - setiap nama asas digabungkan ==========
-    // Retatrutide
+    // ========== PEPTIDES ==========
     { id: "peptide_retatrutide", name: "Retatrutide", category: "peptides", description: "Triple agonist for weight management.", variations: [
         { size: "5mg", type: "Vial", price: 25 }, { size: "10mg", type: "Vial", price: 30 }, { size: "15mg", type: "Vial", price: 45 },
         { size: "20mg", type: "Vial", price: 50 }, { size: "30mg", type: "Vial", price: 75 }, { size: "40mg", type: "Vial", price: 90 }
     ], stock: 100 },
     { id: "peptide_reta_cagri", name: "RETA CAGRI", category: "peptides", description: "Retatrutide + Cagrilintide blend.", variations: [{ size: "10mg", type: "Vial", price: 80 }], stock: 100 },
     { id: "peptide_reta_tirze", name: "RETA TIRZE", category: "peptides", description: "Retatrutide + Tirzepatide blend.", variations: [{ size: "60mg", type: "Vial", price: 180 }], stock: 100 },
-    // Tirzepatide
     { id: "peptide_tirzepatide", name: "Tirzepatide", category: "peptides", description: "Dual GIP/GLP-1 agonist.", variations: [
         { size: "10mg", type: "Vial", price: 25 }, { size: "15mg", type: "Vial", price: 35 }, { size: "20mg", type: "Vial", price: 40 }, { size: "30mg", type: "Vial", price: 50 }
     ], stock: 100 },
-    // Semaglutide
     { id: "peptide_semaglutide", name: "Semaglutide", category: "peptides", description: "GLP-1 for weight management.", variations: [
         { size: "10mg", type: "Vial", price: 25 }, { size: "15mg", type: "Vial", price: 30 }, { size: "20mg", type: "Vial", price: 35 }, { size: "30mg", type: "Vial", price: 45 }
     ], stock: 100 },
-    // Cagrilintide
     { id: "peptide_cagrilintide", name: "Cagrilintide", category: "peptides", description: "Amylin analogue.", variations: [{ size: "5mg", type: "Vial", price: 45 }, { size: "10mg", type: "Vial", price: 65 }], stock: 100 },
-    // Cagri Sema
     { id: "peptide_cagri_sema", name: "Cagri Sema", category: "peptides", description: "Cagrilintide + Semaglutide blend.", variations: [{ size: "5mg", type: "Vial", price: 55 }, { size: "10mg", type: "Vial", price: 90 }], stock: 100 },
-    // Cagri Tirze
     { id: "peptide_cagri_tirze", name: "Cagri Tirze", category: "peptides", description: "Cagrilintide + Tirzepatide blend.", variations: [{ size: "20mg", type: "Vial", price: 80 }], stock: 100 },
-    // Adipotide
     { id: "peptide_adipotide", name: "Adipotide", category: "peptides", description: "Fat cell apoptosis.", variations: [{ size: "5mg", type: "Vial", price: 80 }], stock: 100 },
-    // Survodutide
     { id: "peptide_survodutide", name: "Survodutide", category: "peptides", description: "Dual agonist.", variations: [{ size: "10mg", type: "Vial", price: 120 }], stock: 100 },
-    // Mazdutide
     { id: "peptide_mazdutide", name: "Mazdutide", category: "peptides", description: "Dual agonist.", variations: [{ size: "10mg", type: "Vial", price: 80 }], stock: 100 },
-    // MOTS-c
     { id: "peptide_mots_c", name: "MOTS-c", category: "peptides", description: "Mitochondrial peptide.", variations: [
         { size: "10mg", type: "Vial", price: 30 }, { size: "20mg", type: "Vial", price: 50 }, { size: "30mg", type: "Vial", price: 70 }, { size: "40mg", type: "Vial", price: 80 }
     ], stock: 100 },
-    // AOD-9604
     { id: "peptide_aod", name: "AOD-9604", category: "peptides", description: "Fat burning.", variations: [{ size: "5mg", type: "Vial", price: 45 }, { size: "10mg", type: "Vial", price: 70 }], stock: 100 },
-    // SLU-PP-322
     { id: "peptide_slupp", name: "SLU-PP-322", category: "peptides", description: "UCP1 inducer.", variations: [{ size: "5mg", type: "Vial", price: 45 }], stock: 100 },
-    // 5-Amino-1MQ
     { id: "peptide_5amino", name: "5-Amino-1MQ", category: "peptides", description: "NNMT inhibitor.", variations: [{ size: "5mg", type: "Vial", price: 25 }, { size: "10mg", type: "Vial", price: 35 }, { size: "50mg", type: "Vial", price: 65 }], stock: 100 },
-    // NAD+
     { id: "peptide_nad", name: "NAD+", category: "peptides", description: "Cellular energy.", variations: [{ size: "500mg", type: "Vial", price: 30 }, { size: "1000mg", type: "Vial", price: 35 }], stock: 100 },
-    // Wolverine
     { id: "peptide_wolverine", name: "Wolverine", category: "peptides", description: "Healing blend.", variations: [{ size: "10mg", type: "Vial", price: 40 }, { size: "20mg", type: "Vial", price: 65 }], stock: 100 },
-    // BPC-157
     { id: "peptide_bpc", name: "BPC-157", category: "peptides", description: "Healing peptide.", variations: [{ size: "5mg", type: "Vial", price: 25 }, { size: "10mg", type: "Vial", price: 35 }], stock: 100 },
-    // TB-500
     { id: "peptide_tb500", name: "TB-500", category: "peptides", description: "Tissue repair.", variations: [{ size: "5mg", type: "Vial", price: 35 }, { size: "10mg", type: "Vial", price: 55 }], stock: 100 },
-    // KPV
     { id: "peptide_kpv", name: "KPV", category: "peptides", description: "Anti-inflammatory.", variations: [{ size: "5mg", type: "Vial", price: 25 }, { size: "10mg", type: "Vial", price: 30 }], stock: 100 },
-    // Tesamorelin
     { id: "peptide_tesamorelin", name: "Tesamorelin", category: "peptides", description: "Growth hormone releasing hormone.", variations: [{ size: "5mg", type: "Vial", price: 45 }, { size: "10mg", type: "Vial", price: 70 }, { size: "20mg", type: "Vial", price: 130 }], stock: 100 },
-    // Tesa IPA
     { id: "peptide_tesa_ipa", name: "Tesa IPA", category: "peptides", description: "Tesamorelin + Ipamorelin blend.", variations: [{ size: "15mg", type: "Vial", price: 95 }], stock: 100 },
-    // Ipamorelin
     { id: "peptide_ipamorelin", name: "Ipamorelin", category: "peptides", description: "Growth hormone secretagogue.", variations: [{ size: "5mg", type: "Vial", price: 25 }, { size: "10mg", type: "Vial", price: 35 }], stock: 100 },
-    // CJC-1295 No DAC
     { id: "peptide_cjc_no_dac", name: "CJC-1295 (No DAC)", category: "peptides", description: "GHRH.", variations: [{ size: "5mg", type: "Vial", price: 35 }, { size: "10mg", type: "Vial", price: 75 }], stock: 100 },
-    // CJC-1295 With DAC
     { id: "peptide_cjc_dac", name: "CJC-1295 (With DAC)", category: "peptides", description: "GHRH long-acting.", variations: [{ size: "5mg", type: "Vial", price: 80 }], stock: 100 },
-    // CJC-1295 + Ipamorelin
     { id: "peptide_cjc_ipa", name: "CJC-1295 + Ipamorelin", category: "peptides", description: "GHRH + GHRP blend.", variations: [{ size: "10mg", type: "Vial", price: 45 }], stock: 100 },
-    // IGF-1 LR3
     { id: "peptide_igf_lr3", name: "IGF-1 LR3", category: "peptides", description: "Insulin-like growth factor.", variations: [{ size: "0.1mg", type: "Vial", price: 25 }, { size: "1mg", type: "Vial", price: 80 }], stock: 100 },
-    // IGF-1 DES
     { id: "peptide_igf_des", name: "IGF-1 DES", category: "peptides", description: "Insulin-like growth factor.", variations: [{ size: "2mg", type: "Vial", price: 40 }], stock: 100 },
-    // PEG MGF
     { id: "peptide_peg_mgf", name: "PEG MGF", category: "peptides", description: "Mechano growth factor.", variations: [{ size: "2mg", type: "Vial", price: 55 }], stock: 100 },
-    // GHRP-2
     { id: "peptide_ghrp2", name: "GHRP-2", category: "peptides", description: "Growth hormone releasing peptide.", variations: [{ size: "5mg", type: "Vial", price: 25 }], stock: 100 },
-    // GHRP-6
     { id: "peptide_ghrp6", name: "GHRP-6", category: "peptides", description: "Growth hormone releasing peptide.", variations: [{ size: "5mg", type: "Vial", price: 25 }, { size: "10mg", type: "Vial", price: 35 }], stock: 100 },
-    // HCG
     { id: "peptide_hcg", name: "HCG", category: "peptides", description: "Human chorionic gonadotropin.", variations: [{ size: "5000iu", type: "Vial", price: 50 }, { size: "10000iu", type: "Vial", price: 90 }], stock: 100 },
-    // HMG 75iu
     { id: "peptide_hmg", name: "HMG 75iu", category: "peptides", description: "Human menopausal gonadotropin.", variations: [{ size: "75iu", type: "Vial", price: 35 }], stock: 100 },
-    // Semax
     { id: "peptide_semax", name: "Semax", category: "peptides", description: "Nootropic.", variations: [{ size: "5mg", type: "Vial", price: 20 }, { size: "10mg", type: "Vial", price: 30 }], stock: 100 },
-    // Semax Selank
     { id: "peptide_semax_selank", name: "Semax Selank", category: "peptides", description: "Nootropic blend.", variations: [{ size: "20mg", type: "Vial", price: 55 }], stock: 100 },
-    // Selank
     { id: "peptide_selank", name: "Selank", category: "peptides", description: "Anxiolytic.", variations: [{ size: "5mg", type: "Vial", price: 20 }, { size: "10mg", type: "Vial", price: 30 }], stock: 100 },
-    // SS-31
     { id: "peptide_ss31", name: "SS-31", category: "peptides", description: "Mitochondrial peptide.", variations: [{ size: "10mg", type: "Vial", price: 35 }, { size: "50mg", type: "Vial", price: 130 }], stock: 100 },
-    // Epithalon
     { id: "peptide_epithalon", name: "Epithalon", category: "peptides", description: "Telomere lengthening.", variations: [{ size: "10mg", type: "Vial", price: 20 }, { size: "50mg", type: "Vial", price: 55 }], stock: 100 },
-    // DSIP
     { id: "peptide_dsip", name: "DSIP", category: "peptides", description: "Delta sleep inducing peptide.", variations: [{ size: "5mg", type: "Vial", price: 20 }], stock: 100 },
-    // ARA 290
     { id: "peptide_ara290", name: "ARA 290", category: "peptides", description: "Erythropoietin mimetic.", variations: [{ size: "10mg", type: "Vial", price: 30 }], stock: 100 },
-    // PT-141
     { id: "peptide_pt141", name: "PT-141", category: "peptides", description: "Libido enhancer.", variations: [{ size: "10mg", type: "Vial", price: 30 }], stock: 100 },
-    // Kisspeptin
     { id: "peptide_kisspeptin", name: "Kisspeptin", category: "peptides", description: "Reproductive hormone.", variations: [{ size: "5mg", type: "Vial", price: 30 }, { size: "10mg", type: "Vial", price: 40 }], stock: 100 },
-    // AICAR
     { id: "peptide_aicar", name: "AICAR", category: "peptides", description: "AMPK activator.", variations: [{ size: "50mg", type: "Vial", price: 35 }], stock: 100 },
-    // LL-37
     { id: "peptide_ll37", name: "LL-37", category: "peptides", description: "Antimicrobial peptide.", variations: [{ size: "10mg", type: "Vial", price: 35 }], stock: 100 },
-    // Relaxation PM
     { id: "peptide_relaxation_pm", name: "Relaxation PM", category: "peptides", description: "Sleep aid.", variations: [{ size: "10ml", type: "Vial", price: 35 }], stock: 100 },
-    // VIP
     { id: "peptide_vip", name: "VIP", category: "peptides", description: "Vasoactive intestinal peptide.", variations: [{ size: "5mg", type: "Vial", price: 35 }, { size: "10mg", type: "Vial", price: 60 }], stock: 100 },
-    // Hexarelin Acetate
     { id: "peptide_hexarelin", name: "Hexarelin Acetate", category: "peptides", description: "GHRP.", variations: [{ size: "2mg", type: "Vial", price: 40 }, { size: "5mg", type: "Vial", price: 50 }, { size: "10mg", type: "Vial", price: 80 }], stock: 100 },
-    // Sermorelin Acetate
     { id: "peptide_sermorelin", name: "Sermorelin Acetate", category: "peptides", description: "GHRH.", variations: [{ size: "5mg", type: "Vial", price: 35 }, { size: "10mg", type: "Vial", price: 45 }], stock: 100 },
-    // Thymosin Beta-4
     { id: "peptide_thymosin_b4", name: "Thymosin Beta-4", category: "peptides", description: "Tissue repair.", variations: [{ size: "5mg", type: "Vial", price: 35 }, { size: "10mg", type: "Vial", price: 55 }], stock: 100 },
-    // Thymosin Alpha-1
     { id: "peptide_thymosin_alpha1", name: "Thymosin Alpha-1", category: "peptides", description: "Immune modulator.", variations: [{ size: "5mg", type: "Vial", price: 35 }, { size: "10mg", type: "Vial", price: 65 }], stock: 100 },
-    // Adamax
     { id: "peptide_adamax", name: "Adamax", category: "peptides", description: "Nootropic.", variations: [{ size: "5mg", type: "Vial", price: 35 }, { size: "10mg", type: "Vial", price: 50 }], stock: 100 },
-    // Thymalin
     { id: "peptide_thymalin", name: "Thymalin", category: "peptides", description: "Immune support.", variations: [{ size: "10mg", type: "Vial", price: 35 }], stock: 100 },
-    // Pinealon
     { id: "peptide_pinealon", name: "Pinealon", category: "peptides", description: "Neuroprotective.", variations: [{ size: "10mg", type: "Vial", price: 30 }], stock: 100 },
-    // FOXO4-DRI
     { id: "peptide_foxo4_dri", name: "FOXO4-DRI", category: "peptides", description: "Senolytic.", variations: [{ size: "2mg", type: "Vial", price: 40 }], stock: 100 },
-    // Oxytocin Acetate
     { id: "peptide_oxytocin", name: "Oxytocin Acetate", category: "peptides", description: "Hormone peptide.", variations: [{ size: "2mg", type: "Vial", price: 20 }], stock: 100 },
-    // Melanotan-1
     { id: "peptide_mt1", name: "Melanotan-1", category: "peptides", description: "Tanning peptide.", variations: [{ size: "10mg", type: "Vial", price: 30 }], stock: 100 },
-    // Melanotan-2
     { id: "peptide_mt2", name: "Melanotan-2", category: "peptides", description: "Tanning peptide.", variations: [{ size: "10mg", type: "Vial", price: 30 }], stock: 100 },
-    // Melatonin
     { id: "peptide_melatonin", name: "Melatonin", category: "peptides", description: "Sleep regulation.", variations: [{ size: "10mg", type: "Vial", price: 35 }], stock: 100 },
-    // Cerebrolysin
     { id: "peptide_cerebrolysin", name: "Cerebrolysin", category: "peptides", description: "Neurotrophic.", variations: [{ size: "60mg", type: "Vial", price: 15 }], stock: 100 },
-    // ACE 031
     { id: "peptide_ace031", name: "ACE 031", category: "peptides", description: "Myostatin inhibitor.", variations: [{ size: "1mg", type: "Vial", price: 20 }], stock: 100 },
-    // B7-33
     { id: "peptide_b7_33", name: "B7-33", category: "peptides", description: "Relaxin agonist.", variations: [{ size: "2mg", type: "Vial", price: 25 }, { size: "10mg", type: "Vial", price: 90 }], stock: 100 },
-    // Cortagen
     { id: "peptide_cortagen", name: "Cortagen", category: "peptides", description: "Cellular repair.", variations: [{ size: "20mg", type: "Vial", price: 45 }], stock: 100 },
-    // Demorphin
     { id: "peptide_demorphin", name: "Demorphin", category: "peptides", description: "Opioid peptide.", variations: [{ size: "2mg", type: "Vial", price: 20 }, { size: "10mg", type: "Vial", price: 40 }], stock: 100 },
-    // EPO
     { id: "peptide_epo", name: "EPO", category: "peptides", description: "Erythropoietin.", variations: [{ size: "3000iu", type: "Vial", price: 50 }], stock: 100 },
-    // Gonadorelin Acetate
     { id: "peptide_gonadorelin", name: "Gonadorelin Acetate", category: "peptides", description: "GnRH agonist.", variations: [{ size: "5mg", type: "Vial", price: 25 }], stock: 100 },
-    // Humanin
     { id: "peptide_humanin", name: "Humanin", category: "peptides", description: "Neuroprotective.", variations: [{ size: "10mg", type: "Vial", price: 120 }], stock: 100 },
-    // RA 260
     { id: "peptide_ra260", name: "RA 260", category: "peptides", description: "Unknown.", variations: [{ size: "50mg", type: "Vial", price: 35 }], stock: 100 },
-    // PNC 27
     { id: "peptide_pnc27", name: "PNC 27", category: "peptides", description: "Anti-cancer peptide.", variations: [{ size: "5mg", type: "Vial", price: 45 }], stock: 100 },
-    // P21
     { id: "peptide_p21", name: "P21", category: "peptides", description: "Nootropic.", variations: [{ size: "5mg", type: "Vial", price: 140 }], stock: 100 },
-    // TB FRAG
     { id: "peptide_tb_frag", name: "TB FRAG", category: "peptides", description: "Thymosin Beta fragment.", variations: [{ size: "2mg", type: "Vial", price: 30 }, { size: "5mg", type: "Vial", price: 35 }, { size: "10mg", type: "Vial", price: 40 }], stock: 100 },
-    // Dulaglutide
     { id: "peptide_dulaglutide", name: "Dulaglutide", category: "peptides", description: "GLP-1 agonist.", variations: [{ size: "5mg", type: "Vial", price: 65 }, { size: "10mg", type: "Vial", price: 95 }], stock: 100 },
-    // Liraglutide
     { id: "peptide_liraglutide", name: "Liraglutide", category: "peptides", description: "GLP-1 agonist.", variations: [{ size: "5mg", type: "Vial", price: 50 }, { size: "10mg", type: "Vial", price: 75 }, { size: "20mg", type: "Vial", price: 120 }], stock: 100 },
-    // Follistatin
     { id: "peptide_follistatin", name: "Follistatin", category: "peptides", description: "Myostatin inhibitor.", variations: [{ size: "1mg", type: "Vial", price: 60 }], stock: 100 },
-    // Cartalax
     { id: "peptide_cartalax", name: "Cartalax", category: "peptides", description: "Cartilage repair.", variations: [{ size: "20mg", type: "Vial", price: 40 }], stock: 100 },
-    // ACTH
     { id: "peptide_acth", name: "ACTH", category: "peptides", description: "Adrenocorticotropic hormone.", variations: [{ size: "5mg", type: "Vial", price: 65 }], stock: 100 },
-    // Cardiogen
     { id: "peptide_cardiogen", name: "Cardiogen", category: "peptides", description: "Cardiac repair.", variations: [{ size: "20mg", type: "Vial", price: 45 }], stock: 100 },
-    // Crystagen
     { id: "peptide_crystagen", name: "Crystagen", category: "peptides", description: "Unknown.", variations: [{ size: "20mg", type: "Vial", price: 40 }], stock: 100 },
-    // SX or XA
     { id: "peptide_sx_xa", name: "SX or XA", category: "peptides", description: "Unknown.", variations: [{ size: "10mg", type: "Vial", price: 40 }], stock: 100 },
-    // Lipo C - Fat Blaster
     { id: "peptide_lipo_c", name: "Lipo C - Fat Blaster", category: "peptides", description: "Fat burning injection.", variations: [{ size: "1 vial", type: "Vial", price: 25 }], stock: 100 },
-    // Lemon Bottle
     { id: "peptide_lemon_bottle", name: "Lemon Bottle", category: "peptides", description: "Fat dissolving.", variations: [{ size: "10ml", type: "Vial", price: 25 }, { size: "50ml", type: "Vial", price: 60 }], stock: 100 },
-    // Immunological Enhancement (GAZ)
     { id: "peptide_immunological_enhancement", name: "Immunological Enhancement (GAZ)", category: "peptides", description: "Immune support.", variations: [{ size: "10ml", type: "Vial", price: 50 }], stock: 100 },
-    // SZ352
     { id: "peptide_sz352", name: "SZ352", category: "peptides", description: "Unknown.", variations: [{ size: "10ml", type: "Vial", price: 70 }], stock: 100 },
-    // Vitamin B2, B12, B6, C, D2 (setiap satu berlainan nama)
     { id: "vitamin_b2", name: "Vitamin B2", category: "peptides", description: "Vitamin supplement.", variations: [{ size: "2ml", type: "Vial", price: 15 }], stock: 100 },
     { id: "vitamin_b12_2ml", name: "Vitamin B12", category: "peptides", description: "Vitamin supplement.", variations: [{ size: "2ml", type: "Vial", price: 20 }], stock: 100 },
     { id: "vitamin_b6", name: "Vitamin B6", category: "peptides", description: "Vitamin supplement.", variations: [{ size: "2ml", type: "Vial", price: 15 }], stock: 100 },
     { id: "vitamin_b12_1ml", name: "Vitamin B12", category: "peptides", description: "Vitamin supplement.", variations: [{ size: "1ml", type: "Vial", price: 10 }], stock: 100 },
     { id: "vitamin_c", name: "Vitamin C", category: "peptides", description: "Vitamin supplement.", variations: [{ size: "2ml", type: "Vial", price: 15 }], stock: 100 },
     { id: "vitamin_d2", name: "Vitamin D2", category: "peptides", description: "Vitamin supplement.", variations: [{ size: "1ml", type: "Vial", price: 25 }], stock: 100 },
-    // Super Human Blend, Super Shred, Shred (setiap satu berlainan nama)
     { id: "fatloss_super_human_blend", name: "Super Human Blend", category: "peptides", description: "Fat burning and energy blend.", variations: [{ size: "10ml", type: "Vial", price: 35 }], stock: 100 },
     { id: "fatloss_super_shred", name: "Super Shred", category: "peptides", description: "Advanced fat loss support.", variations: [{ size: "10ml", type: "Vial", price: 50 }], stock: 100 },
     { id: "fatloss_shred", name: "Shred", category: "peptides", description: "Fat loss support.", variations: [{ size: "10ml", type: "Vial", price: 70 }], stock: 100 }
@@ -878,7 +795,6 @@ async function fetchAndRenderProducts() {
         const prodSnap = await getDocs(collection(db, "products"));
         allProducts = [];
         prodSnap.forEach(d => allProducts.push({ id: d.id, ...d.data() }));
-        // Tambah produk manual
         for (const prod of additionalProducts) {
             if (!allProducts.find(p => p.id === prod.id)) {
                 allProducts.push(prod);
@@ -889,12 +805,10 @@ async function fetchAndRenderProducts() {
                 allProducts.push(prod);
             }
         }
-        // Tambah produk SLUPP-332 tablet jika tiada
         if (!allProducts.find(p => p.id === "slupp332_manual")) {
             allProducts.push({ id: "slupp332_manual", name: "SLUPP-332 250mcg Tablet", category: "peptides", description: "250mcg per tablet. 100 biji.", variations: [{ size: "250mcg", type: "Tablet (100 biji)", price: 70 }] });
         }
         await fetchStock();
-        // Init stock untuk semua variasi
         for (const prod of allProducts) {
             if (prod.variations) {
                 for (const v of prod.variations) {
@@ -1141,13 +1055,23 @@ function showLoginModal() {
     document.getElementById('loginStep2').style.display = 'none';
     new bootstrap.Modal(document.getElementById('loginModal')).show();
 }
+// ========== PERUBAHAN VALIDASI NOMBOR: support Malaysia (60) dan Singapura (65) ==========
 document.getElementById('loginBtn').addEventListener('click', async () => {
     let name = document.getElementById('loginName').value.trim();
     let phone = document.getElementById('loginPhone').value.trim();
     if(!name || !phone) { showToast('Sila isi nama dan nombor telefon', true); return; }
+    // Bersihkan nombor: buang semua ruang, tanda kurung, +, -, dll.
     phone = phone.replace(/[\s\-\(\)\+]/g, '');
+    // Jika nombor bermula dengan 0 untuk Malaysia, tukar ke 60
     if(phone.startsWith('0')) phone = '60' + phone.substring(1);
-    if(!phone.match(/^60[0-9]{9,11}$/)) { showToast('Nombor telefon tidak sah', true); return; }
+    // Jika nombor bermula dengan 65 (Singapura), biarkan
+    // Validation: Malaysia (60 + 9-11 digit) ATAU Singapura (65 + 8-10 digit)
+    const malaysiaRegex = /^60[0-9]{9,11}$/;
+    const singaporeRegex = /^65[0-9]{8,10}$/;
+    if(!malaysiaRegex.test(phone) && !singaporeRegex.test(phone)) { 
+        showToast('Nombor tidak sah. Guna format 0123456789 (Malaysia) atau 6512345678 (Singapura)', true); 
+        return; 
+    }
     const userRef = doc(db, "users", phone);
     await setDoc(userRef, { name, phone }, { merge: true });
     currentUser = { name, phone };
