@@ -537,7 +537,7 @@ async function generateAndDownloadPDF(orderId, customer, items, totalAmount, shi
         <p style="text-align: center;"><strong>Tarikh:<\/strong> ${new Date().toLocaleString()}<\/p>
         <hr>
         <div style="margin-bottom: 20px;"><strong>Kepada:<\/strong><br>${customer.name}<br>${customer.phone}<br>${customer.address_line1}, ${customer.postcode} ${customer.state}<\/div>
-        <table style="width:100%; border-collapse:collapse; margin:20px 0;"><thead><tr><th style="text-align:left;">Produk<\/th><th style="text-align:center;">Kuantiti<\/th><th style="text-align:right;">Harga Unit (RM)<\/th><th style="text-align:right;">Jumlah (RM)<\/th><\/tr><\/thead><tbody>${itemsHtml}<\/tbody><tfoot><tr><td colspan="3" style="text-align:right; padding-top:10px;"><strong>Subtotal:<\/strong><\/td><td style="text-align:right; padding-top:10px;">RM ${subtotal.toFixed(2)}<\/td><\/tr>
+        <table style="width:100%; border-collapse:collapse; margin:20px 0;"><thead></tr><th style="text-align:left;">Produk<\/th><th style="text-align:center;">Kuantiti<\/th><th style="text-align:right;">Harga Unit (RM)<\/th><th style="text-align:right;">Jumlah (RM)<\/th><\/tr><\/thead><tbody>${itemsHtml}<\/tbody><tfoot><tr><td colspan="3" style="text-align:right; padding-top:10px;"><strong>Subtotal:<\/strong><\/td><td style="text-align:right; padding-top:10px;">RM ${subtotal.toFixed(2)}<\/td><\/tr>
         <tr><td colspan="3" style="text-align:right;"><strong>Penghantaran (${shippingRegion}):<\/strong><\/td><td style="text-align:right;">RM ${shippingCost.toFixed(2)}<\/td><\/tr>
         <tr style="border-top:2px solid #10b981;"><td colspan="3" style="text-align:right;"><strong>TOTAL:<\/strong><\/td><td style="text-align:right;"><strong>RM ${totalAmount.toFixed(2)}<\/strong><\/td><\/tr><\/tfoot><\/table>
         <div><strong>Kaedah Bayaran:<\/strong> ${paymentMethod}<br>${bankName && bankName !== "Tiada" ? `<strong>Bank Pengirim:<\/strong> ${bankName}<br>` : ''}<strong>Status:<\/strong> Pending (Menunggu pengesahan admin)<\/div>
@@ -617,16 +617,23 @@ const oralPeptidesData = [
     { id: "oral_kpv", name: "KPV", category: "oral", description: "Used to calm inflammation in the gut, skin, and throughout the body.", variations: [{ size: "300mcg", type: "60 Capsules", price: 100 }], stock: 100 }
 ];
 
-// Tambahan produk kecantikan + USP Bac Water
-const additionalBeautyProducts = [
+// ========== PRODUK TAMBAHAN (BEAUTY + PEPTIDES) – FIONA REMOVED, AHK-CU & EXOSOME PINDAH KE PEPTIDES ==========
+const additionalProducts = [
+    // Beauty Peptides (Skincare Topical) – TANPA FIONA MASKER
     { id: "beauty_pigment_serum", name: "Pigment Serum", category: "beauty", description: "Brightening and spot fading serum.", variations: [{ size: "10ml", type: "Serum", price: 10 }], stock: 100 },
-    { id: "beauty_fiona_masker", name: "Fiona Masker", category: "beauty", description: "Moisturizing and brightening sheet mask.", variations: [{ size: "10mg", type: "Mask", price: 15 }], stock: 100 },
     { id: "beauty_oligo_peptide24", name: "Oligo Peptide 24", category: "beauty", description: "Anti-aging peptide complex.", variations: [{ size: "10mg", type: "Peptide", price: 15 }], stock: 100 },
     { id: "beauty_vitamin_c_tablet", name: "Vitamin C Tablet With Essense", category: "beauty", description: "Vitamin C brightening tablets with essence.", variations: [{ size: "10pcs", type: "Tablet", price: 20 }], stock: 100 },
     { id: "beauty_acne_serum", name: "Acne Serum", category: "beauty", description: "Anti-acne and soothing serum.", variations: [{ size: "5ml", type: "Serum", price: 10 }], stock: 100 },
     { id: "beauty_hydro_glow", name: "Hydro Glow Serum", category: "beauty", description: "Hydrating and brightening serum.", variations: [{ size: "5ml", type: "Serum", price: 25 }], stock: 100 },
-    // FAT LOSS product (Super Human Blend) - diletakkan dalam peptides (kategori fat loss)
+    { id: "beauty_ggh", name: "GGH", category: "beauty", description: "Growth hormone releasing peptide for skin.", variations: [{ size: "10mg", type: "Vial", price: 700 }], stock: 100 },
+    { id: "beauty_glow", name: "Glow", category: "beauty", description: "Skin brightening and anti-aging.", variations: [{ size: "70mg", type: "Vial", price: 700 }], stock: 100 },
+    { id: "beauty_ghkcu_serum_blue", name: "GHK-Cu Serum", category: "beauty", description: "Copper peptide serum for anti-aging.", variations: [{ size: "5ml", type: "Serum", price: 120 }], stock: 100 },
+    // Fat Loss products (dalam peptides)
     { id: "fatloss_super_human_blend", name: "Super Human Blend", category: "peptides", description: "Fat burning and energy blend.", variations: [{ size: "10ml", type: "Vial", price: 350 }], stock: 100 },
+    { id: "fatloss_super_shred", name: "Super Shred", category: "peptides", description: "Advanced fat loss support.", variations: [{ size: "10ml", type: "Vial", price: 500 }], stock: 100 },
+    // PEPTIDES: AHK-CU dan EXOSOME dialihkan ke sini
+    { id: "peptide_ahk_cu", name: "AHK-CU", category: "peptides", description: "Copper peptide for hair and skin.", variations: [{ size: "50mg", type: "Vial", price: 200 }], stock: 100 },
+    { id: "peptide_exosome", name: "Exosome", category: "peptides", description: "Exosome for cellular regeneration.", variations: [{ size: "100mg", type: "Vial", price: 450 }], stock: 100 },
     // Solvent BAC Water (dalam peptides)
     { id: "solvent_bac_water", name: "USP Bac Water", category: "peptides", description: "Bacteriostatic water for reconstitution.", variations: [{ size: "10ml", type: "Vial", price: 12 }], stock: 100 }
 ];
@@ -647,7 +654,8 @@ async function fetchStock() {
 
 function getProductCategory(name) {
     const n = name.toLowerCase();
-    const beauty = ['ghk-cu','ahk-cu','glutathione','glow','klow','snap-8','matrixyl','ggh','exosome','pdrn','botulinum toxin','hyaluronic acid','pink hyaluronic','whitening','spotfading','snake venom','lipo c','fat blaster','lemon bottle','super human blend','super shred','shred','immunological enhancement','sz352','vitamin b','vitamin c','vitamin d2','super beauty','hhb','bac water','acetic acid','pigment serum','fiona masker','oligo peptide','vitamin c tablet','acne serum','hydro glow serum'];
+    // **PERUBAHAN: AHK-CU dikeluarkan dari beauty keywords supaya jadi peptides**
+    const beauty = ['ghk-cu','glutathione','glow','klow','snap-8','matrixyl','ggh','pdrn','botulinum toxin','hyaluronic acid','pink hyaluronic','whitening','spotfading','snake venom','lipo c','fat blaster','lemon bottle','super human blend','super shred','shred','immunological enhancement','sz352','vitamin b','vitamin c','vitamin d2','super beauty','hhb','bac water','acetic acid','pigment serum','oligo peptide','vitamin c tablet','acne serum','hydro glow serum'];
     for(let kw of beauty) if(n.includes(kw)) return 'beauty';
     return 'peptides';
 }
@@ -675,7 +683,7 @@ async function fetchAndRenderProducts() {
         if(!allProducts.find(p => p.name === "SLUPP-332 250mcg Tablet")) {
             allProducts.push({ id: "slupp332_manual", name: "SLUPP-332 250mcg Tablet", category: "peptides", description: "250mcg per tablet. 100 biji.", variations: [{ size: "250mcg", type: "Tablet (100 biji)", price: 50 }] });
         }
-        for (const prod of additionalBeautyProducts) {
+        for (const prod of additionalProducts) {
             if (!allProducts.find(p => p.id === prod.id)) {
                 allProducts.push(prod);
             }
@@ -685,7 +693,7 @@ async function fetchAndRenderProducts() {
             foxoProduct.variations.forEach(v => { v.price = 30; });
         }
         await fetchStock();
-        for (const prod of additionalBeautyProducts) {
+        for (const prod of additionalProducts) {
             for (const v of prod.variations) {
                 const key = getVariationKey(prod.id, v.size, v.type);
                 if (!stockMap.has(key)) {
