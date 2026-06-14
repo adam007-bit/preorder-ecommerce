@@ -362,10 +362,11 @@
             <div class="flex-grow-1 ms-3 border-bottom" style="border-color: #10b981;"></div>
         </div>
         <div class="category-filters" id="homeFilters">
-            <button class="cat-btn active" data-cat="all"><span class="lang-all">Semua</span></button>
-            <button class="cat-btn" data-cat="peptides"><span class="lang-peptides">Peptides</span></button>
+            <!-- Butang kategori: Tiada "Semua" -->
+            <button class="cat-btn active" data-cat="peptides"><span class="lang-peptides">Peptides</span></button>
             <button class="cat-btn" data-cat="beauty"><span class="lang-beauty">Beauty Peptides</span></button>
             <button class="cat-btn" data-cat="solvent"><span class="lang-solvent">Solvent</span></button>
+            <button class="cat-btn" data-cat="oral"><span class="lang-oral">Oral Peptides</span></button>
             <button class="cat-btn" data-cat="readystock"><span class="lang-readystock">Ready Stock</span></button>
         </div>
         <div id="product-list" class="row g-3">
@@ -607,26 +608,27 @@ const protocolData = [
     ["FOXO4-DRI", "2mg", "200-500mcg (2-5 units)", "Weekly", "SubQ", "Longevity", "Senolytic. Consult specialist before use"]
 ];
 
-// ORAL PEPTIDES - dipindahkan ke kategori 'peptides' (buang kategori oral)
-const oralPeptidesDataMovedToPeptides = [
-    { id: "oral_5amino_1mq", name: "5-Amino-1MQ", category: "peptides", description: "Supports metabolism, helps increase calorie burning, and may assist with fat loss.", variations: [{ size: "50mg", type: "60 Capsules", price: 210 }], stock: 100 },
-    { id: "oral_bpc157", name: "BPC-157", category: "peptides", description: "Supports recovery, tissue repair, gut health, and injury healing.", variations: [{ size: "500mcg", type: "100 Capsules", price: 160 }], stock: 100 },
-    { id: "oral_tesofensine", name: "Tesofensine", category: "peptides", description: "Helps reduce appetite, control cravings, and support weight loss.", variations: [{ size: "500mcg", type: "60 Capsules", price: 140 }], stock: 100 },
-    { id: "oral_dihexa", name: "Dihexa", category: "peptides", description: "Supports memory, focus, learning, and cognitive performance.", variations: [{ size: "10mg", type: "60 Capsules", price: 150 }], stock: 100 },
-    { id: "oral_bam15", name: "BAM15", category: "peptides", description: "May increase energy expenditure and support fat loss without stimulants.", variations: [{ size: "50mg", type: "60 Capsules", price: 470 }], stock: 100 },
-    { id: "oral_orforglipron", name: "Orforglipron", category: "peptides", description: "Helps reduce appetite, improve blood sugar control, and support weight management.", variations: [{ size: "6mg", type: "90 Capsules", price: 480 }], stock: 100 },
-    { id: "oral_slupp332", name: "SLU-PP-332", category: "peptides", description: "Designed to enhance endurance, increase energy utilization, and support fat burning.", variations: [{ size: "250mcg", type: "100 Capsules", price: 70 }], stock: 100 },
-    { id: "oral_kpv", name: "KPV", category: "peptides", description: "Used to calm inflammation in the gut, skin, and throughout the body.", variations: [{ size: "300mcg", type: "60 Capsules", price: 100 }], stock: 100 }
+// ORAL PEPTIDES - kategori 'oral'
+const oralPeptidesData = [
+    { id: "oral_5amino_1mq", name: "5-Amino-1MQ", category: "oral", description: "Supports metabolism, helps increase calorie burning, and may assist with fat loss.", variations: [{ size: "50mg", type: "60 Capsules", price: 210 }], stock: 100 },
+    { id: "oral_bpc157", name: "BPC-157", category: "oral", description: "Supports recovery, tissue repair, gut health, and injury healing.", variations: [{ size: "500mcg", type: "100 Capsules", price: 160 }], stock: 100 },
+    { id: "oral_tesofensine", name: "Tesofensine", category: "oral", description: "Helps reduce appetite, control cravings, and support weight loss.", variations: [{ size: "500mcg", type: "60 Capsules", price: 140 }], stock: 100 },
+    { id: "oral_dihexa", name: "Dihexa", category: "oral", description: "Supports memory, focus, learning, and cognitive performance.", variations: [{ size: "10mg", type: "60 Capsules", price: 150 }], stock: 100 },
+    { id: "oral_bam15", name: "BAM15", category: "oral", description: "May increase energy expenditure and support fat loss without stimulants.", variations: [{ size: "50mg", type: "60 Capsules", price: 470 }], stock: 100 },
+    { id: "oral_orforglipron", name: "Orforglipron", category: "oral", description: "Helps reduce appetite, improve blood sugar control, and support weight management.", variations: [{ size: "6mg", type: "90 Capsules", price: 480 }], stock: 100 },
+    { id: "oral_slupp332", name: "SLU-PP-332", category: "oral", description: "Designed to enhance endurance, increase energy utilization, and support fat burning.", variations: [{ size: "250mcg", type: "100 Capsules", price: 70 }], stock: 100 },
+    { id: "oral_kpv", name: "KPV", category: "oral", description: "Used to calm inflammation in the gut, skin, and throughout the body.", variations: [{ size: "300mcg", type: "60 Capsules", price: 100 }], stock: 100 }
 ];
 
-// ========== PRODUK TAMBAHAN (digabungkan mengikut nama asas, setiap produk hanya muncul sekali) ==========
+// ========== PRODUK TAMBAHAN ==========
 const additionalProducts = [
-    // ========== SOLVENT ==========
+    // SOLVENT
     { id: "solvent_bac_water", name: "Bac Water", category: "solvent", description: "Bacteriostatic water for reconstitution.", variations: [{ size: "3ml", type: "Vial", price: 4 }, { size: "10ml", type: "Vial", price: 5 }], stock: 100 },
+    { id: "solvent_usb_bac_water", name: "USP Bac Water", category: "solvent", description: "Bacteriostatic water for reconstitution.", variations: [{ size: "10ml", type: "Vial", price: 5 }], stock: 100 },
     { id: "solvent_steriled_water", name: "Sterilized Water", category: "solvent", description: "Sterile water for injection.", variations: [{ size: "10ml", type: "Vial", price: 5 }], stock: 100 },
     { id: "solvent_acetic_acid", name: "Acetic Acid", category: "solvent", description: "For peptide reconstitution.", variations: [{ size: "10ml", type: "Vial", price: 5 }], stock: 100 },
 
-    // ========== BEAUTY PEPTIDES ==========
+    // BEAUTY PEPTIDES
     { id: "beauty_ghk_cu", name: "GHK-Cu", category: "beauty", description: "Copper peptide for hair and skin (injectable).", variations: [{ size: "50mg", type: "Vial", price: 12 }, { size: "100mg", type: "Vial", price: 15 }], stock: 100 },
     { id: "beauty_ahk_cu", name: "AHK-CU", category: "beauty", description: "Copper peptide for hair growth.", variations: [{ size: "50mg", type: "Vial", price: 20 }, { size: "100mg", type: "Vial", price: 35 }], stock: 100 },
     { id: "beauty_glutathione", name: "Glutathione", category: "beauty", description: "Antioxidant for skin brightening.", variations: [{ size: "600mg", type: "Vial", price: 15 }, { size: "1500mg", type: "Vial", price: 35 }], stock: 100 },
@@ -650,41 +652,31 @@ const additionalProducts = [
     { id: "beauty_vitamin_c_tablet", name: "Vitamin C Tablet With Essense", category: "beauty", description: "Vitamin C brightening tablets with essence.", variations: [{ size: "10pcs", type: "Tablet", price: 20 }], stock: 100 },
     { id: "beauty_acne_serum", name: "Acne Serum", category: "beauty", description: "Anti-acne and soothing serum.", variations: [{ size: "5ml", type: "Serum", price: 10 }], stock: 100 },
     { id: "beauty_hydro_glow", name: "Hydro Glow Serum", category: "beauty", description: "Hydrating and brightening serum.", variations: [{ size: "5ml", type: "Serum", price: 25 }], stock: 100 },
-    { id: "beauty_ghkcu_serum", name: "GHK-Cu Serum", category: "beauty", description: "Copper peptide serum for anti-aging.", variations: [{ size: "5ml", type: "Serum", price: 120 }], stock: 100 },
-    { id: "beauty_klow_serum", name: "Klow Serum", category: "beauty", description: "Brightening serum.", variations: [{ size: "10ml", type: "Serum", price: 45 }], stock: 100 },
-    { id: "beauty_ghkcu_topical", name: "GHK-Cu Topical 1000mg", category: "beauty", description: "Copper peptide topical.", variations: [{ size: "1 vial (1000mg)", type: "Topical", price: 40 }], stock: 100 },
-    { id: "beauty_fiona_masker", name: "Fiona Masker", category: "beauty", description: "Facial mask.", variations: [{ size: "1pc", type: "Mask", price: 15 }], stock: 100 },
+    { id: "beauty_ghkcu_serum", name: "GHK-Cu Serum", category: "beauty", description: "Copper peptide serum for anti-aging.", variations: [{ size: "5ml", type: "Serum", price: 10 }], stock: 100 },
+    { id: "beauty_ghkcu_topical", name: "GHK-Cu Topical", category: "beauty", description: "Copper peptide topical.", variations: [{ size: "1000mg", type: "Vial", price: 40 }], stock: 100 },
+    { id: "beauty_fiona_masker", name: "Fiona Masker", category: "beauty", description: "Facial mask.", variations: [{ size: "10mg", type: "Set", price: 15 }], stock: 100 },
 
-    // ========== PEPTIDES ==========
-    { id: "peptide_retatrutide", name: "Retatrutide", category: "peptides", description: "Triple agonist for weight management.", variations: [
-        { size: "5mg", type: "Vial", price: 25 }, { size: "10mg", type: "Vial", price: 30 }, { size: "15mg", type: "Vial", price: 45 },
-        { size: "20mg", type: "Vial", price: 50 }, { size: "30mg", type: "Vial", price: 75 }, { size: "40mg", type: "Vial", price: 90 }
-    ], stock: 100 },
-    { id: "peptide_reta_cagri", name: "RETA CAGRI", category: "peptides", description: "Retatrutide + Cagrilintide blend.", variations: [{ size: "10mg", type: "Vial", price: 80 }], stock: 100 },
-    { id: "peptide_reta_tirze", name: "RETA TIRZE", category: "peptides", description: "Retatrutide + Tirzepatide blend.", variations: [{ size: "60mg", type: "Vial", price: 180 }], stock: 100 },
-    { id: "peptide_tirzepatide", name: "Tirzepatide", category: "peptides", description: "Dual GIP/GLP-1 agonist.", variations: [
-        { size: "10mg", type: "Vial", price: 25 }, { size: "15mg", type: "Vial", price: 35 }, { size: "20mg", type: "Vial", price: 40 }, { size: "30mg", type: "Vial", price: 50 }
-    ], stock: 100 },
-    { id: "peptide_semaglutide", name: "Semaglutide", category: "peptides", description: "GLP-1 for weight management.", variations: [
-        { size: "10mg", type: "Vial", price: 25 }, { size: "15mg", type: "Vial", price: 30 }, { size: "20mg", type: "Vial", price: 35 }, { size: "30mg", type: "Vial", price: 45 }
-    ], stock: 100 },
+    // PEPTIDES (injectable & fat loss)
+    { id: "peptide_retatrutide", name: "Retatrutide", category: "peptides", description: "Triple agonist for weight management.", variations: [{ size: "5mg", type: "Vial", price: 25 }, { size: "10mg", type: "Vial", price: 30 }, { size: "15mg", type: "Vial", price: 45 }, { size: "20mg", type: "Vial", price: 50 }, { size: "30mg", type: "Vial", price: 75 }, { size: "40mg", type: "Vial", price: 90 }], stock: 100 },
+    { id: "peptide_reta_cagri", name: "Reta Cagri", category: "peptides", description: "Retatrutide + Cagrilintide blend.", variations: [{ size: "10mg", type: "Vial", price: 80 }], stock: 100 },
+    { id: "peptide_reta_tirze", name: "Reta Tirze", category: "peptides", description: "Retatrutide + Tirzepatide blend.", variations: [{ size: "60mg", type: "Vial", price: 180 }], stock: 100 },
+    { id: "peptide_tirzepatide", name: "Tirzepatide", category: "peptides", description: "Dual GIP/GLP-1 agonist.", variations: [{ size: "10mg", type: "Vial", price: 25 }, { size: "15mg", type: "Vial", price: 35 }, { size: "20mg", type: "Vial", price: 40 }, { size: "30mg", type: "Vial", price: 50 }], stock: 100 },
+    { id: "peptide_semaglutide", name: "Semaglutide", category: "peptides", description: "GLP-1 for weight management.", variations: [{ size: "10mg", type: "Vial", price: 25 }, { size: "15mg", type: "Vial", price: 30 }, { size: "20mg", type: "Vial", price: 35 }, { size: "30mg", type: "Vial", price: 45 }], stock: 100 },
     { id: "peptide_cagrilintide", name: "Cagrilintide", category: "peptides", description: "Amylin analogue.", variations: [{ size: "5mg", type: "Vial", price: 45 }, { size: "10mg", type: "Vial", price: 65 }], stock: 100 },
     { id: "peptide_cagri_sema", name: "Cagri Sema", category: "peptides", description: "Cagrilintide + Semaglutide blend.", variations: [{ size: "5mg", type: "Vial", price: 55 }, { size: "10mg", type: "Vial", price: 90 }], stock: 100 },
     { id: "peptide_cagri_tirze", name: "Cagri Tirze", category: "peptides", description: "Cagrilintide + Tirzepatide blend.", variations: [{ size: "20mg", type: "Vial", price: 80 }], stock: 100 },
     { id: "peptide_adipotide", name: "Adipotide", category: "peptides", description: "Fat cell apoptosis.", variations: [{ size: "5mg", type: "Vial", price: 80 }], stock: 100 },
     { id: "peptide_survodutide", name: "Survodutide", category: "peptides", description: "Dual agonist.", variations: [{ size: "10mg", type: "Vial", price: 120 }], stock: 100 },
     { id: "peptide_mazdutide", name: "Mazdutide", category: "peptides", description: "Dual agonist.", variations: [{ size: "10mg", type: "Vial", price: 80 }], stock: 100 },
-    { id: "peptide_mots_c", name: "MOTS-c", category: "peptides", description: "Mitochondrial peptide.", variations: [
-        { size: "10mg", type: "Vial", price: 30 }, { size: "20mg", type: "Vial", price: 50 }, { size: "30mg", type: "Vial", price: 70 }, { size: "40mg", type: "Vial", price: 80 }
-    ], stock: 100 },
+    { id: "peptide_mots_c", name: "MOTS-C", category: "peptides", description: "Mitochondrial peptide.", variations: [{ size: "10mg", type: "Vial", price: 30 }, { size: "20mg", type: "Vial", price: 50 }, { size: "30mg", type: "Vial", price: 70 }, { size: "40mg", type: "Vial", price: 80 }], stock: 100 },
     { id: "peptide_aod", name: "AOD-9604", category: "peptides", description: "Fat burning.", variations: [{ size: "5mg", type: "Vial", price: 45 }, { size: "10mg", type: "Vial", price: 70 }], stock: 100 },
     { id: "peptide_slupp", name: "SLU-PP-322", category: "peptides", description: "UCP1 inducer.", variations: [{ size: "5mg", type: "Vial", price: 45 }], stock: 100 },
-    { id: "peptide_5amino", name: "5-Amino-1MQ", category: "peptides", description: "NNMT inhibitor.", variations: [{ size: "5mg", type: "Vial", price: 25 }, { size: "10mg", type: "Vial", price: 35 }, { size: "50mg", type: "Vial", price: 65 }], stock: 100 },
+   
     { id: "peptide_nad", name: "NAD+", category: "peptides", description: "Cellular energy.", variations: [{ size: "500mg", type: "Vial", price: 30 }, { size: "1000mg", type: "Vial", price: 35 }], stock: 100 },
     { id: "peptide_wolverine", name: "Wolverine", category: "peptides", description: "Healing blend.", variations: [{ size: "10mg", type: "Vial", price: 40 }, { size: "20mg", type: "Vial", price: 65 }], stock: 100 },
     { id: "peptide_bpc", name: "BPC-157", category: "peptides", description: "Healing peptide.", variations: [{ size: "5mg", type: "Vial", price: 25 }, { size: "10mg", type: "Vial", price: 35 }], stock: 100 },
     { id: "peptide_tb500", name: "TB-500", category: "peptides", description: "Tissue repair.", variations: [{ size: "5mg", type: "Vial", price: 35 }, { size: "10mg", type: "Vial", price: 55 }], stock: 100 },
-    { id: "peptide_kpv", name: "KPV", category: "peptides", description: "Anti-inflammatory.", variations: [{ size: "5mg", type: "Vial", price: 25 }, { size: "10mg", type: "Vial", price: 30 }], stock: 100 },
+    
     { id: "peptide_tesamorelin", name: "Tesamorelin", category: "peptides", description: "Growth hormone releasing hormone.", variations: [{ size: "5mg", type: "Vial", price: 45 }, { size: "10mg", type: "Vial", price: 70 }, { size: "20mg", type: "Vial", price: 130 }], stock: 100 },
     { id: "peptide_tesa_ipa", name: "Tesa IPA", category: "peptides", description: "Tesamorelin + Ipamorelin blend.", variations: [{ size: "15mg", type: "Vial", price: 95 }], stock: 100 },
     { id: "peptide_ipamorelin", name: "Ipamorelin", category: "peptides", description: "Growth hormone secretagogue.", variations: [{ size: "5mg", type: "Vial", price: 25 }, { size: "10mg", type: "Vial", price: 35 }], stock: 100 },
@@ -750,9 +742,9 @@ const additionalProducts = [
     { id: "vitamin_b2", name: "Vitamin B2", category: "peptides", description: "Vitamin supplement.", variations: [{ size: "2ml", type: "Vial", price: 15 }], stock: 100 },
     { id: "vitamin_b12_2ml", name: "Vitamin B12", category: "peptides", description: "Vitamin supplement.", variations: [{ size: "2ml", type: "Vial", price: 20 }], stock: 100 },
     { id: "vitamin_b6", name: "Vitamin B6", category: "peptides", description: "Vitamin supplement.", variations: [{ size: "2ml", type: "Vial", price: 15 }], stock: 100 },
-    { id: "vitamin_b12_1ml", name: "Vitamin B12", category: "peptides", description: "Vitamin supplement.", variations: [{ size: "1ml", type: "Vial", price: 10 }], stock: 100 },
+    { id: "vitamin_b12_1ml", name: "Vitamin B12", category: "peptides", description: "Vitamin supplement.", variations: [{ size: "10ml", type: "Vial", price: 15 },{ size: "1ml", type: "Vial", price: 10 }], stock: 100 },
     { id: "vitamin_c", name: "Vitamin C", category: "peptides", description: "Vitamin supplement.", variations: [{ size: "2ml", type: "Vial", price: 15 }], stock: 100 },
-    { id: "vitamin_d2", name: "Vitamin D2", category: "peptides", description: "Vitamin supplement.", variations: [{ size: "1ml", type: "Vial", price: 25 }], stock: 100 },
+    { id: "vitamin_d2", name: "Vitamin D2", category: "peptides", description: "Vitamin supplement.", variations: [{ size: "10ml", type: "Vial", price: 25 }], stock: 100 },
     { id: "fatloss_super_human_blend", name: "Super Human Blend", category: "peptides", description: "Fat burning and energy blend.", variations: [{ size: "10ml", type: "Vial", price: 35 }], stock: 100 },
     { id: "fatloss_super_shred", name: "Super Shred", category: "peptides", description: "Advanced fat loss support.", variations: [{ size: "10ml", type: "Vial", price: 50 }], stock: 100 },
     { id: "fatloss_shred", name: "Shred", category: "peptides", description: "Fat loss support.", variations: [{ size: "10ml", type: "Vial", price: 70 }], stock: 100 }
@@ -760,7 +752,7 @@ const additionalProducts = [
 
 let allProducts = [];
 let stockMap = new Map();
-let currentCategory = 'all';
+let currentCategory = 'peptides';  // default category
 let currentUser = null;
 let cart = [];
 let checkoutShippingCost = 10;
@@ -777,17 +769,14 @@ function getProductCategory(product) {
 }
 
 function filterProducts(products, category) {
-    if(category === 'all') return products;
+    if(category === 'peptides') return products.filter(p => getProductCategory(p) === 'peptides');
+    if(category === 'beauty') return products.filter(p => getProductCategory(p) === 'beauty');
+    if(category === 'solvent') return products.filter(p => getProductCategory(p) === 'solvent');
+    if(category === 'oral') return products.filter(p => getProductCategory(p) === 'oral');
     if(category === 'readystock') {
         return products.filter(p => p.variations?.some(v => (stockMap.get(getVariationKey(p.id, v.size, v.type))?.stock ?? 100) > 0));
     }
-    return products.filter(p => {
-        const cat = getProductCategory(p);
-        if(category === 'peptides') return cat === 'peptides';
-        if(category === 'beauty') return cat === 'beauty';
-        if(category === 'solvent') return cat === 'solvent';
-        return true;
-    });
+    return products;
 }
 
 async function fetchAndRenderProducts() {
@@ -795,12 +784,9 @@ async function fetchAndRenderProducts() {
         const prodSnap = await getDocs(collection(db, "products"));
         allProducts = [];
         prodSnap.forEach(d => allProducts.push({ id: d.id, ...d.data() }));
-        for (const prod of additionalProducts) {
-            if (!allProducts.find(p => p.id === prod.id)) {
-                allProducts.push(prod);
-            }
-        }
-        for (const prod of oralPeptidesDataMovedToPeptides) {
+        // Gabungkan semua produk
+        const allAdditional = [...additionalProducts, ...oralPeptidesData];
+        for (const prod of allAdditional) {
             if (!allProducts.find(p => p.id === prod.id)) {
                 allProducts.push(prod);
             }
@@ -894,6 +880,7 @@ function renderProducts(products) {
         if (cat === 'beauty') badge = 'Beauty Peptides';
         else if (cat === 'solvent') badge = 'Solvent';
         else if (cat === 'peptides') badge = 'Peptides';
+        else if (cat === 'oral') badge = 'Oral Peptides';
         else badge = 'Peptides';
         
         const card = document.createElement('div');
@@ -1055,17 +1042,13 @@ function showLoginModal() {
     document.getElementById('loginStep2').style.display = 'none';
     new bootstrap.Modal(document.getElementById('loginModal')).show();
 }
-// ========== PERUBAHAN VALIDASI NOMBOR: support Malaysia (60) dan Singapura (65) ==========
+// ========== VALIDASI NOMBOR: Malaysia (60) dan Singapura (65) ==========
 document.getElementById('loginBtn').addEventListener('click', async () => {
     let name = document.getElementById('loginName').value.trim();
     let phone = document.getElementById('loginPhone').value.trim();
     if(!name || !phone) { showToast('Sila isi nama dan nombor telefon', true); return; }
-    // Bersihkan nombor: buang semua ruang, tanda kurung, +, -, dll.
     phone = phone.replace(/[\s\-\(\)\+]/g, '');
-    // Jika nombor bermula dengan 0 untuk Malaysia, tukar ke 60
     if(phone.startsWith('0')) phone = '60' + phone.substring(1);
-    // Jika nombor bermula dengan 65 (Singapura), biarkan
-    // Validation: Malaysia (60 + 9-11 digit) ATAU Singapura (65 + 8-10 digit)
     const malaysiaRegex = /^60[0-9]{9,11}$/;
     const singaporeRegex = /^65[0-9]{8,10}$/;
     if(!malaysiaRegex.test(phone) && !singaporeRegex.test(phone)) { 
@@ -1281,7 +1264,7 @@ const translations = {
     ms: {
         step1: "3 LANGKAH MUDAH", step_pilih: "1. Pilih Item", step_checkout: "2. Checkout", step_bayar: "3. Bayar & Upload",
         home: "Home", cart: "Cart", myorders: "My Orders",
-        catalog: "Katalog Eksklusif Viral", all: "Semua", peptides: "Peptides", beauty: "Beauty Peptides", solvent: "Solvent", readystock: "Ready Stock", loading: "Memuatkan produk...",
+        catalog: "Katalog Eksklusif Viral", all: "Semua", peptides: "Peptides", beauty: "Beauty Peptides", solvent: "Solvent", oral: "Oral Peptides", readystock: "Ready Stock", loading: "Memuatkan produk...",
         carttitle: "Keranjang Saya", cartempty: "Keranjang kosong", totalitems: "Jumlah item:", totalprice: "Total (RM):", proceed: "Proceed to Checkout",
         myorderstitle: "Pesanan Saya", noorders: "Tiada pesanan.",
         protocol: "PROTOCOL DOSE DATABASE", protocolnote: "Rujukan dos adalah daripada Peptide Protocol Portal.",
@@ -1293,7 +1276,7 @@ const translations = {
     en: {
         step1: "3 EASY STEPS", step_pilih: "1. Select Item", step_checkout: "2. Checkout", step_bayar: "3. Pay & Upload",
         home: "Home", cart: "Cart", myorders: "My Orders",
-        catalog: "Viral Exclusive Catalog", all: "All", peptides: "Peptides", beauty: "Beauty Peptides", solvent: "Solvent", readystock: "Ready Stock", loading: "Loading products...",
+        catalog: "Viral Exclusive Catalog", all: "All", peptides: "Peptides", beauty: "Beauty Peptides", solvent: "Solvent", oral: "Oral Peptides", readystock: "Ready Stock", loading: "Loading products...",
         carttitle: "My Cart", cartempty: "Cart is empty", totalitems: "Total items:", totalprice: "Total (RM):", proceed: "Proceed to Checkout",
         myorderstitle: "My Orders", noorders: "No orders.",
         protocol: "PROTOCOL DOSE DATABASE", protocolnote: "Dosage reference from Peptide Protocol Portal.",
@@ -1323,6 +1306,7 @@ function setLanguage(lang) {
     document.querySelectorAll('.lang-peptides').forEach(el => el.innerText = t.peptides);
     document.querySelectorAll('.lang-beauty').forEach(el => el.innerText = t.beauty);
     document.querySelectorAll('.lang-solvent').forEach(el => el.innerText = t.solvent);
+    document.querySelectorAll('.lang-oral').forEach(el => el.innerText = t.oral);
     document.querySelectorAll('.lang-readystock').forEach(el => el.innerText = t.readystock);
     document.querySelector('.lang-loading').innerText = t.loading;
     document.querySelector('.lang-carttitle').innerText = t.carttitle;
