@@ -127,6 +127,7 @@
             font-weight: 500;
             cursor: pointer;
             transition: 0.2s;
+            text-transform: uppercase; /* ← PERUBAHAN: semua tulisan kategori huruf besar */
         }
         .cat-btn.active {
             background: var(--emerald-primary);
@@ -362,10 +363,11 @@
         </div>
         <div class="category-filters" id="homeFilters">
             <button class="cat-btn active" data-cat="all"><span class="lang-all">Semua</span></button>
-            <button class="cat-btn" data-cat="peptides"><span class="lang-peptides">Peptides</span></button>
-            <button class="cat-btn" data-cat="beauty"><span class="lang-beauty">Beauty Line</span></button>
+            <button class="cat-btn" data-cat="solvent"><span class="lang-solvent">Solvent</span></button>
+            <button class="cat-btn" data-cat="beauty"><span class="lang-beauty">Beauty Peptides</span></button>
+            <button class="cat-btn" data-cat="fatloss"><span class="lang-fatloss">Fat Loss</span></button>
             <button class="cat-btn" data-cat="oral"><span class="lang-oral">Oral Peptides</span></button>
-             <button class="cat-btn" data-cat="readystock"><span class="lang-readystock">Ready Stock</span></button>
+            <button class="cat-btn" data-cat="readystock"><span class="lang-readystock">Ready Stock</span></button>
         </div>
         <div id="product-list" class="row g-3">
             <div class="text-center py-5"><div class="spinner-border text-emerald"></div><p><span class="lang-loading">Memuatkan produk...</span></p></div>
@@ -537,7 +539,7 @@ async function generateAndDownloadPDF(orderId, customer, items, totalAmount, shi
         <p style="text-align: center;"><strong>Tarikh:<\/strong> ${new Date().toLocaleString()}<\/p>
         <hr>
         <div style="margin-bottom: 20px;"><strong>Kepada:<\/strong><br>${customer.name}<br>${customer.phone}<br>${customer.address_line1}, ${customer.postcode} ${customer.state}<\/div>
-        <table style="width:100%; border-collapse:collapse; margin:20px 0;"><thead></tr><th style="text-align:left;">Produk<\/th><th style="text-align:center;">Kuantiti<\/th><th style="text-align:right;">Harga Unit (RM)<\/th><th style="text-align:right;">Jumlah (RM)<\/th><\/tr><\/thead><tbody>${itemsHtml}<\/tbody><tfoot><tr><td colspan="3" style="text-align:right; padding-top:10px;"><strong>Subtotal:<\/strong><\/td><td style="text-align:right; padding-top:10px;">RM ${subtotal.toFixed(2)}<\/td><\/tr>
+        <table style="width:100%; border-collapse:collapse; margin:20px 0;"><thead><tr><th style="text-align:left;">Produk<\/th><th style="text-align:center;">Kuantiti<\/th><th style="text-align:right;">Harga Unit (RM)<\/th><th style="text-align:right;">Jumlah (RM)<\/th><\/tr><\/thead><tbody>${itemsHtml}<\/tbody><tfoot><tr><td colspan="3" style="text-align:right; padding-top:10px;"><strong>Subtotal:<\/strong><\/td><td style="text-align:right; padding-top:10px;">RM ${subtotal.toFixed(2)}<\/td><\/tr>
         <tr><td colspan="3" style="text-align:right;"><strong>Penghantaran (${shippingRegion}):<\/strong><\/td><td style="text-align:right;">RM ${shippingCost.toFixed(2)}<\/td><\/tr>
         <tr style="border-top:2px solid #10b981;"><td colspan="3" style="text-align:right;"><strong>TOTAL:<\/strong><\/td><td style="text-align:right;"><strong>RM ${totalAmount.toFixed(2)}<\/strong><\/td><\/tr><\/tfoot><\/table>
         <div><strong>Kaedah Bayaran:<\/strong> ${paymentMethod}<br>${bankName && bankName !== "Tiada" ? `<strong>Bank Pengirim:<\/strong> ${bankName}<br>` : ''}<strong>Status:<\/strong> Pending (Menunggu pengesahan admin)<\/div>
@@ -617,9 +619,12 @@ const oralPeptidesData = [
     { id: "oral_kpv", name: "KPV", category: "oral", description: "Used to calm inflammation in the gut, skin, and throughout the body.", variations: [{ size: "300mcg", type: "60 Capsules", price: 100 }], stock: 100 }
 ];
 
-// ========== PRODUK TAMBAHAN (BEAUTY + PEPTIDES) – FIONA REMOVED, AHK-CU & EXOSOME PINDAH KE PEPTIDES ==========
+// PRODUK TAMBAHAN - kategori diperbaiki mengikut permintaan:
+// beauty (Beauty Peptides) = semua skincare topical
+// solvent = semua injectable peptides, BAC water, AHK-CU, Exosome dll
+// fatloss = Super Human Blend, Super Shred
 const additionalProducts = [
-    // Beauty Peptides (Skincare Topical) – TANPA FIONA MASKER
+    // Beauty Peptides (skincare topical)
     { id: "beauty_pigment_serum", name: "Pigment Serum", category: "beauty", description: "Brightening and spot fading serum.", variations: [{ size: "10ml", type: "Serum", price: 10 }], stock: 100 },
     { id: "beauty_oligo_peptide24", name: "Oligo Peptide 24", category: "beauty", description: "Anti-aging peptide complex.", variations: [{ size: "10mg", type: "Peptide", price: 15 }], stock: 100 },
     { id: "beauty_vitamin_c_tablet", name: "Vitamin C Tablet With Essense", category: "beauty", description: "Vitamin C brightening tablets with essence.", variations: [{ size: "10pcs", type: "Tablet", price: 20 }], stock: 100 },
@@ -628,14 +633,19 @@ const additionalProducts = [
     { id: "beauty_ggh", name: "GGH", category: "beauty", description: "Growth hormone releasing peptide for skin.", variations: [{ size: "10mg", type: "Vial", price: 700 }], stock: 100 },
     { id: "beauty_glow", name: "Glow", category: "beauty", description: "Skin brightening and anti-aging.", variations: [{ size: "70mg", type: "Vial", price: 700 }], stock: 100 },
     { id: "beauty_ghkcu_serum_blue", name: "GHK-Cu Serum", category: "beauty", description: "Copper peptide serum for anti-aging.", variations: [{ size: "5ml", type: "Serum", price: 120 }], stock: 100 },
-    // Fat Loss products (dalam peptides)
-    { id: "fatloss_super_human_blend", name: "Super Human Blend", category: "peptides", description: "Fat burning and energy blend.", variations: [{ size: "10ml", type: "Vial", price: 350 }], stock: 100 },
-    { id: "fatloss_super_shred", name: "Super Shred", category: "peptides", description: "Advanced fat loss support.", variations: [{ size: "10ml", type: "Vial", price: 500 }], stock: 100 },
-    // PEPTIDES: AHK-CU dan EXOSOME dialihkan ke sini
-    { id: "peptide_ahk_cu", name: "AHK-CU", category: "peptides", description: "Copper peptide for hair and skin.", variations: [{ size: "50mg", type: "Vial", price: 200 }], stock: 100 },
-    { id: "peptide_exosome", name: "Exosome", category: "peptides", description: "Exosome for cellular regeneration.", variations: [{ size: "100mg", type: "Vial", price: 450 }], stock: 100 },
-    // Solvent BAC Water (dalam peptides)
-    { id: "solvent_bac_water", name: "USP Bac Water", category: "peptides", description: "Bacteriostatic water for reconstitution.", variations: [{ size: "10ml", type: "Vial", price: 12 }], stock: 100 }
+    { id: "beauty_klow", name: "Klow", category: "beauty", description: "Brightening and anti-aging peptide complex.", variations: [{ size: "10ml", type: "Serum", price: 45 }], stock: 100 },
+    
+    // Fat Loss products
+    { id: "fatloss_super_human_blend", name: "Super Human Blend", category: "fatloss", description: "Fat burning and energy blend.", variations: [{ size: "10ml", type: "Vial", price: 350 }], stock: 100 },
+    { id: "fatloss_super_shred", name: "Super Shred", category: "fatloss", description: "Advanced fat loss support.", variations: [{ size: "10ml", type: "Vial", price: 500 }], stock: 100 },
+    
+    // Solvent (injectable peptides, BAC water, AHK-CU, Exosome)
+    { id: "peptide_ahk_cu", name: "AHK-CU", category: "solvent", description: "Copper peptide for hair and skin.", variations: [{ size: "50mg", type: "Vial", price: 200 }], stock: 100 },
+    { id: "peptide_exosome", name: "Exosome", category: "solvent", description: "Exosome for cellular regeneration.", variations: [{ size: "100mg", type: "Vial", price: 450 }], stock: 100 },
+    { id: "solvent_bac_water", name: "USP Bac Water", category: "solvent", description: "Bacteriostatic water for reconstitution.", variations: [{ size: "10ml", type: "Vial", price: 12 }], stock: 100 },
+    { id: "peptide_bpc157", name: "BPC-157 (Injectable)", category: "solvent", description: "Healing and recovery peptide.", variations: [{ size: "5mg", type: "Vial", price: 45 }], stock: 100 },
+    { id: "peptide_tb500", name: "TB-500", category: "solvent", description: "Tissue repair and inflammation.", variations: [{ size: "5mg", type: "Vial", price: 50 }], stock: 100 },
+    { id: "peptide_semaglutide", name: "Semaglutide", category: "solvent", description: "GLP-1 for weight management.", variations: [{ size: "5mg", type: "Vial", price: 180 }], stock: 100 }
 ];
 
 let allProducts = [];
@@ -652,12 +662,9 @@ async function fetchStock() {
     try { const snap = await getDocs(collection(db, "inventory")); stockMap.clear(); snap.forEach(d => stockMap.set(d.id, d.data())); } catch(e) { console.warn(e); }
 }
 
-function getProductCategory(name) {
-    const n = name.toLowerCase();
-    // **PERUBAHAN: AHK-CU dikeluarkan dari beauty keywords supaya jadi peptides**
-    const beauty = ['ghk-cu','glutathione','glow','klow','snap-8','matrixyl','ggh','pdrn','botulinum toxin','hyaluronic acid','pink hyaluronic','whitening','spotfading','snake venom','lipo c','fat blaster','lemon bottle','super human blend','super shred','shred','immunological enhancement','sz352','vitamin b','vitamin c','vitamin d2','super beauty','hhb','bac water','acetic acid','pigment serum','oligo peptide','vitamin c tablet','acne serum','hydro glow serum'];
-    for(let kw of beauty) if(n.includes(kw)) return 'beauty';
-    return 'peptides';
+// Kategorisasi berdasarkan field category produk (sudah ditetapkan)
+function getProductCategory(product) {
+    return product.category || 'solvent'; // default solvent
 }
 
 function filterProducts(products, oralList, category) {
@@ -668,9 +675,10 @@ function filterProducts(products, oralList, category) {
         return all.filter(p => p.variations?.some(v => (stockMap.get(getVariationKey(p.id, v.size, v.type))?.stock ?? 100) > 0));
     }
     return products.filter(p => {
-        const cat = getProductCategory(p.name);
-        if(category === 'peptides') return cat === 'peptides';
+        const cat = getProductCategory(p);
+        if(category === 'solvent') return cat === 'solvent';
         if(category === 'beauty') return cat === 'beauty';
+        if(category === 'fatloss') return cat === 'fatloss';
         return true;
     });
 }
@@ -681,13 +689,16 @@ async function fetchAndRenderProducts() {
         allProducts = [];
         prodSnap.forEach(d => allProducts.push({ id: d.id, ...d.data() }));
         if(!allProducts.find(p => p.name === "SLUPP-332 250mcg Tablet")) {
-            allProducts.push({ id: "slupp332_manual", name: "SLUPP-332 250mcg Tablet", category: "peptides", description: "250mcg per tablet. 100 biji.", variations: [{ size: "250mcg", type: "Tablet (100 biji)", price: 50 }] });
+            allProducts.push({ id: "slupp332_manual", name: "SLUPP-332 250mcg Tablet", category: "solvent", description: "250mcg per tablet. 100 biji.", variations: [{ size: "250mcg", type: "Tablet (100 biji)", price: 50 }] });
         }
         for (const prod of additionalProducts) {
             if (!allProducts.find(p => p.id === prod.id)) {
                 allProducts.push(prod);
             }
         }
+        // Buang produk yang mengandungi "pink" (Pink Hyaluronic Acid)
+        allProducts = allProducts.filter(p => !p.name.toLowerCase().includes('pink'));
+        
         const foxoProduct = allProducts.find(p => p.name && p.name.toLowerCase().includes("foxo4-dri"));
         if (foxoProduct && foxoProduct.variations && foxoProduct.variations.length > 0) {
             foxoProduct.variations.forEach(v => { v.price = 30; });
@@ -777,9 +788,14 @@ function renderProducts(products) {
             options += `<option value="${key}" data-price="${v.price}" data-stock="${stock}" data-size="${v.size}" data-type="${v.type}">${v.size} - ${v.type} (RM ${v.price})</option>`;
             if(!defaultPrice) { defaultPrice = v.price; defaultStock = stock; }
         });
-        let badge = p.category === 'oral' ? 'ORAL' : (p.category || getProductCategory(p.name).toUpperCase());
-        // Tukar "BEAUTY" kepada "Beauty Peptides" untuk semua skincare topical
-        if (badge === 'BEAUTY') badge = 'Beauty Peptides';
+        let badge = '';
+        const cat = getProductCategory(p);
+        if (cat === 'beauty') badge = 'Beauty Peptides';
+        else if (cat === 'solvent') badge = 'Solvent';
+        else if (cat === 'fatloss') badge = 'Fat Loss';
+        else if (p.category === 'oral') badge = 'Oral Peptides';
+        else badge = 'Solvent';
+        
         const card = document.createElement('div');
         card.className = 'col-12';
         card.innerHTML = `
@@ -1155,7 +1171,7 @@ const translations = {
     ms: {
         step1: "3 LANGKAH MUDAH", step_pilih: "1. Pilih Item", step_checkout: "2. Checkout", step_bayar: "3. Bayar & Upload",
         home: "Home", cart: "Cart", myorders: "My Orders",
-        catalog: "Katalog Eksklusif Viral", all: "Semua", peptides: "Peptides", beauty: "Beauty Line", readystock: "Ready Stock", oral: "Oral Peptides", loading: "Memuatkan produk...",
+        catalog: "Katalog Eksklusif Viral", all: "Semua", solvent: "Solvent", beauty: "Beauty Peptides", fatloss: "Fat Loss", oral: "Oral Peptides", readystock: "Ready Stock", loading: "Memuatkan produk...",
         carttitle: "Keranjang Saya", cartempty: "Keranjang kosong", totalitems: "Jumlah item:", totalprice: "Total (RM):", proceed: "Proceed to Checkout",
         myorderstitle: "Pesanan Saya", noorders: "Tiada pesanan.",
         protocol: "PROTOCOL DOSE DATABASE", protocolnote: "Rujukan dos adalah daripada Peptide Protocol Portal.",
@@ -1167,7 +1183,7 @@ const translations = {
     en: {
         step1: "3 EASY STEPS", step_pilih: "1. Select Item", step_checkout: "2. Checkout", step_bayar: "3. Pay & Upload",
         home: "Home", cart: "Cart", myorders: "My Orders",
-        catalog: "Viral Exclusive Catalog", all: "All", peptides: "Peptides", beauty: "Beauty Line", readystock: "Ready Stock", oral: "Oral Peptides", loading: "Loading products...",
+        catalog: "Viral Exclusive Catalog", all: "All", solvent: "Solvent", beauty: "Beauty Peptides", fatloss: "Fat Loss", oral: "Oral Peptides", readystock: "Ready Stock", loading: "Loading products...",
         carttitle: "My Cart", cartempty: "Cart is empty", totalitems: "Total items:", totalprice: "Total (RM):", proceed: "Proceed to Checkout",
         myorderstitle: "My Orders", noorders: "No orders.",
         protocol: "PROTOCOL DOSE DATABASE", protocolnote: "Dosage reference from Peptide Protocol Portal.",
@@ -1194,10 +1210,11 @@ function setLanguage(lang) {
     document.querySelector('.lang-myorders').innerText = t.myorders;
     document.querySelector('.lang-catalog').innerText = t.catalog;
     document.querySelectorAll('.lang-all').forEach(el => el.innerText = t.all);
-    document.querySelectorAll('.lang-peptides').forEach(el => el.innerText = t.peptides);
+    document.querySelectorAll('.lang-solvent').forEach(el => el.innerText = t.solvent);
     document.querySelectorAll('.lang-beauty').forEach(el => el.innerText = t.beauty);
-    document.querySelectorAll('.lang-readystock').forEach(el => el.innerText = t.readystock);
+    document.querySelectorAll('.lang-fatloss').forEach(el => el.innerText = t.fatloss);
     document.querySelectorAll('.lang-oral').forEach(el => el.innerText = t.oral);
+    document.querySelectorAll('.lang-readystock').forEach(el => el.innerText = t.readystock);
     document.querySelector('.lang-loading').innerText = t.loading;
     document.querySelector('.lang-carttitle').innerText = t.carttitle;
     document.querySelector('.lang-cartempty').innerText = t.cartempty;
