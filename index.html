@@ -376,8 +376,8 @@
 
     <!-- Tab Cart -->
     <div id="tabCart" class="tab-content" style="display:none;">
-        <h6 class="fw-bold mb-3"><i class="fa-solid fa-cart-shopping text-success me-2"></i><span class="lang-carttitle">Keranjang Saya</span></h6>
-        <div id="cartItemsContainer"><div class="text-center text-muted py-4"><span class="lang-cartempty">Keranjang kosong</span></div></div>
+        <h6 class="fw-bold mb-3"><i class="fa-solid fa-cart-shopping text-success me-2"></i><span class="lang-carttitle">Troli Saya</span></h6>
+        <div id="cartItemsContainer"><div class="text-center text-muted py-4"><span class="lang-cartempty">Troli kosong</span></div></div>
         <div id="cartSummary" style="display:none;" class="mt-3 p-3 bg-white rounded-4 shadow-sm">
             <div class="d-flex justify-content-between mb-2"><span><span class="lang-totalitems">Jumlah item:</span></span><span id="cartTotalItems">0</span></div>
             <div class="d-flex justify-content-between mb-3 fw-bold"><span><span class="lang-totalprice">Total (RM):</span></span><span id="cartTotalPrice">0.00</span></div>
@@ -629,7 +629,7 @@ const additionalProducts = [
     { id: "solvent_acetic_acid", name: "Acetic Acid", category: "solvent", description: "For peptide reconstitution.", variations: [{ size: "10ml", type: "Vial", price: 5 }], stock: 100 },
 
     // BEAUTY PEPTIDES
-    { id: "beauty_ghk_cu", name: "GHK-Cu", category: "beauty", description: "Copper peptide for hair and skin (injectable).", variations: [{ size: "100mg", type: "Vial", price: 15 }, { size: "1000mg", type: "Vial", price: 40 }], stock: 100 },
+    { id: "beauty_ghk_cu", name: "GHK-Cu", category: "beauty", description: "Copper peptide for hair and skin (injectable).", variations: [{ size: "50mg", type: "Vial", price: 12 }, { size: "100mg", type: "Vial", price: 15 }], stock: 100 },
     { id: "beauty_ahk_cu", name: "AHK-CU", category: "beauty", description: "Copper peptide for hair growth.", variations: [{ size: "50mg", type: "Vial", price: 20 }, { size: "100mg", type: "Vial", price: 35 }], stock: 100 },
     { id: "beauty_glutathione", name: "Glutathione (Fuan)", category: "beauty", description: "Antioxidant for skin brightening.", variations: [{ size: "600mg", type: "Vial", price: 15 }, { size: "1500mg", type: "Vial", price: 35 }], stock: 100 },
     { id: "beauty_glow", name: "Glow", category: "beauty", description: "Skin brightening and anti-aging.", variations: [{ size: "70mg", type: "Vial", price: 70 }], stock: 100 },
@@ -904,7 +904,7 @@ function renderProducts(products) {
                     <div class="col-3"><label class="small fw-bold">Kuantiti</label><input type="number" class="form-control form-control-sm product-qty" value="0" min="0" max="${defaultStock}" step="1"></div>
                     <div class="col-2 text-end"><div class="product-price fw-bold text-success">RM ${defaultPrice.toFixed(2)}</div><small class="stock-info text-muted">Stok: ${defaultStock}</small></div>
                 </div>
-                <button class="btn btn-sm btn-outline-success mt-2 w-100 add-to-cart"><i class="fa-solid fa-cart-plus"></i> <span class="lang-addtocart">Tambah ke Keranjang</span></button>
+                <button class="btn btn-sm btn-outline-success mt-2 w-100 add-to-cart"><i class="fa-solid fa-cart-plus"></i> <span class="lang-addtocart">Tambah ke troli saya</span></button>
             </div>
         `;
         container.appendChild(card);
