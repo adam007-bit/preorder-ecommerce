@@ -755,6 +755,7 @@ const additionalProducts = [
     { id: "peptide_lipo_mino_mix", name: "Lipo Mino Mix", category: "peptides", description: "Fat burning blend.", variations: [{ size: "10ml", type: "Vial", price: 50 }], stock: 100 },
     { id: "peptide_lipo_c_booster", name: "Lipo C Booster", category: "peptides", description: "Fat burning booster.", variations: [{ size: "10ml", type: "Vial", price: 25 }], stock: 100 }
 ];
+
 let allProducts = [];
 let stockMap = new Map();
 let currentCategory = 'peptides';  // default category
@@ -773,29 +774,35 @@ function getProductCategory(product) {
     return product.category || 'peptides';
 }
 
+// ========== PERUBAHAN UTAMA: TAPIS KIT DI READY STOCK ==========
 function filterProducts(products, category) {
     if(category === 'peptides') return products.filter(p => getProductCategory(p) === 'peptides');
     if(category === 'beauty') return products.filter(p => getProductCategory(p) === 'beauty');
     if(category === 'solvent') return products.filter(p => getProductCategory(p) === 'solvent');
     if(category === 'oral') return products.filter(p => getProductCategory(p) === 'oral');
     if(category === 'readystock') {
-        return products.filter(p => p.variations?.some(v => (stockMap.get(getVariationKey(p.id, v.size, v.type))?.stock ?? 100) > 0));
+        // Hanya produk yang mempunyai stok > 0 DAN tidak mempunyai variasi yang mengandungi perkataan "Kit"
+        return products.filter(p => {
+            const hasStock = p.variations?.some(v => (stockMap.get(getVariationKey(p.id, v.size, v.type))?.stock ?? 100) > 0);
+            if (!hasStock) return false;
+            const hasKit = p.variations?.some(v => v.type && v.type.toLowerCase().includes('kit'));
+            return !hasKit;
+        });
     }
     return products;
 }
+// ============================================================
 
 async function fetchAndRenderProducts() {
     try {
         const prodSnap = await getDocs(collection(db, "products"));
         allProducts = [];
         prodSnap.forEach(d => allProducts.push({ id: d.id, ...d.data() }));
-        // Gabungkan semua produk
         const allAdditional = [...additionalProducts, ...oralPeptidesData];
         for (const prod of allAdditional) {
             if (!allProducts.find(p => p.id === prod.id)) {
                 allProducts.push(prod);
             }
-       
         }
         await fetchStock();
         for (const prod of allProducts) {
