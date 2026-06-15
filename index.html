@@ -624,14 +624,14 @@ const oralPeptidesData = [
 const additionalProducts = [
     // SOLVENT
     { id: "solvent_bac_water", name: "Bac Water", category: "solvent", description: "Bacteriostatic water for reconstitution.", variations: [{ size: "3ml", type: "Vial", price: 4 }, { size: "10ml", type: "Vial", price: 5 }], stock: 100 },
-    { id: "solvent_usb_bac_water", name: "USP Bac Water", category: "solvent", description: "Bacteriostatic water for reconstitution.", variations: [{ size: "10ml", type: "Vial", price: 5 }], stock: 100 },
+    { id: "solvent_usb_bac_water", name: "USP Bac Water", category: "solvent", description: "Bacteriostatic water for reconstitution.", variations: [{ size: "10ml", type: "Vial", price: 12 }], stock: 100 },
     { id: "solvent_steriled_water", name: "Sterilized Water", category: "solvent", description: "Sterile water for injection.", variations: [{ size: "10ml", type: "Vial", price: 5 }], stock: 100 },
     { id: "solvent_acetic_acid", name: "Acetic Acid", category: "solvent", description: "For peptide reconstitution.", variations: [{ size: "10ml", type: "Vial", price: 5 }], stock: 100 },
 
     // BEAUTY PEPTIDES
-    { id: "beauty_ghk_cu", name: "GHK-Cu", category: "beauty", description: "Copper peptide for hair and skin (injectable).", variations: [{ size: "50mg", type: "Vial", price: 12 }, { size: "1000mg", type: "Vial", price: 40 }], stock: 100 },
+    { id: "beauty_ghk_cu", name: "GHK-Cu", category: "beauty", description: "Copper peptide for hair and skin (injectable).", variations: [{ size: "100mg", type: "Vial", price: 15 }, { size: "1000mg", type: "Vial", price: 40 }], stock: 100 },
     { id: "beauty_ahk_cu", name: "AHK-CU", category: "beauty", description: "Copper peptide for hair growth.", variations: [{ size: "50mg", type: "Vial", price: 20 }, { size: "100mg", type: "Vial", price: 35 }], stock: 100 },
-    { id: "beauty_glutathione", name: "Glutathione", category: "beauty", description: "Antioxidant for skin brightening.", variations: [{ size: "600mg", type: "Vial", price: 15 }, { size: "1500mg", type: "Vial", price: 35 }], stock: 100 },
+    { id: "beauty_glutathione", name: "Glutathione (Fuan)", category: "beauty", description: "Antioxidant for skin brightening.", variations: [{ size: "600mg", type: "Vial", price: 15 }, { size: "1500mg", type: "Vial", price: 35 }], stock: 100 },
     { id: "beauty_glow", name: "Glow", category: "beauty", description: "Skin brightening and anti-aging.", variations: [{ size: "70mg", type: "Vial", price: 70 }], stock: 100 },
     { id: "beauty_klow", name: "Klow", category: "beauty", description: "Brightening and anti-aging peptide complex.", variations: [{ size: "80mg", type: "Vial", price: 80 }], stock: 100 },
     { id: "beauty_snap8", name: "Snap-8", category: "beauty", description: "Anti-aging peptide.", variations: [{ size: "10mg", type: "Vial", price: 20 }], stock: 100 },
@@ -651,7 +651,7 @@ const additionalProducts = [
     { id: "beauty_oligo_peptide24", name: "Oligo Peptide 24", category: "beauty", description: "Anti-aging peptide complex.", variations: [{ size: "10mg", type: "Peptide", price: 15 }], stock: 100 },
     { id: "beauty_vitamin_c_tablet", name: "Vitamin C Tablet With Essense", category: "beauty", description: "Vitamin C brightening tablets with essence.", variations: [{ size: "10pcs", type: "Tablet", price: 20 }], stock: 100 },
     { id: "beauty_acne_serum", name: "Acne Serum", category: "beauty", description: "Anti-acne and soothing serum.", variations: [{ size: "5ml", type: "Serum", price: 10 }], stock: 100 },
-    { id: "beauty_hydro_glow", name: "Hydro Glow Serum", category: "beauty", description: "Hydrating and brightening serum.", variations: [{ size: "5ml", type: "Serum", price: 25 }], stock: 100 },
+    { id: "beauty_hydro_glow", name: "Hydro Glow Serum", category: "beauty", description: "Hydrating and brightening serum.", variations: [{ size: "5ml", type: "Serum", price: 10 }], stock: 100 },
     { id: "beauty_ghkcu_serum", name: "GHK-Cu Serum", category: "beauty", description: "Copper peptide serum for anti-aging.", variations: [{ size: "5ml", type: "Serum", price: 10 }], stock: 100 },
     { id: "beauty_ghkcu_topical", name: "GHK-Cu Topical", category: "beauty", description: "Copper peptide topical.", variations: [{ size: "1000mg", type: "Vial", price: 40 }], stock: 100 },
     { id: "beauty_fiona_masker", name: "Fiona Masker", category: "beauty", description: "Facial mask.", variations: [{ size: "10mg", type: "Set", price: 15 }], stock: 100 },
@@ -750,7 +750,7 @@ const additionalProducts = [
     { id: "peptide_ipa_serm", name: "IPA SERM (Ipamorelin + Sermorelin)", category: "peptides", description: "GHRP + GHRH blend.", variations: [{ size: "15mg", type: "Vial", price: 65 }, { size: "30mg", type: "Vial", price: 75 }], stock: 100 },
     { id: "peptide_l_carnitine", name: "L-Carnitine", category: "peptides", description: "Fatty acid transport.", variations: [{ size: "600mg", type: "Vial", price: 35 }, { size: "1200mg", type: "Vial", price: 45 }], stock: 100 },
     { id: "peptide_b12_inj", name: "B12", category: "peptides", description: "Vitamin B12 supplement.", variations: [{ size: "10ml", type: "Vial", price: 15 }], stock: 100 },
-    { id: "peptide_insulin", name: "INSULIN", category: "peptides", description: "Insulin for injection.", variations: [{ size: "3ml", type: "Vial", price: 15 }], stock: 100 },
+    { id: "peptide_insulin", name: "Insulin", category: "peptides", description: "Insulin for injection.", variations: [{ size: "3ml", type: "Vial", price: 15 }], stock: 100 },
     { id: "peptide_lipo_c_focus", name: "Lipo C Focus", category: "peptides", description: "Fat burning focus.", variations: [{ size: "10ml", type: "Vial", price: 50 }], stock: 100 },
     { id: "peptide_lipo_mino_mix", name: "Lipo Mino Mix", category: "peptides", description: "Fat burning blend.", variations: [{ size: "10ml", type: "Vial", price: 50 }], stock: 100 },
     { id: "peptide_lipo_c_booster", name: "Lipo C Booster", category: "peptides", description: "Fat burning booster.", variations: [{ size: "10ml", type: "Vial", price: 25 }], stock: 100 }
@@ -795,9 +795,7 @@ async function fetchAndRenderProducts() {
             if (!allProducts.find(p => p.id === prod.id)) {
                 allProducts.push(prod);
             }
-        }
-        if (!allProducts.find(p => p.id === "slupp332_manual")) {
-            allProducts.push({ id: "slupp332_manual", name: "SLUPP-332 250mcg Tablet", category: "peptides", description: "250mcg per tablet. 100 biji.", variations: [{ size: "250mcg", type: "Tablet (100 biji)", price: 70 }] });
+       
         }
         await fetchStock();
         for (const prod of allProducts) {
