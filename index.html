@@ -103,6 +103,9 @@
             background: #f8fafc;
             padding: 12px;
             border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
         }
         .status-badge {
             font-size: 12px;
@@ -620,7 +623,7 @@ const oralPeptidesData = [
     { id: "oral_kpv", name: "KPV", category: "oral", description: "Used to calm inflammation in the gut, skin, and throughout the body.", variations: [{ size: "300mcg", type: "60 Capsules", price: 100 }], stock: 100 }
 ];
 
-// ========== PRODUK TAMBAHAN ==========
+// ========== PRODUK TAMBAHAN (senarai lengkap seperti asal) ==========
 const additionalProducts = [
     // SOLVENT
     { id: "solvent_bac_water", name: "Bac Water", category: "solvent", description: "Bacteriostatic water for reconstitution.", variations: [{ size: "3ml", type: "Vial", price: 4 }, { size: "10ml", type: "Vial", price: 5 }], stock: 100 },
@@ -656,7 +659,7 @@ const additionalProducts = [
     { id: "beauty_ghkcu_topical", name: "GHK-Cu Topical", category: "beauty", description: "Copper peptide topical.", variations: [{ size: "1000mg", type: "Vial", price: 40 }], stock: 100 },
     { id: "beauty_fiona_masker", name: "Fiona Masker", category: "beauty", description: "Facial mask.", variations: [{ size: "10mg", type: "Set", price: 15 }], stock: 100 },
 
-    // PEPTIDES (injectable & fat loss)
+    // PEPTIDES (injectable & fat loss) – senarai lengkap dari soalan
     { id: "peptide_retatrutide", name: "Retatrutide", category: "peptides", description: "Triple agonist for weight management.", variations: [{ size: "5mg", type: "Vial", price: 25 }, { size: "10mg", type: "Vial", price: 30 }, { size: "15mg", type: "Vial", price: 45 }, { size: "20mg", type: "Vial", price: 50 }, { size: "30mg", type: "Vial", price: 75 }, { size: "40mg", type: "Vial", price: 90 }], stock: 100 },
     { id: "peptide_reta_cagri", name: "Reta Cagri", category: "peptides", description: "Retatrutide + Cagrilintide blend.", variations: [{ size: "10mg", type: "Vial", price: 80 }], stock: 100 },
     { id: "peptide_reta_tirze", name: "Reta Tirze", category: "peptides", description: "Retatrutide + Tirzepatide blend.", variations: [{ size: "60mg", type: "Vial", price: 180 }], stock: 100 },
@@ -758,7 +761,7 @@ const additionalProducts = [
 
 let allProducts = [];
 let stockMap = new Map();
-let currentCategory = 'peptides';  // default category
+let currentCategory = 'peptides';
 let currentUser = null;
 let cart = [];
 let checkoutShippingCost = 10;
@@ -774,14 +777,13 @@ function getProductCategory(product) {
     return product.category || 'peptides';
 }
 
-// ========== PERUBAHAN UTAMA: TAPIS KIT DI READY STOCK ==========
+// ========== PERUBAHAN UTAMA: READY STOCK TAPIS KIT ==========
 function filterProducts(products, category) {
     if(category === 'peptides') return products.filter(p => getProductCategory(p) === 'peptides');
     if(category === 'beauty') return products.filter(p => getProductCategory(p) === 'beauty');
     if(category === 'solvent') return products.filter(p => getProductCategory(p) === 'solvent');
     if(category === 'oral') return products.filter(p => getProductCategory(p) === 'oral');
     if(category === 'readystock') {
-        // Hanya produk yang mempunyai stok > 0 DAN tidak mempunyai variasi yang mengandungi perkataan "Kit"
         return products.filter(p => {
             const hasStock = p.variations?.some(v => (stockMap.get(getVariationKey(p.id, v.size, v.type))?.stock ?? 100) > 0);
             if (!hasStock) return false;
@@ -1052,7 +1054,8 @@ function showLoginModal() {
     document.getElementById('loginStep2').style.display = 'none';
     new bootstrap.Modal(document.getElementById('loginModal')).show();
 }
-// ========== VALIDASI NOMBOR: Malaysia (60) dan Singapura (65) ==========
+
+// Validasi nombor Malaysia/Singapura
 document.getElementById('loginBtn').addEventListener('click', async () => {
     let name = document.getElementById('loginName').value.trim();
     let phone = document.getElementById('loginPhone').value.trim();
@@ -1077,6 +1080,7 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
         loadUserOrders();
     }, 1000);
 });
+
 function checkUserSession() {
     const saved = sessionStorage.getItem('velxera_user');
     if(saved) { currentUser = JSON.parse(saved); loadUserOrders(); }
@@ -1237,6 +1241,7 @@ document.getElementById('proceedToCheckoutBtn').addEventListener('click', showCh
 document.getElementById('payLaterCheckbox').addEventListener('change', (e) => {
     document.getElementById('paymentFields').style.display = e.target.checked ? 'none' : 'block';
 });
+
 function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => m==='&'?'&amp;':m==='<'?'&lt;':m==='>'?'&gt;':m); }
 
 function renderProtocolCards() {
