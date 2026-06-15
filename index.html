@@ -463,7 +463,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
-import { getFirestore, collection, doc, getDocs, setDoc, updateDoc, query, where, getDoc, runTransaction } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+import { getFirestore, collection, doc, getDocs, setDoc, updateDoc, query, where, getDoc, runTransaction, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
 const IMGBB_API_KEY = '8b4d34f1c329684356d506ef8d67105e';
 
@@ -758,30 +758,26 @@ const additionalProducts = [
 
 let allProducts = [];
 let stockMap = new Map();
-let currentCategory = 'peptides';  // default category
+let currentCategory = 'peptides';
 let currentUser = null;
 let cart = [];
 let checkoutShippingCost = 10;
 let checkoutShippingCode = 'SM';
+let stockUnsubscribe = null; // untuk realtime listener
 
 function getVariationKey(prodId, size, type) { return `${prodId}_${size}_${type}`.replace(/\s/g, '_'); }
-
-async function fetchStock() {
-    try { const snap = await getDocs(collection(db, "inventory")); stockMap.clear(); snap.forEach(d => stockMap.set(d.id, d.data())); } catch(e) { console.warn(e); }
-}
 
 function getProductCategory(product) {
     return product.category || 'peptides';
 }
 
-// ========== PERUBAHAN UTAMA: TAPIS KIT DI READY STOCK ==========
+// ========== TAPIS KIT DI READY STOCK ==========
 function filterProducts(products, category) {
     if(category === 'peptides') return products.filter(p => getProductCategory(p) === 'peptides');
     if(category === 'beauty') return products.filter(p => getProductCategory(p) === 'beauty');
     if(category === 'solvent') return products.filter(p => getProductCategory(p) === 'solvent');
     if(category === 'oral') return products.filter(p => getProductCategory(p) === 'oral');
     if(category === 'readystock') {
-        // Hanya produk yang mempunyai stok > 0 DAN tidak mempunyai variasi yang mengandungi perkataan "Kit"
         return products.filter(p => {
             const hasStock = p.variations?.some(v => (stockMap.get(getVariationKey(p.id, v.size, v.type))?.stock ?? 100) > 0);
             if (!hasStock) return false;
@@ -791,7 +787,19 @@ function filterProducts(products, category) {
     }
     return products;
 }
-// ============================================================
+
+// ========== LISTENER STOK SECARA LANGSUNG ==========
+function listenStockUpdates() {
+    if (stockUnsubscribe) stockUnsubscribe();
+    stockUnsubscribe = onSnapshot(collection(db, "inventory"), (snapshot) => {
+        stockMap.clear();
+        snapshot.forEach(doc => {
+            stockMap.set(doc.id, doc.data());
+        });
+        renderProducts(filterProducts(allProducts, currentCategory));
+        // Optional: showToast("Stok dikemas kini", false);
+    });
+}
 
 async function fetchAndRenderProducts() {
     try {
@@ -804,7 +812,13 @@ async function fetchAndRenderProducts() {
                 allProducts.push(prod);
             }
         }
-        await fetchStock();
+        // Baca stok awal
+        const invSnap = await getDocs(collection(db, "inventory"));
+        stockMap.clear();
+        invSnap.forEach(d => stockMap.set(d.id, d.data()));
+        // Mulakan listener untuk kemaskini stok secara langsung
+        listenStockUpdates();
+        
         for (const prod of allProducts) {
             if (prod.variations) {
                 for (const v of prod.variations) {
@@ -1052,7 +1066,7 @@ function showLoginModal() {
     document.getElementById('loginStep2').style.display = 'none';
     new bootstrap.Modal(document.getElementById('loginModal')).show();
 }
-// ========== VALIDASI NOMBOR: Malaysia (60) dan Singapura (65) ==========
+
 document.getElementById('loginBtn').addEventListener('click', async () => {
     let name = document.getElementById('loginName').value.trim();
     let phone = document.getElementById('loginPhone').value.trim();
@@ -1370,4 +1384,4 @@ setLanguage('ms');
     }
 </script>
 </body>
-</html> 
+</html>
