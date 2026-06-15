@@ -7,168 +7,157 @@ admin.initializeApp({
 
 const db = admin.firestore();
 
-// ==================== FULL PRODUCT LIST (from your PDFs) ====================
-const allProducts = [
-  // Peptides & Weight Loss
-  {
-    name: "Retatrutide",
-    category: "Peptides",
-    variations: [
-      { size: "5mg", type: "Kit", price: 250.00 }, { size: "5mg", type: "Vial", price: 25.00 },
-      { size: "10mg", type: "Kit", price: 300.00 }, { size: "10mg", type: "Vial", price: 30.00 },
-      { size: "15mg", type: "Kit", price: 450.00 }, { size: "15mg", type: "Vial", price: 45.00 },
-      { size: "20mg", type: "Kit", price: 500.00 }, { size: "20mg", type: "Vial", price: 50.00 },
-      { size: "30mg", type: "Kit", price: 750.00 }, { size: "30mg", type: "Vial", price: 75.00 },
-      { size: "40mg", type: "Kit", price: 900.00 }, { size: "40mg", type: "Vial", price: 90.00 }
-    ]
-  },
-  { name: "Reta Cagri", category: "Peptides", variations: [{ size: "10mg", type: "Kit", price: 800.00 }, { size: "10mg", type: "Vial", price: 80.00 }] },
-  { name: "Reta Tirze", category: "Peptides", variations: [{ size: "60mg", type: "Kit", price: 1800.00 }, { size: "60mg", type: "Vial", price: 180.00 }] },
-  {
-    name: "Tirzepatide", category: "Peptides",
-    variations: [
-      { size: "10mg", type: "Kit", price: 250.00 }, { size: "10mg", type: "Vial", price: 25.00 },
-      { size: "15mg", type: "Kit", price: 350.00 }, { size: "15mg", type: "Vial", price: 35.00 },
-      { size: "20mg", type: "Kit", price: 400.00 }, { size: "20mg", type: "Vial", price: 40.00 },
-      { size: "30mg", type: "Kit", price: 500.00 }, { size: "30mg", type: "Vial", price: 50.00 }
-    ]
-  },
-  {
-    name: "Semaglutide", category: "Peptides",
-    variations: [
-      { size: "10mg", type: "Kit", price: 250.00 }, { size: "10mg", type: "Vial", price: 25.00 },
-      { size: "15mg", type: "Kit", price: 300.00 }, { size: "15mg", type: "Vial", price: 30.00 },
-      { size: "20mg", type: "Kit", price: 350.00 }, { size: "20mg", type: "Vial", price: 35.00 },
-      { size: "30mg", type: "Kit", price: 450.00 }, { size: "30mg", type: "Vial", price: 45.00 }
-    ]
-  },
-  {
-    name: "Cagrilintide", category: "Peptides",
-    variations: [
-      { size: "5mg", type: "Kit", price: 450.00 }, { size: "5mg", type: "Vial", price: 45.00 },
-      { size: "10mg", type: "Kit", price: 650.00 }, { size: "10mg", type: "Vial", price: 65.00 }
-    ]
-  },
-  { name: "Cagri Sema", category: "Peptides", variations: [{ size: "5mg", type: "Kit", price: 550.00 }, { size: "5mg", type: "Vial", price: 55.00 }, { size: "10mg", type: "Kit", price: 900.00 }, { size: "10mg", type: "Vial", price: 90.00 }] },
-  { name: "Cagri Tirze", category: "Peptides", variations: [{ size: "20mg", type: "Kit", price: 800.00 }, { size: "20mg", type: "Vial", price: 80.00 }] },
-  { name: "Adipotide", category: "Peptides", variations: [{ size: "5mg", type: "Kit", price: 800.00 }, { size: "5mg", type: "Vial", price: 80.00 }] },
-  { name: "Survodutide", category: "Peptides", variations: [{ size: "10mg", type: "Kit", price: 1200.00 }, { size: "10mg", type: "Vial", price: 120.00 }] },
-  { name: "Mazdutide", category: "Peptides", variations: [{ size: "10mg", type: "Kit", price: 800.00 }, { size: "10mg", type: "Vial", price: 80.00 }] },
-  {
-    name: "MOTS-C", category: "Cellular Health",
-    variations: [
-      { size: "10mg", type: "Kit", price: 300.00 }, { size: "10mg", type: "Vial", price: 30.00 },
-      { size: "20mg", type: "Kit", price: 500.00 }, { size: "20mg", type: "Vial", price: 50.00 },
-      { size: "30mg", type: "Kit", price: 700.00 }, { size: "30mg", type: "Vial", price: 70.00 },
-      { size: "40mg", type: "Kit", price: 800.00 }, { size: "40mg", type: "Vial", price: 80.00 }
-    ]
-  },
-  { name: "AOD-9604", category: "Peptides", variations: [{ size: "5mg", type: "Kit", price: 450.00 }, { size: "5mg", type: "Vial", price: 45.00 }, { size: "10mg", type: "Kit", price: 700.00 }, { size: "10mg", type: "Vial", price: 70.00 }] },
-  { name: "SLU-PP-322", category: "Peptides", variations: [{ size: "5mg", type: "Kit", price: 450.00 }, { size: "5mg", type: "Vial", price: 45.00 }] },
-  {
-    name: "5 Amino 1MQ", category: "Peptides",
-    variations: [
-      { size: "5mg", type: "Kit", price: 250.00 }, { size: "5mg", type: "Vial", price: 25.00 },
-      { size: "10mg", type: "Kit", price: 350.00 }, { size: "10mg", type: "Vial", price: 35.00 },
-      { size: "50mg", type: "Kit", price: 650.00 }, { size: "50mg", type: "Vial", price: 65.00 }
-    ]
-  },
-  { name: "NAD+", category: "Cellular Health", variations: [{ size: "500mg", type: "Kit", price: 300.00 }, { size: "500mg", type: "Vial", price: 30.00 }, { size: "1000mg", type: "Kit", price: 350.00 }, { size: "1000mg", type: "Vial", price: 35.00 }] },
-  { name: "Wolverine", category: "Peptides", variations: [{ size: "10mg", type: "Kit", price: 400.00 }, { size: "10mg", type: "Vial", price: 40.00 }, { size: "20mg", type: "Kit", price: 650.00 }, { size: "20mg", type: "Vial", price: 65.00 }] },
-  { name: "BPC 157", category: "Recovery Peptides", variations: [{ size: "5mg", type: "Kit", price: 250.00 }, { size: "5mg", type: "Vial", price: 25.00 }, { size: "10mg", type: "Kit", price: 350.00 }, { size: "10mg", type: "Vial", price: 35.00 }] },
-  { name: "TB500", category: "Recovery Peptides", variations: [{ size: "5mg", type: "Kit", price: 350.00 }, { size: "5mg", type: "Vial", price: 35.00 }, { size: "10mg", type: "Kit", price: 550.00 }, { size: "10mg", type: "Vial", price: 55.00 }] },
-  { name: "KPV", category: "Peptides", variations: [{ size: "5mg", type: "Kit", price: 250.00 }, { size: "5mg", type: "Vial", price: 25.00 }, { size: "10mg", type: "Kit", price: 300.00 }, { size: "10mg", type: "Vial", price: 30.00 }] },
-  { name: "Tesamorelin", category: "Peptides", variations: [{ size: "5mg", type: "Kit", price: 450.00 }, { size: "5mg", type: "Vial", price: 45.00 }, { size: "10mg", type: "Kit", price: 700.00 }, { size: "10mg", type: "Vial", price: 70.00 }, { size: "20mg", type: "Kit", price: 1300.00 }, { size: "20mg", type: "Vial", price: 130.00 }] },
-  { name: "Tesa IPA", category: "Peptides", variations: [{ size: "15mg", type: "Kit", price: 950.00 }, { size: "15mg", type: "Vial", price: 95.00 }] },
-  { name: "Ipamorelin", category: "Peptides", variations: [{ size: "5mg", type: "Kit", price: 250.00 }, { size: "5mg", type: "Vial", price: 25.00 }, { size: "10mg", type: "Kit", price: 350.00 }, { size: "10mg", type: "Vial", price: 35.00 }] },
-  { name: "CJC No DAC", category: "Peptides", variations: [{ size: "5mg", type: "Kit", price: 350.00 }, { size: "5mg", type: "Vial", price: 35.00 }, { size: "10mg", type: "Kit", price: 750.00 }, { size: "10mg", type: "Vial", price: 75.00 }] },
-  { name: "CJC With DAC", category: "Peptides", variations: [{ size: "5mg", type: "Kit", price: 800.00 }, { size: "5mg", type: "Vial", price: 80.00 }] },
-  { name: "CJC No DAC IPA", category: "Peptides", variations: [{ size: "10mg", type: "Kit", price: 450.00 }, { size: "10mg", type: "Vial", price: 45.00 }] },
-  { name: "IGF-1 LR3", category: "Peptides", variations: [{ size: "0.1mg", type: "Kit", price: 250.00 }, { size: "0.1mg", type: "Vial", price: 25.00 }, { size: "1mg", type: "Kit", price: 800.00 }, { size: "1mg", type: "Vial", price: 80.00 }] },
-  { name: "IGF-1 DES", category: "Peptides", variations: [{ size: "2mg", type: "Kit", price: 400.00 }, { size: "2mg", type: "Vial", price: 40.00 }] },
-  { name: "PEG MGF", category: "Peptides", variations: [{ size: "2mg", type: "Kit", price: 550.00 }, { size: "2mg", type: "Vial", price: 55.00 }] },
-  { name: "GHRP 2", category: "Peptides", variations: [{ size: "5mg", type: "Kit", price: 250.00 }, { size: "5mg", type: "Vial", price: 25.00 }] },
-  { name: "GHRP 6", category: "Peptides", variations: [{ size: "5mg", type: "Kit", price: 250.00 }, { size: "5mg", type: "Vial", price: 25.00 }, { size: "10mg", type: "Kit", price: 350.00 }, { size: "10mg", type: "Vial", price: 35.00 }] },
-  { name: "HCG", category: "Hormones", variations: [{ size: "5000iu", type: "Kit", price: 500.00 }, { size: "5000iu", type: "Vial", price: 50.00 }, { size: "10000iu", type: "Kit", price: 900.00 }, { size: "10000iu", type: "Vial", price: 90.00 }] },
-  { name: "HMG 75iu", category: "Hormones", variations: [{ size: "10mg", type: "Kit", price: 350.00 }, { size: "10mg", type: "Vial", price: 35.00 }] },
-  { name: "Semax", category: "Peptides", variations: [{ size: "5mg", type: "Kit", price: 200.00 }, { size: "5mg", type: "Vial", price: 20.00 }, { size: "10mg", type: "Kit", price: 300.00 }, { size: "10mg", type: "Vial", price: 30.00 }] },
-  { name: "Semax Selank", category: "Peptides", variations: [{ size: "20mg", type: "Kit", price: 550.00 }, { size: "20mg", type: "Vial", price: 55.00 }] },
-  { name: "Selank", category: "Peptides", variations: [{ size: "5mg", type: "Kit", price: 200.00 }, { size: "5mg", type: "Vial", price: 20.00 }, { size: "10mg", type: "Kit", price: 300.00 }, { size: "10mg", type: "Vial", price: 30.00 }] },
-  { name: "SS-31", category: "Peptides", variations: [{ size: "10mg", type: "Kit", price: 350.00 }, { size: "10mg", type: "Vial", price: 35.00 }, { size: "50mg", type: "Kit", price: 1300.00 }, { size: "50mg", type: "Vial", price: 130.00 }] },
-  { name: "Epithalon", category: "Peptides", variations: [{ size: "10mg", type: "Kit", price: 200.00 }, { size: "10mg", type: "Vial", price: 20.00 }, { size: "50mg", type: "Kit", price: 550.00 }, { size: "50mg", type: "Vial", price: 55.00 }] },
-  { name: "DSIP", category: "Peptides", variations: [{ size: "5mg", type: "Kit", price: 200.00 }, { size: "5mg", type: "Vial", price: 20.00 }] },
-  { name: "ARA 290", category: "Peptides", variations: [{ size: "10mg", type: "Kit", price: 300.00 }, { size: "10mg", type: "Vial", price: 30.00 }] },
-  { name: "PT-141", category: "Peptides", variations: [{ size: "10mg", type: "Kit", price: 300.00 }, { size: "10mg", type: "Vial", price: 30.00 }] },
-  { name: "Kisspeptin", category: "Peptides", variations: [{ size: "5mg", type: "Kit", price: 300.00 }, { size: "5mg", type: "Vial", price: 30.00 }, { size: "10mg", type: "Kit", price: 400.00 }, { size: "10mg", type: "Vial", price: 40.00 }] },
-  { name: "AICAR", category: "Peptides", variations: [{ size: "50mg", type: "Kit", price: 350.00 }, { size: "50mg", type: "Vial", price: 35.00 }] },
-  { name: "LL37", category: "Peptides", variations: [{ size: "10mg", type: "Kit", price: 350.00 }, { size: "10mg", type: "Vial", price: 35.00 }] },
-  { name: "Relaxation PM", category: "Peptides", variations: [{ size: "10ml", type: "Kit", price: 350.00 }, { size: "10ml", type: "Vial", price: 35.00 }] },
-  { name: "VIP", category: "Peptides", variations: [{ size: "5mg", type: "Kit", price: 350.00 }, { size: "5mg", type: "Vial", price: 35.00 }, { size: "10mg", type: "Kit", price: 600.00 }, { size: "10mg", type: "Vial", price: 60.00 }] },
-  { name: "Hexarelin Acetate", category: "Peptides", variations: [{ size: "2mg", type: "Kit", price: 400.00 }, { size: "2mg", type: "Vial", price: 40.00 }, { size: "5mg", type: "Kit", price: 500.00 }, { size: "5mg", type: "Vial", price: 50.00 }, { size: "10mg", type: "Kit", price: 800.00 }, { size: "10mg", type: "Vial", price: 80.00 }] },
-  { name: "Sermorelin Acetate", category: "Peptides", variations: [{ size: "5mg", type: "Kit", price: 350.00 }, { size: "5mg", type: "Vial", price: 35.00 }, { size: "10mg", type: "Kit", price: 450.00 }, { size: "10mg", type: "Vial", price: 45.00 }] },
-  { name: "Thymosin B4 Acetate", category: "Peptides", variations: [{ size: "5mg", type: "Kit", price: 350.00 }, { size: "5mg", type: "Vial", price: 35.00 }, { size: "10mg", type: "Kit", price: 550.00 }, { size: "10mg", type: "Vial", price: 55.00 }] },
-  { name: "Thymosin Alpha 1", category: "Peptides", variations: [{ size: "5mg", type: "Kit", price: 350.00 }, { size: "5mg", type: "Vial", price: 35.00 }, { size: "10mg", type: "Kit", price: 650.00 }, { size: "10mg", type: "Vial", price: 65.00 }] },
-  { name: "Adamax", category: "Peptides", variations: [{ size: "5mg", type: "Kit", price: 350.00 }, { size: "5mg", type: "Vial", price: 35.00 }, { size: "10mg", type: "Kit", price: 500.00 }, { size: "10mg", type: "Vial", price: 50.00 }] },
-  { name: "Thymalin", category: "Peptides", variations: [{ size: "10mg", type: "Kit", price: 350.00 }, { size: "10mg", type: "Vial", price: 35.00 }] },
-  { name: "Pinealon", category: "Peptides", variations: [{ size: "10mg", type: "Kit", price: 300.00 }, { size: "10mg", type: "Vial", price: 30.00 }] },
-  { name: "FOXO4-DRI", category: "Peptides", variations: [{ size: "2mg", type: "Kit", price: 400.00 }, { size: "2mg", type: "Vial", price: 40.00 }] },
-  { name: "Oxytocin Acetate", category: "Peptides", variations: [{ size: "2mg", type: "Kit", price: 200.00 }, { size: "2mg", type: "Vial", price: 20.00 }] },
-  { name: "MT1", category: "Peptides", variations: [{ size: "10mg", type: "Kit", price: 300.00 }, { size: "10mg", type: "Vial", price: 30.00 }] },
-  { name: "MT2", category: "Peptides", variations: [{ size: "10mg", type: "Kit", price: 300.00 }, { size: "10mg", type: "Vial", price: 30.00 }] },
-  { name: "Melatonin", category: "Peptides", variations: [{ size: "10mg", type: "Kit", price: 350.00 }, { size: "10mg", type: "Vial", price: 35.00 }] },
-  { name: "Cerebrolysin", category: "Peptides", variations: [{ size: "60mg", type: "Kit", price: 90.00 }, { size: "60mg", type: "Vial", price: 15.00 }] },
-  { name: "ACE 031", category: "Peptides", variations: [{ size: "1mg", type: "Kit", price: 200.00 }, { size: "1mg", type: "Vial", price: 20.00 }] },
-  { name: "B7-33", category: "Peptides", variations: [{ size: "2mg", type: "Kit", price: 250.00 }, { size: "2mg", type: "Vial", price: 25.00 }, { size: "10mg", type: "Kit", price: 900.00 }, { size: "10mg", type: "Vial", price: 90.00 }] },
-  { name: "Cortagen", category: "Peptides", variations: [{ size: "20mg", type: "Kit", price: 450.00 }, { size: "20mg", type: "Vial", price: 45.00 }] },
-  { name: "Demorphin", category: "Peptides", variations: [{ size: "2mg", type: "Kit", price: 200.00 }, { size: "2mg", type: "Vial", price: 20.00 }, { size: "10mg", type: "Kit", price: 400.00 }, { size: "10mg", type: "Vial", price: 40.00 }] },
-  { name: "EPO", category: "Hormones", variations: [{ size: "3000iu", type: "Kit", price: 500.00 }, { size: "3000iu", type: "Vial", price: 50.00 }] },
-  { name: "Gonadorelin Acetate", category: "Peptides", variations: [{ size: "5mg", type: "Kit", price: 250.00 }, { size: "5mg", type: "Vial", price: 25.00 }] },
-  { name: "Humanin", category: "Peptides", variations: [{ size: "10mg", type: "Kit", price: 1200.00 }, { size: "10mg", type: "Vial", price: 120.00 }] },
-  { name: "RA 260", category: "Peptides", variations: [{ size: "50mg", type: "Kit", price: 350.00 }, { size: "50mg", type: "Vial", price: 35.00 }] },
-  { name: "PNC 27", category: "Peptides", variations: [{ size: "5mg", type: "Kit", price: 450.00 }, { size: "5mg", type: "Vial", price: 45.00 }] },
-  { name: "P21", category: "Peptides", variations: [{ size: "5mg", type: "Kit", price: 1400.00 }, { size: "5mg", type: "Vial", price: 140.00 }] },
-  { name: "TB FRAG", category: "Peptides", variations: [{ size: "2mg", type: "Kit", price: 300.00 }, { size: "2mg", type: "Vial", price: 30.00 }, { size: "5mg", type: "Kit", price: 350.00 }, { size: "5mg", type: "Vial", price: 35.00 }, { size: "10mg", type: "Kit", price: 400.00 }, { size: "10mg", type: "Vial", price: 40.00 }] },
-  { name: "Dulaglutide", category: "Peptides", variations: [{ size: "5mg", type: "Kit", price: 650.00 }, { size: "5mg", type: "Vial", price: 65.00 }, { size: "10mg", type: "Kit", price: 900.00 }, { size: "10mg", type: "Vial", price: 95.00 }] },
-  { name: "Liraglutide", category: "Peptides", variations: [{ size: "5mg", type: "Kit", price: 500.00 }, { size: "5mg", type: "Vial", price: 50.00 }, { size: "10mg", type: "Kit", price: 750.00 }, { size: "10mg", type: "Vial", price: 75.00 }, { size: "20mg", type: "Kit", price: 1200.00 }, { size: "20mg", type: "Vial", price: 120.00 }] },
-  { name: "Follistatin", category: "Peptides", variations: [{ size: "1mg", type: "Kit", price: 600.00 }, { size: "1mg", type: "Vial", price: 60.00 }] },
-  { name: "Cartalax", category: "Peptides", variations: [{ size: "20mg", type: "Kit", price: 400.00 }, { size: "20mg", type: "Vial", price: 40.00 }] },
-  { name: "ACTH", category: "Peptides", variations: [{ size: "5mg", type: "Kit", price: 650.00 }, { size: "5mg", type: "Vial", price: 65.00 }] },
-  { name: "Carcinogen", category: "Peptides", variations: [{ size: "20mg", type: "Kit", price: 450.00 }, { size: "20mg", type: "Vial", price: 45.00 }] },
-  { name: "Crystagen", category: "Peptides", variations: [{ size: "20mg", type: "Kit", price: 400.00 }, { size: "20mg", type: "Vial", price: 40.00 }] },
-  { name: "SX or XA", category: "Peptides", variations: [{ size: "10mg", type: "Kit", price: 400.00 }, { size: "10mg", type: "Vial", price: 40.00 }] },
-  // Beauty & Fat Blasters
-  { name: "Lipo C - Fat Blaster", category: "Beauty / Fat Loss", variations: [{ size: "1 set", type: "Topical", price: 250.00 }, { size: "1 set", type: "Vial", price: 25.00 }] },
-  { name: "Lemon Bottle", category: "Beauty / Fat Loss", variations: [{ size: "10ml", type: "Kit", price: 250.00 }, { size: "10ml", type: "Vial", price: 25.00 }, { size: "50ml", type: "Kit", price: 600.00 }, { size: "50ml", type: "Vial", price: 60.00 }] },
-  { name: "Super Human Blend", category: "Beauty", variations: [{ size: "10ml", type: "Kit", price: 350.00 }, { size: "10ml", type: "Vial", price: 35.00 }] },
-  { name: "Super Shred", category: "Beauty / Fat Loss", variations: [{ size: "10ml", type: "Kit", price: 500.00 }, { size: "10ml", type: "Vial", price: 50.00 }] },
-  { name: "Shred", category: "Beauty / Fat Loss", variations: [{ size: "10ml", type: "Kit", price: 700.00 }, { size: "10ml", type: "Vial", price: 70.00 }] },
-  { name: "Immunological Enhancement (GAZ)", category: "Beauty / Health", variations: [{ size: "10ml", type: "Kit", price: 500.00 }, { size: "10ml", type: "Vial", price: 50.00 }] },
-  { name: "SZ352", category: "Beauty", variations: [{ size: "10ml", type: "Kit", price: 700.00 }, { size: "10ml", type: "Vial", price: 70.00 }] },
-  { name: "Vitamin B (B, B2, B6, B12)", category: "Vitamins", variations: [{ size: "2ml", type: "B", price: 150.00 }, { size: "2ml", type: "B2", price: 150.00 }, { size: "2ml", type: "B6", price: 150.00 }, { size: "1ml", type: "B12", price: 100.00 }] },
-  { name: "Vitamin C", category: "Vitamins", variations: [{ size: "2ml", type: "Kit", price: 150.00 }, { size: "2ml", type: "Vial", price: 15.00 }] },
-  { name: "Vitamin D2", category: "Vitamins", variations: [{ size: "1ml", type: "Kit", price: 250.00 }, { size: "1ml", type: "Vial", price: 25.00 }] },
-  { name: "GHK-CU", category: "Skincare Topicals", variations: [{ size: "50mg", type: "Kit", price: 120.00 }, { size: "50mg", type: "Vial", price: 12.00 }, { size: "100mg", type: "Kit", price: 150.00 }, { size: "100mg", type: "Vial", price: 15.00 }] },
-  { name: "AHK-CU", category: "Skincare Topicals", variations: [{ size: "50mg", type: "Kit", price: 200.00 }, { size: "50mg", type: "Vial", price: 20.00 }, { size: "100mg", type: "Kit", price: 350.00 }, { size: "100mg", type: "Vial", price: 35.00 }] },
-  { name: "Glutathione", category: "Skincare Topicals", variations: [{ size: "600mg", type: "Kit", price: 150.00 }, { size: "600mg", type: "Vial", price: 15.00 }, { size: "1500mg", type: "Kit", price: 350.00 }, { size: "1500mg", type: "Vial", price: 35.00 }] },
-  { name: "Glow", category: "Skincare Topicals", variations: [{ size: "70mg", type: "Kit", price: 700.00 }, { size: "70mg", type: "Vial", price: 70.00 }] },
-  { name: "Klow", category: "Skincare Topicals", variations: [{ size: "80mg", type: "Kit", price: 800.00 }, { size: "80mg", type: "Vial", price: 80.00 }] },
-  { name: "SNAP-8", category: "Skincare Topicals", variations: [{ size: "10mg", type: "Kit", price: 200.00 }, { size: "10mg", type: "Vial", price: 20.00 }] },
-  { name: "Matrixyl", category: "Skincare Topicals", variations: [{ size: "10mg", type: "Kit", price: 250.00 }, { size: "10mg", type: "Vial", price: 25.00 }] },
-  { name: "Matrixyl 3000", category: "Skincare Topicals", variations: [{ size: "10mg", type: "Kit", price: 1200.00 }, { size: "10mg", type: "Vial", price: 120.00 }] },
-  { name: "GGH", category: "Skincare Topicals", variations: [{ size: "10ml", type: "Kit", price: 700.00 }, { size: "10ml", type: "Vial", price: 70.00 }] },
-  { name: "Exosome", category: "Skincare Topicals", variations: [{ size: "100mg", type: "Kit", price: 450.00 }, { size: "100mg", type: "Vial", price: 45.00 }] },
-  { name: "PDRN", category: "Skincare Topicals", variations: [{ size: "5ml", type: "Kit", price: 250.00 }, { size: "5ml", type: "Vial", price: 25.00 }] },
-  { name: "Botulinum Toxin", category: "Beauty", variations: [{ size: "100iu", type: "Kit", price: 400.00 }, { size: "100iu", type: "Vial", price: 40.00 }] },
-  { name: "Super Beauty (HHB)", category: "Beauty", variations: [{ size: "10ml", type: "Kit", price: 350.00 }, { size: "10ml", type: "Vial", price: 35.00 }] },
-  { name: "PE 22 28", category: "Beauty", variations: [{ size: "5mg", type: "Kit", price: 250.00 }, { size: "5mg", type: "Vial", price: 25.00 }, { size: "10mg", type: "Kit", price: 400.00 }, { size: "10mg", type: "Vial", price: 40.00 }] },
-  { name: "Hyaluronic Acid", category: "Skincare Topicals", variations: [{ size: "5mg", type: "Kit", price: 150.00 }, { size: "5mg", type: "Vial", price: 15.00 }] },
-  { name: "Pink Hyaluronic Acid", category: "Skincare Topicals", variations: [{ size: "5ml", type: "Kit", price: 250.00 }, { size: "5ml", type: "Vial", price: 25.00 }] },
-  { name: "Whitening & Spot Fading", category: "Skincare Topicals", variations: [{ size: "5ml", type: "Kit", price: 300.00 }, { size: "5ml", type: "Vial", price: 30.00 }] },
-  { name: "Snake Venom", category: "Skincare Topicals", variations: [{ size: "5ml", type: "Kit", price: 100.00 }, { size: "5ml", type: "Vial", price: 10.00 }] },
-  { name: "Bac Water", category: "Solvents", variations: [{ size: "10ml", type: "Kit", price: 50.00 }, { size: "10ml", type: "Vial", price: 5.00 }, { size: "3ml", type: "Kit", price: 40.00 }, { size: "3ml", type: "Vial", price: 4.00 }] },
-  { name: "Sterilized Water", category: "Solvents", variations: [{ size: "10ml", type: "Kit", price: 50.00 }, { size: "10ml", type: "Vial", price: 5.00 }] },
-  { name: "Acetic Acid", category: "Solvents", variations: [{ size: "10ml", type: "Kit", price: 50.00 }, { size: "10ml", type: "Vial", price: 5.00 }] }
+// ==================== PRODUK HANYA DARI SENARAI PENDEK ====================
+// Oral Peptides (kapsul)
+const oralPeptidesData = [
+  { id: "oral_5amino_1mq", name: "5-Amino-1MQ", category: "oral", description: "Supports metabolism, helps increase calorie burning, and may assist with fat loss.", variations: [{ size: "50mg", type: "60 Capsules", price: 210 }], stock: 100 },
+  { id: "oral_bpc157", name: "BPC-157", category: "oral", description: "Supports recovery, tissue repair, gut health, and injury healing.", variations: [{ size: "500mcg", type: "100 Capsules", price: 160 }], stock: 100 },
+  { id: "oral_tesofensine", name: "Tesofensine", category: "oral", description: "Helps reduce appetite, control cravings, and support weight loss.", variations: [{ size: "500mcg", type: "60 Capsules", price: 140 }], stock: 100 },
+  { id: "oral_dihexa", name: "Dihexa", category: "oral", description: "Supports memory, focus, learning, and cognitive performance.", variations: [{ size: "10mg", type: "60 Capsules", price: 150 }], stock: 100 },
+  { id: "oral_bam15", name: "BAM15", category: "oral", description: "May increase energy expenditure and support fat loss without stimulants.", variations: [{ size: "50mg", type: "60 Capsules", price: 470 }], stock: 100 },
+  { id: "oral_orforglipron", name: "Orforglipron", category: "oral", description: "Helps reduce appetite, improve blood sugar control, and support weight management.", variations: [{ size: "6mg", type: "90 Capsules", price: 480 }], stock: 100 },
+  { id: "oral_slupp332", name: "SLU-PP-332", category: "oral", description: "Designed to enhance endurance, increase energy utilization, and support fat burning.", variations: [{ size: "250mcg", type: "100 Capsules", price: 70 }], stock: 100 },
+  { id: "oral_kpv", name: "KPV", category: "oral", description: "Used to calm inflammation in the gut, skin, and throughout the body.", variations: [{ size: "300mcg", type: "60 Capsules", price: 100 }], stock: 100 }
 ];
+
+// Additional Products (solvent, beauty, peptides – hanya VIAL dan harga asal)
+const additionalProducts = [
+  // SOLVENT
+  { id: "solvent_bac_water", name: "Bac Water", category: "solvent", description: "Bacteriostatic water for reconstitution.", variations: [{ size: "3ml", type: "Vial", price: 4 }, { size: "10ml", type: "Vial", price: 5 }], stock: 100 },
+  { id: "solvent_usb_bac_water", name: "USP Bac Water", category: "solvent", description: "Bacteriostatic water for reconstitution.", variations: [{ size: "10ml", type: "Vial", price: 12 }], stock: 100 },
+  { id: "solvent_steriled_water", name: "Sterilized Water", category: "solvent", description: "Sterile water for injection.", variations: [{ size: "10ml", type: "Vial", price: 5 }], stock: 100 },
+  { id: "solvent_acetic_acid", name: "Acetic Acid", category: "solvent", description: "For peptide reconstitution.", variations: [{ size: "10ml", type: "Vial", price: 5 }], stock: 100 },
+
+  // BEAUTY PEPTIDES
+  { id: "beauty_ghk_cu", name: "GHK-Cu", category: "beauty", description: "Copper peptide for hair and skin (injectable).", variations: [{ size: "50mg", type: "Vial", price: 12 }, { size: "100mg", type: "Vial", price: 15 }], stock: 100 },
+  { id: "beauty_ahk_cu", name: "AHK-CU", category: "beauty", description: "Copper peptide for hair growth.", variations: [{ size: "50mg", type: "Vial", price: 20 }, { size: "100mg", type: "Vial", price: 35 }], stock: 100 },
+  { id: "beauty_glutathione", name: "Glutathione (Fuan)", category: "beauty", description: "Antioxidant for skin brightening.", variations: [{ size: "600mg", type: "Vial", price: 15 }, { size: "1500mg", type: "Vial", price: 35 }], stock: 100 },
+  { id: "beauty_glow", name: "Glow", category: "beauty", description: "Skin brightening and anti-aging.", variations: [{ size: "70mg", type: "Vial", price: 70 }], stock: 100 },
+  { id: "beauty_klow", name: "Klow", category: "beauty", description: "Brightening and anti-aging peptide complex.", variations: [{ size: "80mg", type: "Vial", price: 80 }], stock: 100 },
+  { id: "beauty_snap8", name: "Snap-8", category: "beauty", description: "Anti-aging peptide.", variations: [{ size: "10mg", type: "Vial", price: 20 }], stock: 100 },
+  { id: "beauty_matrixyl", name: "Matrixyl", category: "beauty", description: "Anti-wrinkle peptide.", variations: [{ size: "10mg", type: "Vial", price: 25 }], stock: 100 },
+  { id: "beauty_matrixyl3000", name: "Matrixyl 3000", category: "beauty", description: "Advanced anti-aging peptide.", variations: [{ size: "10mg", type: "Vial", price: 120 }], stock: 100 },
+  { id: "beauty_ggh", name: "GGH", category: "beauty", description: "Growth hormone releasing peptide for skin.", variations: [{ size: "10ml", type: "Vial", price: 70 }], stock: 100 },
+  { id: "beauty_exosome", name: "Exosome", category: "beauty", description: "Exosome for cellular regeneration.", variations: [{ size: "100mg", type: "Vial", price: 45 }], stock: 100 },
+  { id: "beauty_pdrn", name: "PDRN", category: "beauty", description: "Polydeoxyribonucleotide for tissue repair.", variations: [{ size: "5ml", type: "Vial", price: 25 }], stock: 100 },
+  { id: "beauty_botulinum_toxin", name: "Botulinum Toxin", category: "beauty", description: "Neurotoxin for cosmetic use.", variations: [{ size: "100iu", type: "Vial", price: 40 }], stock: 100 },
+  { id: "beauty_super_beauty", name: "Super Beauty (HHB)", category: "beauty", description: "Skin brightening and anti-aging.", variations: [{ size: "10ml", type: "Vial", price: 35 }], stock: 100 },
+  { id: "beauty_hyaluronic_acid", name: "Hyaluronic Acid", category: "beauty", description: "Moisture retention.", variations: [{ size: "5mg", type: "Vial", price: 15 }], stock: 100 },
+  { id: "beauty_pink_hyaluronic", name: "Pink Hyaluronic Acid", category: "beauty", description: "Hyaluronic acid formulation.", variations: [{ size: "5ml", type: "Vial", price: 25 }], stock: 100 },
+  { id: "beauty_whitening_spot", name: "Whitening & Spot Fading", category: "beauty", description: "Skin lightening complex.", variations: [{ size: "5ml", type: "Vial", price: 30 }], stock: 100 },
+  { id: "beauty_snake_venom", name: "Snake Venom", category: "beauty", description: "Synthetic peptide for anti-wrinkle.", variations: [{ size: "5ml", type: "Vial", price: 10 }], stock: 100 },
+  { id: "beauty_pe_22_28", name: "PE 22 28", category: "beauty", description: "Anti-aging peptide.", variations: [{ size: "5mg", type: "Vial", price: 25 }, { size: "10mg", type: "Vial", price: 40 }], stock: 100 },
+  { id: "beauty_pigment_serum", name: "Pigment Serum", category: "beauty", description: "Brightening and spot fading serum.", variations: [{ size: "10ml", type: "Serum", price: 10 }], stock: 100 },
+  { id: "beauty_oligo_peptide24", name: "Oligo Peptide 24", category: "beauty", description: "Anti-aging peptide complex.", variations: [{ size: "10mg", type: "Peptide", price: 15 }], stock: 100 },
+  { id: "beauty_vitamin_c_tablet", name: "Vitamin C Tablet With Essense", category: "beauty", description: "Vitamin C brightening tablets with essence.", variations: [{ size: "10pcs", type: "Tablet", price: 20 }], stock: 100 },
+  { id: "beauty_acne_serum", name: "Acne Serum", category: "beauty", description: "Anti-acne and soothing serum.", variations: [{ size: "5ml", type: "Serum", price: 10 }], stock: 100 },
+  { id: "beauty_hydro_glow", name: "Hydro Glow Serum", category: "beauty", description: "Hydrating and brightening serum.", variations: [{ size: "5ml", type: "Serum", price: 10 }], stock: 100 },
+  { id: "beauty_ghkcu_serum", name: "GHK-Cu Serum", category: "beauty", description: "Copper peptide serum for anti-aging.", variations: [{ size: "5ml", type: "Serum", price: 10 }], stock: 100 },
+  { id: "beauty_ghkcu_topical", name: "GHK-Cu Topical", category: "beauty", description: "Copper peptide topical.", variations: [{ size: "1000mg", type: "Vial", price: 40 }], stock: 100 },
+  { id: "beauty_fiona_masker", name: "Fiona Masker", category: "beauty", description: "Facial mask.", variations: [{ size: "10mg", type: "Set", price: 15 }], stock: 100 },
+
+  // PEPTIDES (injectable & fat loss) – hanya VIAL (tiada Kit)
+  { id: "peptide_retatrutide", name: "Retatrutide", category: "peptides", description: "Triple agonist for weight management.", variations: [{ size: "5mg", type: "Vial", price: 25 }, { size: "10mg", type: "Vial", price: 30 }, { size: "15mg", type: "Vial", price: 45 }, { size: "20mg", type: "Vial", price: 50 }, { size: "30mg", type: "Vial", price: 75 }, { size: "40mg", type: "Vial", price: 90 }], stock: 100 },
+  { id: "peptide_reta_cagri", name: "Reta Cagri", category: "peptides", description: "Retatrutide + Cagrilintide blend.", variations: [{ size: "10mg", type: "Vial", price: 80 }], stock: 100 },
+  { id: "peptide_reta_tirze", name: "Reta Tirze", category: "peptides", description: "Retatrutide + Tirzepatide blend.", variations: [{ size: "60mg", type: "Vial", price: 180 }], stock: 100 },
+  { id: "peptide_tirzepatide", name: "Tirzepatide", category: "peptides", description: "Dual GIP/GLP-1 agonist.", variations: [{ size: "10mg", type: "Vial", price: 25 }, { size: "15mg", type: "Vial", price: 35 }, { size: "20mg", type: "Vial", price: 40 }, { size: "30mg", type: "Vial", price: 50 }], stock: 100 },
+  { id: "peptide_semaglutide", name: "Semaglutide", category: "peptides", description: "GLP-1 for weight management.", variations: [{ size: "10mg", type: "Vial", price: 25 }, { size: "15mg", type: "Vial", price: 30 }, { size: "20mg", type: "Vial", price: 35 }, { size: "30mg", type: "Vial", price: 45 }], stock: 100 },
+  { id: "peptide_cagrilintide", name: "Cagrilintide", category: "peptides", description: "Amylin analogue.", variations: [{ size: "5mg", type: "Vial", price: 45 }, { size: "10mg", type: "Vial", price: 65 }], stock: 100 },
+  { id: "peptide_cagri_sema", name: "Cagri Sema", category: "peptides", description: "Cagrilintide + Semaglutide blend.", variations: [{ size: "5mg", type: "Vial", price: 55 }, { size: "10mg", type: "Vial", price: 90 }], stock: 100 },
+  { id: "peptide_cagri_tirze", name: "Cagri Tirze", category: "peptides", description: "Cagrilintide + Tirzepatide blend.", variations: [{ size: "20mg", type: "Vial", price: 80 }], stock: 100 },
+  { id: "peptide_adipotide", name: "Adipotide", category: "peptides", description: "Fat cell apoptosis.", variations: [{ size: "5mg", type: "Vial", price: 80 }], stock: 100 },
+  { id: "peptide_survodutide", name: "Survodutide", category: "peptides", description: "Dual agonist.", variations: [{ size: "10mg", type: "Vial", price: 120 }], stock: 100 },
+  { id: "peptide_mazdutide", name: "Mazdutide", category: "peptides", description: "Dual agonist.", variations: [{ size: "10mg", type: "Vial", price: 80 }], stock: 100 },
+  { id: "peptide_mots_c", name: "MOTS-C", category: "peptides", description: "Mitochondrial peptide.", variations: [{ size: "10mg", type: "Vial", price: 30 }, { size: "20mg", type: "Vial", price: 50 }, { size: "30mg", type: "Vial", price: 70 }, { size: "40mg", type: "Vial", price: 80 }], stock: 100 },
+  { id: "peptide_aod", name: "AOD-9604", category: "peptides", description: "Fat burning.", variations: [{ size: "5mg", type: "Vial", price: 45 }, { size: "10mg", type: "Vial", price: 70 }], stock: 100 },
+  { id: "peptide_nad", name: "NAD+", category: "peptides", description: "Cellular energy.", variations: [{ size: "500mg", type: "Vial", price: 30 }, { size: "1000mg", type: "Vial", price: 35 }], stock: 100 },
+  { id: "peptide_wolverine", name: "Wolverine", category: "peptides", description: "Healing blend.", variations: [{ size: "10mg", type: "Vial", price: 40 }, { size: "20mg", type: "Vial", price: 65 }], stock: 100 },
+  { id: "peptide_tb500", name: "TB-500", category: "peptides", description: "Tissue repair.", variations: [{ size: "5mg", type: "Vial", price: 35 }, { size: "10mg", type: "Vial", price: 55 }], stock: 100 },
+  { id: "peptide_tesamorelin", name: "Tesamorelin", category: "peptides", description: "Growth hormone releasing hormone.", variations: [{ size: "5mg", type: "Vial", price: 45 }, { size: "10mg", type: "Vial", price: 70 }, { size: "20mg", type: "Vial", price: 130 }], stock: 100 },
+  { id: "peptide_tesa_ipa", name: "Tesa IPA", category: "peptides", description: "Tesamorelin + Ipamorelin blend.", variations: [{ size: "15mg", type: "Vial", price: 95 }], stock: 100 },
+  { id: "peptide_ipamorelin", name: "Ipamorelin", category: "peptides", description: "Growth hormone secretagogue.", variations: [{ size: "5mg", type: "Vial", price: 25 }, { size: "10mg", type: "Vial", price: 35 }], stock: 100 },
+  { id: "peptide_cjc_no_dac", name: "CJC-1295 (No DAC)", category: "peptides", description: "GHRH.", variations: [{ size: "5mg", type: "Vial", price: 35 }, { size: "10mg", type: "Vial", price: 75 }], stock: 100 },
+  { id: "peptide_cjc_dac", name: "CJC-1295 (With DAC)", category: "peptides", description: "GHRH long-acting.", variations: [{ size: "5mg", type: "Vial", price: 80 }], stock: 100 },
+  { id: "peptide_cjc_ipa", name: "CJC-1295 + Ipamorelin", category: "peptides", description: "GHRH + GHRP blend.", variations: [{ size: "10mg", type: "Vial", price: 45 }], stock: 100 },
+  { id: "peptide_igf_lr3", name: "IGF-1 LR3", category: "peptides", description: "Insulin-like growth factor.", variations: [{ size: "0.1mg", type: "Vial", price: 25 }, { size: "1mg", type: "Vial", price: 80 }], stock: 100 },
+  { id: "peptide_igf_des", name: "IGF-1 DES", category: "peptides", description: "Insulin-like growth factor.", variations: [{ size: "2mg", type: "Vial", price: 40 }], stock: 100 },
+  { id: "peptide_peg_mgf", name: "PEG MGF", category: "peptides", description: "Mechano growth factor.", variations: [{ size: "2mg", type: "Vial", price: 55 }], stock: 100 },
+  { id: "peptide_ghrp2", name: "GHRP-2", category: "peptides", description: "Growth hormone releasing peptide.", variations: [{ size: "5mg", type: "Vial", price: 25 }], stock: 100 },
+  { id: "peptide_ghrp6", name: "GHRP-6", category: "peptides", description: "Growth hormone releasing peptide.", variations: [{ size: "5mg", type: "Vial", price: 25 }, { size: "10mg", type: "Vial", price: 35 }], stock: 100 },
+  { id: "peptide_hcg", name: "HCG", category: "peptides", description: "Human chorionic gonadotropin.", variations: [{ size: "5000iu", type: "Vial", price: 50 }, { size: "10000iu", type: "Vial", price: 90 }], stock: 100 },
+  { id: "peptide_hmg", name: "HMG 75iu", category: "peptides", description: "Human menopausal gonadotropin.", variations: [{ size: "75iu", type: "Vial", price: 35 }], stock: 100 },
+  { id: "peptide_semax", name: "Semax", category: "peptides", description: "Nootropic.", variations: [{ size: "5mg", type: "Vial", price: 20 }, { size: "10mg", type: "Vial", price: 30 }], stock: 100 },
+  { id: "peptide_semax_selank", name: "Semax Selank", category: "peptides", description: "Nootropic blend.", variations: [{ size: "20mg", type: "Vial", price: 55 }], stock: 100 },
+  { id: "peptide_selank", name: "Selank", category: "peptides", description: "Anxiolytic.", variations: [{ size: "5mg", type: "Vial", price: 20 }, { size: "10mg", type: "Vial", price: 30 }], stock: 100 },
+  { id: "peptide_ss31", name: "SS-31", category: "peptides", description: "Mitochondrial peptide.", variations: [{ size: "10mg", type: "Vial", price: 35 }, { size: "50mg", type: "Vial", price: 130 }], stock: 100 },
+  { id: "peptide_epithalon", name: "Epithalon", category: "peptides", description: "Telomere lengthening.", variations: [{ size: "10mg", type: "Vial", price: 20 }, { size: "50mg", type: "Vial", price: 55 }], stock: 100 },
+  { id: "peptide_dsip", name: "DSIP", category: "peptides", description: "Delta sleep inducing peptide.", variations: [{ size: "5mg", type: "Vial", price: 20 }], stock: 100 },
+  { id: "peptide_ara290", name: "ARA 290", category: "peptides", description: "Erythropoietin mimetic.", variations: [{ size: "10mg", type: "Vial", price: 30 }], stock: 100 },
+  { id: "peptide_pt141", name: "PT-141", category: "peptides", description: "Libido enhancer.", variations: [{ size: "10mg", type: "Vial", price: 30 }], stock: 100 },
+  { id: "peptide_kisspeptin", name: "Kisspeptin", category: "peptides", description: "Reproductive hormone.", variations: [{ size: "5mg", type: "Vial", price: 30 }, { size: "10mg", type: "Vial", price: 40 }], stock: 100 },
+  { id: "peptide_aicar", name: "AICAR", category: "peptides", description: "AMPK activator.", variations: [{ size: "50mg", type: "Vial", price: 35 }], stock: 100 },
+  { id: "peptide_ll37", name: "LL-37", category: "peptides", description: "Antimicrobial peptide.", variations: [{ size: "10mg", type: "Vial", price: 35 }], stock: 100 },
+  { id: "peptide_relaxation_pm", name: "Relaxation PM", category: "peptides", description: "Sleep aid.", variations: [{ size: "10ml", type: "Vial", price: 35 }], stock: 100 },
+  { id: "peptide_vip", name: "VIP", category: "peptides", description: "Vasoactive intestinal peptide.", variations: [{ size: "5mg", type: "Vial", price: 35 }, { size: "10mg", type: "Vial", price: 60 }], stock: 100 },
+  { id: "peptide_hexarelin", name: "Hexarelin Acetate", category: "peptides", description: "GHRP.", variations: [{ size: "2mg", type: "Vial", price: 40 }, { size: "5mg", type: "Vial", price: 50 }, { size: "10mg", type: "Vial", price: 80 }], stock: 100 },
+  { id: "peptide_sermorelin", name: "Sermorelin Acetate", category: "peptides", description: "GHRH.", variations: [{ size: "5mg", type: "Vial", price: 35 }, { size: "10mg", type: "Vial", price: 45 }], stock: 100 },
+  { id: "peptide_thymosin_b4", name: "Thymosin Beta-4", category: "peptides", description: "Tissue repair.", variations: [{ size: "5mg", type: "Vial", price: 35 }, { size: "10mg", type: "Vial", price: 55 }], stock: 100 },
+  { id: "peptide_thymosin_alpha1", name: "Thymosin Alpha-1", category: "peptides", description: "Immune modulator.", variations: [{ size: "5mg", type: "Vial", price: 35 }, { size: "10mg", type: "Vial", price: 65 }], stock: 100 },
+  { id: "peptide_adamax", name: "Adamax", category: "peptides", description: "Nootropic.", variations: [{ size: "5mg", type: "Vial", price: 35 }, { size: "10mg", type: "Vial", price: 50 }], stock: 100 },
+  { id: "peptide_thymalin", name: "Thymalin", category: "peptides", description: "Immune support.", variations: [{ size: "10mg", type: "Vial", price: 35 }], stock: 100 },
+  { id: "peptide_pinealon", name: "Pinealon", category: "peptides", description: "Neuroprotective.", variations: [{ size: "10mg", type: "Vial", price: 30 }], stock: 100 },
+  { id: "peptide_foxo4_dri", name: "FOXO4-DRI", category: "peptides", description: "Senolytic.", variations: [{ size: "10mg", type: "Vial", price: 30 }], stock: 100 },
+  { id: "peptide_oxytocin", name: "Oxytocin Acetate", category: "peptides", description: "Hormone peptide.", variations: [{ size: "2mg", type: "Vial", price: 20 }], stock: 100 },
+  { id: "peptide_mt1", name: "Melanotan-1", category: "peptides", description: "Tanning peptide.", variations: [{ size: "10mg", type: "Vial", price: 30 }], stock: 100 },
+  { id: "peptide_mt2", name: "Melanotan-2", category: "peptides", description: "Tanning peptide.", variations: [{ size: "10mg", type: "Vial", price: 30 }], stock: 100 },
+  { id: "peptide_melatonin", name: "Melatonin", category: "peptides", description: "Sleep regulation.", variations: [{ size: "10mg", type: "Vial", price: 35 }], stock: 100 },
+  { id: "peptide_cerebrolysin", name: "Cerebrolysin", category: "peptides", description: "Neurotrophic.", variations: [{ size: "60mg", type: "Vial", price: 15 }], stock: 100 },
+  { id: "peptide_ace031", name: "ACE 031", category: "peptides", description: "Myostatin inhibitor.", variations: [{ size: "1mg", type: "Vial", price: 20 }], stock: 100 },
+  { id: "peptide_b7_33", name: "B7-33", category: "peptides", description: "Relaxin agonist.", variations: [{ size: "2mg", type: "Vial", price: 25 }, { size: "10mg", type: "Vial", price: 90 }], stock: 100 },
+  { id: "peptide_cortagen", name: "Cortagen", category: "peptides", description: "Cellular repair.", variations: [{ size: "20mg", type: "Vial", price: 45 }], stock: 100 },
+  { id: "peptide_demorphin", name: "Demorphin", category: "peptides", description: "Opioid peptide.", variations: [{ size: "2mg", type: "Vial", price: 20 }, { size: "10mg", type: "Vial", price: 40 }], stock: 100 },
+  { id: "peptide_epo", name: "EPO", category: "peptides", description: "Erythropoietin.", variations: [{ size: "3000iu", type: "Vial", price: 50 }], stock: 100 },
+  { id: "peptide_gonadorelin", name: "Gonadorelin Acetate", category: "peptides", description: "GnRH agonist.", variations: [{ size: "5mg", type: "Vial", price: 25 }], stock: 100 },
+  { id: "peptide_humanin", name: "Humanin", category: "peptides", description: "Neuroprotective.", variations: [{ size: "10mg", type: "Vial", price: 120 }], stock: 100 },
+  { id: "peptide_ra260", name: "RA 260", category: "peptides", description: "Unknown.", variations: [{ size: "50mg", type: "Vial", price: 35 }], stock: 100 },
+  { id: "peptide_pnc27", name: "PNC 27", category: "peptides", description: "Anti-cancer peptide.", variations: [{ size: "5mg", type: "Vial", price: 45 }], stock: 100 },
+  { id: "peptide_p21", name: "P21", category: "peptides", description: "Nootropic.", variations: [{ size: "5mg", type: "Vial", price: 140 }], stock: 100 },
+  { id: "peptide_tb_frag", name: "TB Frag", category: "peptides", description: "Thymosin Beta fragment.", variations: [{ size: "2mg", type: "Vial", price: 30 }, { size: "5mg", type: "Vial", price: 35 }, { size: "10mg", type: "Vial", price: 40 }], stock: 100 },
+  { id: "peptide_dulaglutide", name: "Dulaglutide", category: "peptides", description: "GLP-1 agonist.", variations: [{ size: "5mg", type: "Vial", price: 65 }, { size: "10mg", type: "Vial", price: 95 }], stock: 100 },
+  { id: "peptide_liraglutide", name: "Liraglutide", category: "peptides", description: "GLP-1 agonist.", variations: [{ size: "5mg", type: "Vial", price: 50 }, { size: "10mg", type: "Vial", price: 75 }, { size: "20mg", type: "Vial", price: 120 }], stock: 100 },
+  { id: "peptide_follistatin", name: "Follistatin", category: "peptides", description: "Myostatin inhibitor.", variations: [{ size: "1mg", type: "Vial", price: 60 }], stock: 100 },
+  { id: "peptide_cartalax", name: "Cartalax", category: "peptides", description: "Cartilage repair.", variations: [{ size: "20mg", type: "Vial", price: 40 }], stock: 100 },
+  { id: "peptide_acth", name: "ACTH", category: "peptides", description: "Adrenocorticotropic hormone.", variations: [{ size: "5mg", type: "Vial", price: 65 }], stock: 100 },
+  { id: "peptide_cardiogen", name: "Cardiogen", category: "peptides", description: "Cardiac repair.", variations: [{ size: "20mg", type: "Vial", price: 45 }], stock: 100 },
+  { id: "peptide_crystagen", name: "Crystagen", category: "peptides", description: "Unknown.", variations: [{ size: "20mg", type: "Vial", price: 40 }], stock: 100 },
+  { id: "peptide_sx_xa", name: "SX or XA", category: "peptides", description: "Unknown.", variations: [{ size: "10mg", type: "Vial", price: 40 }], stock: 100 },
+  { id: "peptide_lipo_c", name: "Lipo C - Fat Blaster", category: "peptides", description: "Fat burning injection.", variations: [{ size: "1 vial", type: "Vial", price: 25 }], stock: 100 },
+  { id: "peptide_lemon_bottle", name: "Lemon Bottle", category: "peptides", description: "Fat dissolving.", variations: [{ size: "10ml", type: "Vial", price: 25 }, { size: "50ml", type: "Vial", price: 60 }], stock: 100 },
+  { id: "peptide_immunological_enhancement", name: "Immunological Enhancement (GAZ)", category: "peptides", description: "Immune support.", variations: [{ size: "10ml", type: "Vial", price: 50 }], stock: 100 },
+  { id: "peptide_sz352", name: "SZ352", category: "peptides", description: "Unknown.", variations: [{ size: "10ml", type: "Vial", price: 70 }], stock: 100 },
+  { id: "vitamin_b2", name: "Vitamin B2", category: "peptides", description: "Vitamin supplement.", variations: [{ size: "2ml", type: "Vial", price: 15 }], stock: 100 },
+  { id: "vitamin_b12_2ml", name: "Vitamin B12", category: "peptides", description: "Vitamin supplement.", variations: [{ size: "2ml", type: "Vial", price: 20 }], stock: 100 },
+  { id: "vitamin_b6", name: "Vitamin B6", category: "peptides", description: "Vitamin supplement.", variations: [{ size: "2ml", type: "Vial", price: 15 }], stock: 100 },
+  { id: "vitamin_b12_1ml", name: "Vitamin B12", category: "peptides", description: "Vitamin supplement.", variations: [{ size: "10ml", type: "Vial", price: 15 },{ size: "1ml", type: "Vial", price: 10 }], stock: 100 },
+  { id: "vitamin_c", name: "Vitamin C", category: "peptides", description: "Vitamin supplement.", variations: [{ size: "2ml", type: "Vial", price: 15 }], stock: 100 },
+  { id: "vitamin_d2", name: "Vitamin D2", category: "peptides", description: "Vitamin supplement.", variations: [{ size: "10ml", type: "Vial", price: 25 }], stock: 100 },
+  { id: "fatloss_super_human_blend", name: "Super Human Blend", category: "peptides", description: "Fat burning and energy blend.", variations: [{ size: "10ml", type: "Vial", price: 35 }], stock: 100 },
+  { id: "fatloss_super_shred", name: "Super Shred", category: "peptides", description: "Advanced fat loss support.", variations: [{ size: "10ml", type: "Vial", price: 50 }], stock: 100 },
+  { id: "fatloss_shred", name: "Shred", category: "peptides", description: "Fat loss support.", variations: [{ size: "10ml", type: "Vial", price: 70 }], stock: 100 },
+  { id: "peptide_rtd1", name: "RTD-1", category: "peptides", description: "Unknown.", variations: [{ size: "10mg", type: "Vial", price: 65 }], stock: 100 },
+  { id: "peptide_mk677", name: "MK 677", category: "peptides", description: "Growth hormone secretagogue.", variations: [{ size: "5mg", type: "Vial", price: 30 }], stock: 100 },
+  { id: "peptide_cbl514", name: "CBL 514", category: "peptides", description: "Fat reduction peptide.", variations: [{ size: "10mg", type: "Vial", price: 50 }], stock: 100 },
+  { id: "peptide_ipa_serm", name: "IPA SERM (Ipamorelin + Sermorelin)", category: "peptides", description: "GHRP + GHRH blend.", variations: [{ size: "15mg", type: "Vial", price: 65 }, { size: "30mg", type: "Vial", price: 75 }], stock: 100 },
+  { id: "peptide_l_carnitine", name: "L-Carnitine", category: "peptides", description: "Fatty acid transport.", variations: [{ size: "600mg", type: "Vial", price: 35 }, { size: "1200mg", type: "Vial", price: 45 }], stock: 100 },
+  { id: "peptide_b12_inj", name: "B12", category: "peptides", description: "Vitamin B12 supplement.", variations: [{ size: "10ml", type: "Vial", price: 15 }], stock: 100 },
+  { id: "peptide_insulin", name: "Insulin", category: "peptides", description: "Insulin for injection.", variations: [{ size: "3ml", type: "Vial", price: 15 }], stock: 100 },
+  { id: "peptide_lipo_c_focus", name: "Lipo C Focus", category: "peptides", description: "Fat burning focus.", variations: [{ size: "10ml", type: "Vial", price: 50 }], stock: 100 },
+  { id: "peptide_lipo_mino_mix", name: "Lipo Mino Mix", category: "peptides", description: "Fat burning blend.", variations: [{ size: "10ml", type: "Vial", price: 50 }], stock: 100 },
+  { id: "peptide_lipo_c_booster", name: "Lipo C Booster", category: "peptides", description: "Fat burning booster.", variations: [{ size: "10ml", type: "Vial", price: 25 }], stock: 100 }
+];
+
+// Gabungkan semua produk
+const allProducts = [...oralPeptidesData, ...additionalProducts];
 
 function slugify(name) {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
@@ -176,23 +165,35 @@ function slugify(name) {
 
 async function seedAll() {
   console.log(`📦 Seeding ${allProducts.length} products to Firestore...`);
-  const batch = db.batch();
-  let count = 0;
 
+  // Pilihan 1: Padam semua produk sedia ada dalam koleksi 'products'
+  const productsRef = db.collection('products');
+  const snapshot = await productsRef.get();
+  const batchDelete = db.batch();
+  snapshot.forEach(doc => {
+    batchDelete.delete(doc.ref);
+  });
+  await batchDelete.commit();
+  console.log('🧹 Existing products deleted.');
+
+  // Semai produk baru
+  let batch = db.batch();
+  let count = 0;
   for (const product of allProducts) {
     const docId = slugify(product.name);
     const docRef = db.collection('products').doc(docId);
     batch.set(docRef, {
+      id: product.id,
       name: product.name,
       category: product.category,
-      variations: product.variations
+      description: product.description,
+      variations: product.variations,
+      stock: product.stock
     });
     count++;
-    // Firestore batch max 500 operations; commit every 400
     if (count % 400 === 0) {
       await batch.commit();
       console.log(`Committed ${count} products...`);
-      // start a new batch
       batch = db.batch();
     }
   }
