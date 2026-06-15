@@ -6,14 +6,14 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#10b981">
     <title>VELXERA VENTURES</title>
-    
+   
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.jpg">
-    
+   
     <!-- jsPDF & html2canvas untuk PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -103,9 +103,6 @@
             background: #f8fafc;
             padding: 12px;
             border-bottom: 1px solid #e2e8f0;
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
         }
         .status-badge {
             font-size: 12px;
@@ -623,7 +620,7 @@ const oralPeptidesData = [
     { id: "oral_kpv", name: "KPV", category: "oral", description: "Used to calm inflammation in the gut, skin, and throughout the body.", variations: [{ size: "300mcg", type: "60 Capsules", price: 100 }], stock: 100 }
 ];
 
-// ========== PRODUK TAMBAHAN (senarai lengkap seperti asal) ==========
+// ========== PRODUK TAMBAHAN ==========
 const additionalProducts = [
     // SOLVENT
     { id: "solvent_bac_water", name: "Bac Water", category: "solvent", description: "Bacteriostatic water for reconstitution.", variations: [{ size: "3ml", type: "Vial", price: 4 }, { size: "10ml", type: "Vial", price: 5 }], stock: 100 },
@@ -659,7 +656,7 @@ const additionalProducts = [
     { id: "beauty_ghkcu_topical", name: "GHK-Cu Topical", category: "beauty", description: "Copper peptide topical.", variations: [{ size: "1000mg", type: "Vial", price: 40 }], stock: 100 },
     { id: "beauty_fiona_masker", name: "Fiona Masker", category: "beauty", description: "Facial mask.", variations: [{ size: "10mg", type: "Set", price: 15 }], stock: 100 },
 
-    // PEPTIDES (injectable & fat loss) – senarai lengkap dari soalan
+    // PEPTIDES (injectable & fat loss)
     { id: "peptide_retatrutide", name: "Retatrutide", category: "peptides", description: "Triple agonist for weight management.", variations: [{ size: "5mg", type: "Vial", price: 25 }, { size: "10mg", type: "Vial", price: 30 }, { size: "15mg", type: "Vial", price: 45 }, { size: "20mg", type: "Vial", price: 50 }, { size: "30mg", type: "Vial", price: 75 }, { size: "40mg", type: "Vial", price: 90 }], stock: 100 },
     { id: "peptide_reta_cagri", name: "Reta Cagri", category: "peptides", description: "Retatrutide + Cagrilintide blend.", variations: [{ size: "10mg", type: "Vial", price: 80 }], stock: 100 },
     { id: "peptide_reta_tirze", name: "Reta Tirze", category: "peptides", description: "Retatrutide + Tirzepatide blend.", variations: [{ size: "60mg", type: "Vial", price: 180 }], stock: 100 },
@@ -761,7 +758,7 @@ const additionalProducts = [
 
 let allProducts = [];
 let stockMap = new Map();
-let currentCategory = 'peptides';
+let currentCategory = 'peptides';  // default category
 let currentUser = null;
 let cart = [];
 let checkoutShippingCost = 10;
@@ -777,13 +774,14 @@ function getProductCategory(product) {
     return product.category || 'peptides';
 }
 
-// ========== PERUBAHAN UTAMA: READY STOCK TAPIS KIT ==========
+// ========== PERUBAHAN UTAMA: TAPIS KIT DI READY STOCK ==========
 function filterProducts(products, category) {
     if(category === 'peptides') return products.filter(p => getProductCategory(p) === 'peptides');
     if(category === 'beauty') return products.filter(p => getProductCategory(p) === 'beauty');
     if(category === 'solvent') return products.filter(p => getProductCategory(p) === 'solvent');
     if(category === 'oral') return products.filter(p => getProductCategory(p) === 'oral');
     if(category === 'readystock') {
+        // Hanya produk yang mempunyai stok > 0 DAN tidak mempunyai variasi yang mengandungi perkataan "Kit"
         return products.filter(p => {
             const hasStock = p.variations?.some(v => (stockMap.get(getVariationKey(p.id, v.size, v.type))?.stock ?? 100) > 0);
             if (!hasStock) return false;
@@ -894,7 +892,7 @@ function renderProducts(products) {
         else if (cat === 'peptides') badge = 'Peptides';
         else if (cat === 'oral') badge = 'Oral Peptides';
         else badge = 'Peptides';
-        
+       
         const card = document.createElement('div');
         card.className = 'col-12';
         card.innerHTML = `
@@ -923,7 +921,7 @@ function renderProducts(products) {
         const priceSpan = card.querySelector('.product-price');
         const stockSpan = card.querySelector('.stock-info');
         const addBtn = card.querySelector('.add-to-cart');
-        
+       
         select.addEventListener('change', () => {
             const opt = select.options[select.selectedIndex];
             const price = parseFloat(opt.dataset.price);
@@ -933,24 +931,24 @@ function renderProducts(products) {
             qtyInp.max = stock;
             if(parseInt(qtyInp.value) > stock) qtyInp.value = stock;
         });
-        
+       
         addBtn.addEventListener('click', () => {
-            if(!currentUser) { 
-                showToast('Sila log masuk', true); 
-                showLoginModal(); 
-                return; 
+            if(!currentUser) {
+                showToast('Sila log masuk', true);
+                showLoginModal();
+                return;
             }
             let qty = parseInt(qtyInp.value);
-            if(isNaN(qty) || qty <= 0) { 
-                showToast('Sila masukkan kuantiti', true); 
-                return; 
+            if(isNaN(qty) || qty <= 0) {
+                showToast('Sila masukkan kuantiti', true);
+                return;
             }
             const opt = select.options[select.selectedIndex];
             const price = parseFloat(opt.dataset.price);
             const stock = parseInt(opt.dataset.stock);
-            if(qty > stock) { 
-                showToast(`Stok hanya ${stock}`, true); 
-                return; 
+            if(qty > stock) {
+                showToast(`Stok hanya ${stock}`, true);
+                return;
             }
             const size = opt.dataset.size;
             const type = opt.dataset.type;
@@ -958,21 +956,21 @@ function renderProducts(products) {
             const existingIdx = cart.findIndex(i => i.variationKey === varKey);
             if(existingIdx !== -1) {
                 const newQty = cart[existingIdx].qty + qty;
-                if(newQty > stock) { 
-                    showToast(`Stok tidak cukup`, true); 
-                    return; 
+                if(newQty > stock) {
+                    showToast(`Stok tidak cukup`, true);
+                    return;
                 }
                 cart[existingIdx].qty = newQty;
             } else {
-                cart.push({ 
-                    id: p.id, 
-                    name: p.name, 
-                    size: size, 
-                    type: type, 
-                    price: price, 
-                    qty: qty, 
-                    variationKey: varKey, 
-                    prodId: p.id 
+                cart.push({
+                    id: p.id,
+                    name: p.name,
+                    size: size,
+                    type: type,
+                    price: price,
+                    qty: qty,
+                    variationKey: varKey,
+                    prodId: p.id
                 });
             }
             saveCart();
@@ -1054,8 +1052,7 @@ function showLoginModal() {
     document.getElementById('loginStep2').style.display = 'none';
     new bootstrap.Modal(document.getElementById('loginModal')).show();
 }
-
-// Validasi nombor Malaysia/Singapura
+// ========== VALIDASI NOMBOR: Malaysia (60) dan Singapura (65) ==========
 document.getElementById('loginBtn').addEventListener('click', async () => {
     let name = document.getElementById('loginName').value.trim();
     let phone = document.getElementById('loginPhone').value.trim();
@@ -1064,9 +1061,9 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
     if(phone.startsWith('0')) phone = '60' + phone.substring(1);
     const malaysiaRegex = /^60[0-9]{9,11}$/;
     const singaporeRegex = /^65[0-9]{8,10}$/;
-    if(!malaysiaRegex.test(phone) && !singaporeRegex.test(phone)) { 
-        showToast('Nombor tidak sah. Guna format 0123456789 (Malaysia) atau 6512345678 (Singapura)', true); 
-        return; 
+    if(!malaysiaRegex.test(phone) && !singaporeRegex.test(phone)) {
+        showToast('Nombor tidak sah. Guna format 0123456789 (Malaysia) atau 6512345678 (Singapura)', true);
+        return;
     }
     const userRef = doc(db, "users", phone);
     await setDoc(userRef, { name, phone }, { merge: true });
@@ -1080,7 +1077,6 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
         loadUserOrders();
     }, 1000);
 });
-
 function checkUserSession() {
     const saved = sessionStorage.getItem('velxera_user');
     if(saved) { currentUser = JSON.parse(saved); loadUserOrders(); }
@@ -1241,7 +1237,6 @@ document.getElementById('proceedToCheckoutBtn').addEventListener('click', showCh
 document.getElementById('payLaterCheckbox').addEventListener('change', (e) => {
     document.getElementById('paymentFields').style.display = e.target.checked ? 'none' : 'block';
 });
-
 function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => m==='&'?'&amp;':m==='<'?'&lt;':m==='>'?'&gt;':m); }
 
 function renderProtocolCards() {
@@ -1375,4 +1370,4 @@ setLanguage('ms');
     }
 </script>
 </body>
-</html>
+</html>   ini dh oki?
