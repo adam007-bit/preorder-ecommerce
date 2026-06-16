@@ -905,6 +905,10 @@ function renderProducts(products) {
     const container = document.getElementById('product-list');
     container.innerHTML = '';
     if(!products.length) { container.innerHTML = '<div class="text-center py-4">Tiada produk</div>'; return; }
+
+    // Tambahan RM20 untuk kategori Ready Stock
+    const readyStockExtra = 20;
+
     products.forEach(p => {
         if(!p.variations?.length) return;
         let options = '';
@@ -912,9 +916,22 @@ function renderProducts(products) {
         p.variations.forEach(v => {
             const key = getVariationKey(p.id, v.size, v.type);
             const stock = stockMap.get(key)?.stock ?? 100;
-            options += `<option value="${key}" data-price="${v.price}" data-stock="${stock}" data-size="${v.size}" data-type="${v.type}">${v.size} - ${v.type} (RM ${v.price})</option>`;
-            if(!defaultPrice) { defaultPrice = v.price; defaultStock = stock; }
+
+            // Tentukan harga paparan berdasarkan kategori
+            let displayPrice = v.price;
+            if (currentCategory === 'readystock') {
+                displayPrice = v.price + readyStockExtra;
+            }
+
+            options += `<option value="${key}" data-price="${displayPrice}" data-stock="${stock}" data-size="${v.size}" data-type="${v.type}">${v.size} - ${v.type} (RM ${displayPrice.toFixed(2)})</option>`;
+
+            // Simpan harga asal untuk defaultPrice (supaya tidak terjejas)
+            if(!defaultPrice) { 
+                defaultPrice = v.price; 
+                defaultStock = stock; 
+            }
         });
+
         let badge = '';
         const cat = getProductCategory(p);
         if (cat === 'beauty') badge = 'Beauty Peptides';
@@ -922,7 +939,13 @@ function renderProducts(products) {
         else if (cat === 'peptides') badge = 'Peptides';
         else if (cat === 'oral') badge = 'Oral Peptides';
         else badge = 'Peptides';
-       
+
+        // Tentukan harga lalai yang dipaparkan di kad
+        let displayDefaultPrice = defaultPrice;
+        if (currentCategory === 'readystock') {
+            displayDefaultPrice = defaultPrice + readyStockExtra;
+        }
+
         const card = document.createElement('div');
         card.className = 'col-12';
         card.innerHTML = `
@@ -932,12 +955,14 @@ function renderProducts(products) {
                 <div class="row g-2 align-items-end mt-2">
                     <div class="col-7"><label class="small fw-bold">Pilih Jenis</label><select class="form-select form-select-sm product-select" data-id="${p.id}">${options}</select></div>
                     <div class="col-3"><label class="small fw-bold">Kuantiti</label><input type="number" class="form-control form-control-sm product-qty" value="0" min="0" max="${defaultStock}" step="1"></div>
-                    <div class="col-2 text-end"><div class="product-price fw-bold text-success">RM ${defaultPrice.toFixed(2)}</div><small class="stock-info text-muted">Stok: ${defaultStock}</small></div>
+                    <div class="col-2 text-end"><div class="product-price fw-bold text-success">RM ${displayDefaultPrice.toFixed(2)}</div><small class="stock-info text-muted">Stok: ${defaultStock}</small></div>
                 </div>
                 <button class="btn btn-sm btn-outline-success mt-2 w-100 add-to-cart"><i class="fa-solid fa-cart-plus"></i> <span class="lang-addtocart">Tambah ke troli saya</span></button>
             </div>
         `;
         container.appendChild(card);
+
+        // Event listener untuk protocol icon
         const protocolIcon = card.querySelector('.protocol-icon');
         if(protocolIcon) {
             protocolIcon.addEventListener('click', (e) => {
@@ -946,12 +971,13 @@ function renderProducts(products) {
                 showProtocolModal(prodName);
             });
         }
+
         const select = card.querySelector('.product-select');
         const qtyInp = card.querySelector('.product-qty');
         const priceSpan = card.querySelector('.product-price');
         const stockSpan = card.querySelector('.stock-info');
         const addBtn = card.querySelector('.add-to-cart');
-       
+
         select.addEventListener('change', () => {
             const opt = select.options[select.selectedIndex];
             const price = parseFloat(opt.dataset.price);
@@ -961,7 +987,7 @@ function renderProducts(products) {
             qtyInp.max = stock;
             if(parseInt(qtyInp.value) > stock) qtyInp.value = stock;
         });
-       
+
         addBtn.addEventListener('click', () => {
             if(!currentUser) {
                 showToast('Sila log masuk', true);
@@ -997,7 +1023,7 @@ function renderProducts(products) {
                     name: p.name,
                     size: size,
                     type: type,
-                    price: price,
+                    price: price,   // Harga sudah termasuk markup jika di ready stock
                     qty: qty,
                     variationKey: varKey,
                     prodId: p.id
@@ -1009,7 +1035,6 @@ function renderProducts(products) {
         });
     });
 }
-
 function setupCategoryFilters() {
     document.querySelectorAll('.cat-btn').forEach(btn => {
         btn.addEventListener('click', () => {
