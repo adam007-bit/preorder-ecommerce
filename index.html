@@ -778,12 +778,28 @@ function filterProducts(products, category) {
     if(category === 'solvent') return products.filter(p => getProductCategory(p) === 'solvent');
     if(category === 'oral') return products.filter(p => getProductCategory(p) === 'oral');
     if(category === 'readystock') {
-        return products.filter(p => {
+        let filtered = products.filter(p => {
             const hasStock = p.variations?.some(v => (stockMap.get(getVariationKey(p.id, v.size, v.type))?.stock ?? 100) > 0);
             if (!hasStock) return false;
             const hasKit = p.variations?.some(v => v.type && v.type.toLowerCase().includes('kit'));
             return !hasKit;
         });
+
+        // ==== SUSUNAN KHUSUS UNTUK READY STOCK ====
+        // Letakkan Retatrutide dan GHK-CU di atas
+        const priorityNames = ['retatrutide', 'ghk-cu']; // huruf kecil untuk perbandingan
+        filtered.sort((a, b) => {
+            const aName = a.name.toLowerCase();
+            const bName = b.name.toLowerCase();
+            const aPriority = priorityNames.indexOf(aName);
+            const bPriority = priorityNames.indexOf(bName);
+            // Jika kedua-dua tiada priority, kekalkan susunan asal (0)
+            if (aPriority === -1 && bPriority === -1) return 0;
+            if (aPriority === -1) return 1;  // a tiada priority -> letak belakang
+            if (bPriority === -1) return -1; // b tiada priority -> a di depan
+            return aPriority - bPriority;    // ikut urutan dalam priorityNames
+        });
+        return filtered;
     }
     return products;
 }
