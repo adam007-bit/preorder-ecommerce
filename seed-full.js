@@ -7,8 +7,7 @@ admin.initializeApp({
 
 const db = admin.firestore();
 
-// ==================== PRODUK HANYA DARI SENARAI PENDEK ====================
-// Oral Peptides (kapsul)
+// ==================== ORAL PEPTIDES (kapsul) ====================
 const oralPeptidesData = [
   { id: "oral_5amino_1mq", name: "5-Amino-1MQ", category: "oral", description: "Supports metabolism, helps increase calorie burning, and may assist with fat loss.", variations: [{ size: "50mg", type: "60 Capsules", price: 210 }], stock: 100 },
   { id: "oral_bpc157", name: "BPC-157", category: "oral", description: "Supports recovery, tissue repair, gut health, and injury healing.", variations: [{ size: "500mcg", type: "100 Capsules", price: 160 }], stock: 100 },
@@ -20,7 +19,7 @@ const oralPeptidesData = [
   { id: "oral_kpv", name: "KPV", category: "oral", description: "Used to calm inflammation in the gut, skin, and throughout the body.", variations: [{ size: "300mcg", type: "60 Capsules", price: 100 }], stock: 100 }
 ];
 
-// Additional Products (solvent, beauty, peptides – hanya VIAL dan harga asal)
+// ==================== PRODUK TAMBAHAN (solvent, beauty, peptides) ====================
 const additionalProducts = [
   // SOLVENT
   { id: "solvent_bac_water", name: "Bac Water", category: "solvent", description: "Bacteriostatic water for reconstitution.", variations: [{ size: "3ml", type: "Vial", price: 4 }, { size: "10ml", type: "Vial", price: 5 }], stock: 100 },
@@ -56,7 +55,7 @@ const additionalProducts = [
   { id: "beauty_ghkcu_topical", name: "GHK-Cu Topical", category: "beauty", description: "Copper peptide topical.", variations: [{ size: "1000mg", type: "Vial", price: 40 }], stock: 100 },
   { id: "beauty_fiona_masker", name: "Fiona Masker", category: "beauty", description: "Facial mask.", variations: [{ size: "10mg", type: "Set", price: 15 }], stock: 100 },
 
-  // PEPTIDES (injectable & fat loss) – hanya VIAL (tiada Kit)
+  // PEPTIDES (injectable & fat loss) – HANYA VIAL, TIADA KIT
   { id: "peptide_retatrutide", name: "Retatrutide", category: "peptides", description: "Triple agonist for weight management.", variations: [{ size: "5mg", type: "Vial", price: 25 }, { size: "10mg", type: "Vial", price: 30 }, { size: "15mg", type: "Vial", price: 45 }, { size: "20mg", type: "Vial", price: 50 }, { size: "30mg", type: "Vial", price: 75 }, { size: "40mg", type: "Vial", price: 90 }], stock: 100 },
   { id: "peptide_reta_cagri", name: "Reta Cagri", category: "peptides", description: "Retatrutide + Cagrilintide blend.", variations: [{ size: "10mg", type: "Vial", price: 80 }], stock: 100 },
   { id: "peptide_reta_tirze", name: "Reta Tirze", category: "peptides", description: "Retatrutide + Tirzepatide blend.", variations: [{ size: "60mg", type: "Vial", price: 180 }], stock: 100 },
@@ -166,7 +165,7 @@ function slugify(name) {
 async function seedAll() {
   console.log(`📦 Seeding ${allProducts.length} products to Firestore...`);
 
-  // Pilihan 1: Padam semua produk sedia ada dalam koleksi 'products'
+  // Padam semua produk sedia ada
   const productsRef = db.collection('products');
   const snapshot = await productsRef.get();
   const batchDelete = db.batch();
