@@ -923,7 +923,7 @@ function renderProducts(products) {
     container.innerHTML = '';
     if(!products.length) { container.innerHTML = '<div class="text-center py-4">Tiada produk</div>'; return; }
 
-    // Tambahan RM20 untuk kategori Ready Stock
+    // Hanya Ready Stock tambah RM20
     const readyStockExtra = 20;
 
     products.forEach(p => {
@@ -934,7 +934,7 @@ function renderProducts(products) {
             const key = getVariationKey(p.id, v.size, v.type);
             const stock = stockMap.get(key)?.stock ?? 100;
 
-            // Tentukan harga paparan berdasarkan kategori
+            // 🔥 HANYA READY STOCK dapat tambahan RM20
             let displayPrice = v.price;
             if (currentCategory === 'readystock') {
                 displayPrice = v.price + readyStockExtra;
@@ -942,7 +942,6 @@ function renderProducts(products) {
 
             options += `<option value="${key}" data-price="${displayPrice}" data-stock="${stock}" data-size="${v.size}" data-type="${v.type}">${v.size} - ${v.type} (RM ${displayPrice.toFixed(2)})</option>`;
 
-            // Simpan harga asal untuk defaultPrice (supaya tidak terjejas)
             if(!defaultPrice) { 
                 defaultPrice = v.price; 
                 defaultStock = stock; 
@@ -957,7 +956,7 @@ function renderProducts(products) {
         else if (cat === 'oral') badge = 'Oral Peptides';
         else badge = 'Peptides';
 
-        // Tentukan harga lalai yang dipaparkan di kad
+        // 🔥 HANYA READY STOCK dapat tambahan RM20 untuk paparan
         let displayDefaultPrice = defaultPrice;
         if (currentCategory === 'readystock') {
             displayDefaultPrice = defaultPrice + readyStockExtra;
@@ -1040,7 +1039,7 @@ function renderProducts(products) {
                     name: p.name,
                     size: size,
                     type: type,
-                    price: price,   // Harga sudah termasuk markup jika di ready stock
+                    price: price,   // Harga sudah termasuk +RM20 jika di Ready Stock
                     qty: qty,
                     variationKey: varKey,
                     prodId: p.id
@@ -1052,17 +1051,6 @@ function renderProducts(products) {
         });
     });
 }
-function setupCategoryFilters() {
-    document.querySelectorAll('.cat-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            currentCategory = btn.dataset.cat;
-            renderProducts(filterProducts(allProducts, currentCategory));
-        });
-    });
-}
-
 function saveCart() { localStorage.setItem('velxera_cart', JSON.stringify(cart)); }
 function loadCart() { const c = localStorage.getItem('velxera_cart'); if(c) cart = JSON.parse(c); else cart = []; updateCartUI(); }
 function updateCartUI() {
