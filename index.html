@@ -1051,6 +1051,19 @@ function renderProducts(products) {
         });
     });
 }
+
+// ========== FUNGSI TAMBAHAN ==========
+function setupCategoryFilters() {
+    document.querySelectorAll('.cat-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentCategory = btn.dataset.cat;
+            renderProducts(filterProducts(allProducts, currentCategory));
+        });
+    });
+}
+
 function saveCart() { localStorage.setItem('velxera_cart', JSON.stringify(cart)); }
 function loadCart() { const c = localStorage.getItem('velxera_cart'); if(c) cart = JSON.parse(c); else cart = []; updateCartUI(); }
 function updateCartUI() {
@@ -1328,7 +1341,7 @@ function renderProtocolCards() {
     }
 }
 
-// ========== DWIBAHASA ==========
+// ========== DWIBAHASA (dengan semakan untuk elak ralat) ==========
 let currentLang = 'ms';
 const translations = {
     ms: {
@@ -1360,53 +1373,56 @@ const translations = {
 function setLanguage(lang) {
     currentLang = lang;
     const t = translations[lang];
+    // Untuk semua elemen dengan class 'lang-*'
     document.querySelectorAll('[class^="lang-"]').forEach(el => {
         const key = el.className.split(' ').find(c => c.startsWith('lang-')).substring(5);
         if (t[key]) el.innerText = t[key];
     });
-    document.querySelector('.badge-step-title .lang-step1').innerText = t.step1;
-    document.querySelector('.lang-step-pilih').innerText = t.step_pilih;
-    document.querySelector('.lang-step-checkout').innerText = t.step_checkout;
-    document.querySelector('.lang-step-bayar').innerText = t.step_bayar;
-    document.querySelector('.lang-home').innerText = t.home;
-    document.querySelector('.lang-cart').innerText = t.cart;
-    document.querySelector('.lang-myorders').innerText = t.myorders;
-    document.querySelector('.lang-catalog').innerText = t.catalog;
+    // Untuk elemen spesifik, tambah semakan if(el)
+    const el = (sel) => document.querySelector(sel);
+    if(el('.badge-step-title .lang-step1')) el('.badge-step-title .lang-step1').innerText = t.step1;
+    if(el('.lang-step-pilih')) el('.lang-step-pilih').innerText = t.step_pilih;
+    if(el('.lang-step-checkout')) el('.lang-step-checkout').innerText = t.step_checkout;
+    if(el('.lang-step-bayar')) el('.lang-step-bayar').innerText = t.step_bayar;
+    if(el('.lang-home')) el('.lang-home').innerText = t.home;
+    if(el('.lang-cart')) el('.lang-cart').innerText = t.cart;
+    if(el('.lang-myorders')) el('.lang-myorders').innerText = t.myorders;
+    if(el('.lang-catalog')) el('.lang-catalog').innerText = t.catalog;
     document.querySelectorAll('.lang-all').forEach(el => el.innerText = t.all);
     document.querySelectorAll('.lang-peptides').forEach(el => el.innerText = t.peptides);
     document.querySelectorAll('.lang-beauty').forEach(el => el.innerText = t.beauty);
     document.querySelectorAll('.lang-solvent').forEach(el => el.innerText = t.solvent);
     document.querySelectorAll('.lang-oral').forEach(el => el.innerText = t.oral);
     document.querySelectorAll('.lang-readystock').forEach(el => el.innerText = t.readystock);
-    document.querySelector('.lang-loading').innerText = t.loading;
-    document.querySelector('.lang-carttitle').innerText = t.carttitle;
-    document.querySelector('.lang-cartempty').innerText = t.cartempty;
-    document.querySelector('.lang-totalitems').innerText = t.totalitems;
-    document.querySelector('.lang-totalprice').innerText = t.totalprice;
-    document.querySelector('.lang-proceed').innerText = t.proceed;
-    document.querySelector('.lang-myorderstitle').innerText = t.myorderstitle;
-    document.querySelector('.lang-noorders').innerText = t.noorders;
-    document.querySelector('.lang-protocol').innerText = t.protocol;
-    document.querySelector('.lang-protocolnote').innerText = t.protocolnote;
-    document.querySelector('.lang-checkouttitle').innerText = t.checkouttitle;
+    if(el('.lang-loading')) el('.lang-loading').innerText = t.loading;
+    if(el('.lang-carttitle')) el('.lang-carttitle').innerText = t.carttitle;
+    if(el('.lang-cartempty')) el('.lang-cartempty').innerText = t.cartempty;
+    if(el('.lang-totalitems')) el('.lang-totalitems').innerText = t.totalitems;
+    if(el('.lang-totalprice')) el('.lang-totalprice').innerText = t.totalprice;
+    if(el('.lang-proceed')) el('.lang-proceed').innerText = t.proceed;
+    if(el('.lang-myorderstitle')) el('.lang-myorderstitle').innerText = t.myorderstitle;
+    if(el('.lang-noorders')) el('.lang-noorders').innerText = t.noorders;
+    if(el('.lang-protocol')) el('.lang-protocol').innerText = t.protocol;
+    if(el('.lang-protocolnote')) el('.lang-protocolnote').innerText = t.protocolnote;
+    if(el('.lang-checkouttitle')) el('.lang-checkouttitle').innerText = t.checkouttitle;
     document.querySelectorAll('.lang-fullname').forEach(el => el.innerText = t.fullname);
     document.querySelectorAll('.lang-phone').forEach(el => el.innerText = t.phone);
-    document.querySelector('.lang-address').innerText = t.address;
-    document.querySelector('.lang-postcode').innerText = t.postcode;
-    document.querySelector('.lang-state').innerText = t.state;
-    document.querySelector('.lang-shippingarea').innerText = t.shippingarea;
-    document.querySelector('.lang-payment').innerText = t.payment;
-    document.querySelector('.lang-paylater').innerText = t.paylater;
-    document.querySelector('.lang-bankname').innerText = t.bankname;
-    document.querySelector('.lang-receipt').innerText = t.receipt;
-    document.querySelector('.lang-total').innerText = t.total;
-    document.querySelector('.lang-cancel').innerText = t.cancel;
-    document.querySelector('.lang-placeorder').innerText = t.placeorder;
-    document.querySelector('.lang-login').innerText = t.login;
-    document.querySelector('.lang-loginbtn').innerText = t.loginbtn;
-    document.querySelector('.lang-loginsuccess').innerText = t.loginsuccess;
+    if(el('.lang-address')) el('.lang-address').innerText = t.address;
+    if(el('.lang-postcode')) el('.lang-postcode').innerText = t.postcode;
+    if(el('.lang-state')) el('.lang-state').innerText = t.state;
+    if(el('.lang-shippingarea')) el('.lang-shippingarea').innerText = t.shippingarea;
+    if(el('.lang-payment')) el('.lang-payment').innerText = t.payment;
+    if(el('.lang-paylater')) el('.lang-paylater').innerText = t.paylater;
+    if(el('.lang-bankname')) el('.lang-bankname').innerText = t.bankname;
+    if(el('.lang-receipt')) el('.lang-receipt').innerText = t.receipt;
+    if(el('.lang-total')) el('.lang-total').innerText = t.total;
+    if(el('.lang-cancel')) el('.lang-cancel').innerText = t.cancel;
+    if(el('.lang-placeorder')) el('.lang-placeorder').innerText = t.placeorder;
+    if(el('.lang-login')) el('.lang-login').innerText = t.login;
+    if(el('.lang-loginbtn')) el('.lang-loginbtn').innerText = t.loginbtn;
+    if(el('.lang-loginsuccess')) el('.lang-loginsuccess').innerText = t.loginsuccess;
     document.querySelectorAll('.lang-addtocart').forEach(el => el.innerText = t.addtocart);
-    document.getElementById('langToggle').innerHTML = currentLang === 'ms' ? '🇬🇧 EN' : '🇲🇾 MS';
+    if(el('#langToggle')) el('#langToggle').innerHTML = currentLang === 'ms' ? '🇬🇧 EN' : '🇲🇾 MS';
 }
 
 document.getElementById('langToggle').addEventListener('click', () => {
