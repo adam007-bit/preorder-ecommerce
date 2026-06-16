@@ -7,8 +7,7 @@ admin.initializeApp({
 
 const db = admin.firestore();
 
-// ==================== PRODUK HANYA DARI SENARAI PENDEK ====================
-// Oral Peptides (kapsul)
+// ==================== PRODUK HANYA DARI SENARAI PENDEK (TANPA KIT) ====================
 const oralPeptidesData = [
   { id: "oral_5amino_1mq", name: "5-Amino-1MQ", category: "oral", description: "Supports metabolism, helps increase calorie burning, and may assist with fat loss.", variations: [{ size: "50mg", type: "60 Capsules", price: 210 }], stock: 100 },
   { id: "oral_bpc157", name: "BPC-157", category: "oral", description: "Supports recovery, tissue repair, gut health, and injury healing.", variations: [{ size: "500mcg", type: "100 Capsules", price: 160 }], stock: 100 },
@@ -20,7 +19,6 @@ const oralPeptidesData = [
   { id: "oral_kpv", name: "KPV", category: "oral", description: "Used to calm inflammation in the gut, skin, and throughout the body.", variations: [{ size: "300mcg", type: "60 Capsules", price: 100 }], stock: 100 }
 ];
 
-// Additional Products (solvent, beauty, peptides – hanya VIAL dan harga asal)
 const additionalProducts = [
   // SOLVENT
   { id: "solvent_bac_water", name: "Bac Water", category: "solvent", description: "Bacteriostatic water for reconstitution.", variations: [{ size: "3ml", type: "Vial", price: 4 }, { size: "10ml", type: "Vial", price: 5 }], stock: 100 },
@@ -156,7 +154,6 @@ const additionalProducts = [
   { id: "peptide_lipo_c_booster", name: "Lipo C Booster", category: "peptides", description: "Fat burning booster.", variations: [{ size: "10ml", type: "Vial", price: 25 }], stock: 100 }
 ];
 
-// Gabungkan semua produk
 const allProducts = [...oralPeptidesData, ...additionalProducts];
 
 function slugify(name) {
@@ -165,8 +162,7 @@ function slugify(name) {
 
 async function seedAll() {
   console.log(`📦 Seeding ${allProducts.length} products to Firestore...`);
-
-  // Pilihan 1: Padam semua produk sedia ada dalam koleksi 'products'
+  // Padam semua dokumen sedia ada dalam koleksi 'products'
   const productsRef = db.collection('products');
   const snapshot = await productsRef.get();
   const batchDelete = db.batch();
@@ -176,7 +172,6 @@ async function seedAll() {
   await batchDelete.commit();
   console.log('🧹 Existing products deleted.');
 
-  // Semai produk baru
   let batch = db.batch();
   let count = 0;
   for (const product of allProducts) {
@@ -186,9 +181,9 @@ async function seedAll() {
       id: product.id,
       name: product.name,
       category: product.category,
-      description: product.description,
+      description: product.description || "",
       variations: product.variations,
-      stock: product.stock
+      stock: product.stock || 100
     });
     count++;
     if (count % 400 === 0) {
