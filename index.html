@@ -1412,14 +1412,19 @@ document.getElementById('placeOrderBtn').addEventListener('click', async functio
 await runTransaction(db, async (transaction) => {
     // Baca semua inventory dalam satu batch
     const invRefs = cart.map(item => doc(db, "inventory", item.variationKey));
-    const snapshots = await transaction.getAll(...invRefs);
-    for (let i = 0; i < cart.length; i++) {
-        const snap = snapshots[i];
-        const item = cart[i];
-        let currentStock = snap.exists() ? snap.data().stock : 100;
-        if (currentStock < item.qty) throw new Error(`Stok ${item.name} tidak cukup`);
-        transaction.set(invRefs[i], { stock: currentStock - item.qty, initialStock: snap.exists() ? snap.data().initialStock : 100 }, { merge: true });
-    }
+    const snapshots = await Promise.all(
+    cart.map(item => transaction.get(doc(db, "inventory", item.variationKey)))
+);
+for (let i = 0; i < cart.length; i++) {
+    const snap = snapshots[i];
+    const item = cart[i];
+    let currentStock = snap.exists() ? snap.data().stock : 100;
+    if (currentStock < item.qty) throw new Error(`Stok ${item.name} tidak cukup`);
+    transaction.set(doc(db, "inventory", item.variationKey), { 
+        stock: currentStock - item.qty, 
+        initialStock: snap.exists() ? snap.data().initialStock : 100 
+    }, { merge: true });
+}
     orderId = `ORD-${Date.now()}`;
     const orderRef = doc(db, "orders", orderId);
     transaction.set(orderRef, {
