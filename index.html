@@ -465,7 +465,7 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
 import { getFirestore, collection, doc, getDocs, setDoc, updateDoc, query, where, getDoc, runTransaction, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
-const IMGBB_API_KEY = '8b4d34f1c329684356d506ef8d67105e';
+
 
 const firebaseConfig = {
     apiKey: "AIzaSyAdUZs-P5SPcivHHP9lRmdyOC355Op8bOU",
@@ -510,11 +510,13 @@ async function compressImage(file, maxWidth = 800, quality = 0.5) {
 }
 
 // ========== UPLOAD KE CLOUDINARY ==========
+// ========== UPLOAD KE CLOUDINARY ==========
 const CLOUDINARY_CLOUD_NAME = 'dzduemhya';
 const CLOUDINARY_UPLOAD_PRESET = 'velxera_receipts';
 
-async function uploadReceiptToImgBB(file) {
+async function uploadReceiptToCloudinary(file) {
     try {
+        console.log('📤 Uploading to Cloudinary...');
         const formData = new FormData();
         formData.append('file', file);
         formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
@@ -526,6 +528,7 @@ async function uploadReceiptToImgBB(file) {
         
         if (!response.ok) {
             const errorData = await response.json();
+            console.error('Cloudinary error:', errorData);
             throw new Error(errorData.error?.message || `HTTP ${response.status}`);
         }
         
@@ -533,13 +536,13 @@ async function uploadReceiptToImgBB(file) {
         if (!data.secure_url) {
             throw new Error('Tiada URL gambar daripada Cloudinary');
         }
+        console.log('✅ Upload success:', data.secure_url);
         return data.secure_url;
     } catch (error) {
-        console.error('Cloudinary upload error:', error);
+        console.error('❌ Cloudinary upload error:', error);
         throw new Error(`Gagal muat naik ke Cloudinary: ${error.message}`);
     }
 }
-
 async function generateAndDownloadPDF(orderId, customer, items, totalAmount, shippingCost, shippingRegion, paymentMethod, bankName) {
     const invoiceDiv = document.getElementById('invoicePreview');
     const contentDiv = document.getElementById('invoiceContent');
@@ -1386,8 +1389,8 @@ document.getElementById('placeOrderBtn').addEventListener('click', async functio
             try {
                 compressedFile = await compressImage(receiptFile, 800, 0.5);
                 const compressedKB = (compressedFile.size / 1024).toFixed(0);
-                progressDiv.innerHTML = `⬆️ Memuat naik (${compressedKB}KB) ke ImgBB...`;
-                receiptUrl = await uploadReceiptToImgBB(compressedFile);
+               progressDiv.innerHTML = `⬆️ Memuat naik (${compressedKB}KB) ke Cloudinary...`;
+                receiptUrl = await uploadReceiptToCloudinary(compressedFile);
                 progressDiv.innerHTML = '✅ Resit berjaya!';
                 setTimeout(() => progressDiv.style.display = 'none', 2000);
             } catch(err) {
