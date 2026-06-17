@@ -922,30 +922,48 @@ function renderProducts(products) {
     const container = document.getElementById('product-list');
     container.innerHTML = '';
     if(!products.length) { container.innerHTML = '<div class="text-center py-4">Tiada produk</div>'; return; }
+   // Peta harga khusus untuk produk tertentu di Ready Stock
+// Format: "Nama Produk_Saiz_Jenis" => Harga
+const customReadyStockPrices = {
+    "Bac Water_3ml_Vial": 5,
+    "Bac Water_10ml_Vial": 6,
+    "USP Bac Water_10ml_Vial": 12,
+    "Acetic Acid_10ml_Vial": 6,
+    "Sterilized Water_10ml_Vial": 6
+};
 
-    // Hanya Ready Stock tambah RM20
-    const readyStockExtra = 20;
+// Harga tambahan untuk produk lain (default)
+const readyStockExtra = 20;
 
-    products.forEach(p => {
+     products.forEach(p => {
         if(!p.variations?.length) return;
         let options = '';
-        let defaultPrice = 0, defaultStock = 0;
+        let defaultPrice = 0, defaultStock = 0, defaultSize = '', defaultType = '';
         p.variations.forEach(v => {
+           
             const key = getVariationKey(p.id, v.size, v.type);
             const stock = stockMap.get(key)?.stock ?? 100;
 
             // 🔥 HANYA READY STOCK dapat tambahan RM20
-            let displayPrice = v.price;
-            if (currentCategory === 'readystock') {
-                displayPrice = v.price + readyStockExtra;
-            }
+           let displayPrice = v.price;
+if (currentCategory === 'readystock') {
+    // Cek jika ada harga khusus untuk produk ini
+    const key = p.name + "_" + v.size + "_" + v.type;
+    if (customReadyStockPrices.hasOwnProperty(key)) {
+        displayPrice = customReadyStockPrices[key];
+    } else {
+        displayPrice = v.price + readyStockExtra; // default +20
+    }
+}
 
             options += `<option value="${key}" data-price="${displayPrice}" data-stock="${stock}" data-size="${v.size}" data-type="${v.type}">${v.size} - ${v.type} (RM ${displayPrice.toFixed(2)})</option>`;
 
             if(!defaultPrice) { 
-                defaultPrice = v.price; 
-                defaultStock = stock; 
-            }
+    defaultPrice = v.price; 
+    defaultStock = stock;
+    defaultSize = v.size;
+    defaultType = v.type;
+}
         });
 
         let badge = '';
@@ -957,10 +975,15 @@ function renderProducts(products) {
         else badge = 'Peptides';
 
         // 🔥 HANYA READY STOCK dapat tambahan RM20 untuk paparan
-        let displayDefaultPrice = defaultPrice;
-        if (currentCategory === 'readystock') {
-            displayDefaultPrice = defaultPrice + readyStockExtra;
-        }
+       let displayDefaultPrice = defaultPrice;
+if (currentCategory === 'readystock') {
+    const key = p.name + "_" + defaultSize + "_" + defaultType;
+    if (customReadyStockPrices.hasOwnProperty(key)) {
+        displayDefaultPrice = customReadyStockPrices[key];
+    } else {
+        displayDefaultPrice = defaultPrice + readyStockExtra;
+    }
+}
 
         const card = document.createElement('div');
         card.className = 'col-12';
