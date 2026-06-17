@@ -1105,66 +1105,67 @@ function renderProducts(products) {
             }
         });
 
-        addBtn.addEventListener('click', () => {
-            if (addBtn.disabled) {
-                showToast('Produk ini tidak tersedia untuk pesanan sekarang', true);
-                return;
-            }
-            
-            if(!currentUser) {
-                showToast('Sila log masuk', true);
-                showLoginModal();
-                return;
-            }
-            
-            let qty = parseInt(qtyInp.value);
-            if(isNaN(qty) || qty <= 0) {
-                showToast('Sila masukkan kuantiti', true);
-                return;
-            }
-            
-            const opt = select.options[select.selectedIndex];
-            const price = parseFloat(opt.dataset.price);
-            const stock = parseInt(opt.dataset.stock);
-            const readyStock = parseInt(opt.dataset.readystock);
-            
-            if (readyStock === 0) {
-                showToast('Produk ini tidak tersedia untuk pesanan sekarang', true);
-                return;
-            }
-            
-            if(qty > stock) {
-                showToast(`Stok hanya ${stock}`, true);
-                return;
-            }
-            
-            const size = opt.dataset.size;
-            const type = opt.dataset.type;
-            const varKey = select.value;
-            const existingIdx = cart.findIndex(i => i.variationKey === varKey);
-            if(existingIdx !== -1) {
-                const newQty = cart[existingIdx].qty + qty;
-                if(newQty > stock) {
-                    showToast(`Stok tidak cukup`, true);
-                    return;
-                }
-                cart[existingIdx].qty = newQty;
-            } else {
-                cart.push({
-                    id: p.id,
-                    name: p.name,
-                    size: size,
-                    type: type,
-                    price: price,
-                    qty: qty,
-                    variationKey: varKey,
-                    prodId: p.id
-                });
-            }
-            saveCart();
-            updateCartUI();
-            showToast('Item ditambah ke troli');
+ addBtn.addEventListener('click', () => {
+    if (addBtn.disabled) {
+        showToast('Produk ini tidak tersedia untuk pesanan sekarang', true);
+        return;
+    }
+    
+    if(!currentUser) {
+        showToast('Sila log masuk', true);
+        showLoginModal();
+        return;
+    }
+    
+    let qty = parseInt(qtyInp.value);
+    if(isNaN(qty) || qty <= 0) {
+        showToast('Sila masukkan kuantiti', true);
+        return;
+    }
+    
+    const opt = select.options[select.selectedIndex];
+    const price = parseFloat(opt.dataset.price);
+    const stock = parseInt(opt.dataset.stock);
+    const readyStock = parseInt(opt.dataset.readystock);
+    
+    // ✅ SEMAKAN READYSTOCK HANYA UNTUK KATEGORI READYSTOCK
+    if (currentCategory === 'readystock' && readyStock === 0) {
+        showToast('Produk ini tidak tersedia untuk pesanan sekarang', true);
+        return;
+    }
+    
+    if(qty > stock) {
+        showToast(`Stok hanya ${stock}`, true);
+        return;
+    }
+    
+    const size = opt.dataset.size;
+    const type = opt.dataset.type;
+    const varKey = select.value;
+    const existingIdx = cart.findIndex(i => i.variationKey === varKey);
+    if(existingIdx !== -1) {
+        const newQty = cart[existingIdx].qty + qty;
+        if(newQty > stock) {
+            showToast(`Stok tidak cukup`, true);
+            return;
+        }
+        cart[existingIdx].qty = newQty;
+    } else {
+        cart.push({
+            id: p.id,
+            name: p.name,
+            size: size,
+            type: type,
+            price: price,
+            qty: qty,
+            variationKey: varKey,
+            prodId: p.id
         });
+    }
+    saveCart();
+    updateCartUI();
+    showToast('Item ditambah ke troli');
+});
     });
 }
 // ========== FUNGSI TAMBAHAN ==========
