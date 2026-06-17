@@ -1408,30 +1408,33 @@ document.getElementById('placeOrderBtn').addEventListener('click', async functio
         const grandTotal = subtotal + checkoutShippingCost;
         const shippingRegion = checkoutShippingCode === 'SM' ? 'Semenanjung Malaysia' : (checkoutShippingCode === 'SS' ? 'Sabah/Sarawak' : 'Singapura');
         
-        let orderId;
-        await runTransaction(db, async (transaction) => {
-            for(let item of cart) {
-                const invRef = doc(db, "inventory", item.variationKey);
-                const snap = await transaction.get(invRef);
-                let currentStock = snap.exists() ? snap.data().stock : 100;
-                if(currentStock < item.qty) throw new Error(`Stok ${item.name} tidak cukup`);
-                transaction.set(invRef, { stock: currentStock - item.qty, initialStock: snap.exists() ? snap.data().initialStock : 100 }, { merge: true });
-            }
-            orderId = `ORD-${Date.now()}`;
-            const orderRef = doc(db, "orders", orderId);
-            transaction.set(orderRef, {
-                orderId: orderId,
-                customer: { name, phone: currentUser.phone, address_line1: address, postcode, state },
-                items: cart.map(i => ({ prodName: i.name, size: i.size, type: i.type, qty: i.qty, price: i.price })),
-                totalAmount: grandTotal,
-                status: 'pending',
-                paymentMethod: payLater ? 'Bayar Kemudian' : 'Pindahan Bank',
-                bankName: payLater ? null : bankName,
-                receiptUrl: receiptUrl,
-                shipping: { region: shippingRegion, cost: checkoutShippingCost },
-                createdAt: new Date().toISOString()
-            });
-        });
+       let orderId;
+await runTransaction(db, async (transaction) => {
+    // Baca semua inventory dalam satu batch
+    const invRefs = cart.map(item => doc(db, "inventory", item.variationKey));
+    const snapshots = await transaction.getAll(...invRefs);
+    for (let i = 0; i < cart.length; i++) {
+        const snap = snapshots[i];
+        const item = cart[i];
+        let currentStock = snap.exists() ? snap.data().stock : 100;
+        if (currentStock < item.qty) throw new Error(`Stok ${item.name} tidak cukup`);
+        transaction.set(invRefs[i], { stock: currentStock - item.qty, initialStock: snap.exists() ? snap.data().initialStock : 100 }, { merge: true });
+    }
+    orderId = `ORD-${Date.now()}`;
+    const orderRef = doc(db, "orders", orderId);
+    transaction.set(orderRef, {
+        orderId: orderId,
+        customer: { name, phone: currentUser.phone, address_line1: address, postcode, state },
+        items: cart.map(i => ({ prodName: i.name, size: i.size, type: i.type, qty: i.qty, price: i.price })),
+        totalAmount: grandTotal,
+        status: 'pending',
+        paymentMethod: payLater ? 'Bayar Kemudian' : 'Pindahan Bank',
+        bankName: payLater ? null : bankName,
+        receiptUrl: receiptUrl,
+        shipping: { region: shippingRegion, cost: checkoutShippingCost },
+        createdAt: new Date().toISOString()
+    });
+});
         
         const customerData = { name, phone: currentUser.phone, address_line1: address, postcode, state };
         await generateAndDownloadPDF(orderId, customerData, cart.map(i => ({ prodName: i.name, size: i.size, type: i.type, qty: i.qty, price: i.price })), grandTotal, checkoutShippingCost, shippingRegion, payLater ? "Bayar Kemudian" : "Pindahan Bank", payLater ? null : bankName);
