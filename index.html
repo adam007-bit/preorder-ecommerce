@@ -1196,15 +1196,50 @@ function checkUserSession() {
     else showLoginModal();
 }
 
-async function loadUserOrders() {
+// Untuk mengelakkan notifikasi berulang untuk pesanan yang sama
+let notifiedOrderIds = new Set();
+
+function loadUserOrders() {
     if(!currentUser) return;
+    
+    // Hentikan listener lama jika ada
+    if (window.orderUnsubscribe) {
+        window.orderUnsubscribe();
+    }
+    
     const q = query(collection(db, "orders"), where("customer.phone", "==", currentUser.phone));
-    const snap = await getDocs(q);
-    const orders = [];
-    snap.forEach(d => orders.push({ id: d.id, ...d.data() }));
-    orders.sort((a,b)=> new Date(b.createdAt) - new Date(a.createdAt));
+    window.orderUnsubscribe = onSnapshot(q, (snapshot) => {
+        const orders = [];
+        snapshot.forEach(doc => {
+            const orderData = { id: doc.id, ...doc.data() };
+            orders.push(orderData);
+            
+            // Semak jika pesanan baru selesai dengan tracking
+            if (orderData.status === 'completed' && orderData.trackingNumber) {
+                // Jika ID ini belum diberitahu
+                if (!notifiedOrderIds.has(orderData.id)) {
+                    notifiedOrderIds.add(orderData.id);
+                    showOrderCompletedNotification(orderData);
+                }
+            }
+        });
+        
+        orders.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+        renderUserOrders(orders);
+    }, (error) => {
+        console.error('Ralat mendengar pesanan:', error);
+        // Fallback: baca sekali
+        loadUserOrdersFallback();
+    });
+}
+
+// Fungsi untuk memaparkan senarai pesanan (dipisahkan untuk kebolehbacaan)
+function renderUserOrders(orders) {
     const container = document.getElementById('ordersListContainer');
-    if(!orders.length) { container.innerHTML = '<div class="text-center py-4">Tiada pesanan</div>'; return; }
+    if(!orders.length) { 
+        container.innerHTML = '<div class="text-center py-4">Tiada pesanan</div>'; 
+        return; 
+    }
     let html = '';
     orders.forEach(o => {
         let statusClass = o.status==='pending'?'status-pending':(o.status==='completed'?'status-completed':'status-cancelled');
@@ -1230,6 +1265,42 @@ async function loadUserOrders() {
     container.innerHTML = html;
 }
 
+// Fungsi untuk notifikasi pesanan selesai
+function showOrderCompletedNotification(order) {
+    // Gunakan toast yang sedia ada
+    const toast = document.getElementById('toastMsg');
+    toast.innerHTML = `📦 Pesanan ${order.orderId} telah dihantar!<br>📮 Tracking: ${order.trackingNumber}`;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 8000);
+    
+    // Bunyi notifikasi (pilihan)
+    try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.frequency.value = 1200;
+        osc.type = 'sine';
+        gain.gain.value = 0.2;
+        osc.start();
+        setTimeout(() => { osc.stop(); }, 150);
+    } catch(e) {}
+    
+    // Jika anda mahu popup alert, nyahkomen baris di bawah:
+    // alert(`📦 Pesanan ${order.orderId} telah dihantar!\nTracking: ${order.trackingNumber}`);
+}
+
+// Fallback jika onSnapshot gagal (contoh: tiada kebenaran)
+async function loadUserOrdersFallback() {
+    if(!currentUser) return;
+    const q = query(collection(db, "orders"), where("customer.phone", "==", currentUser.phone));
+    const snap = await getDocs(q);
+    const orders = [];
+    snap.forEach(d => orders.push({ id: d.id, ...d.data() }));
+    orders.sort((a,b)=> new Date(b.createdAt) - new Date(a.createdAt));
+    renderUserOrders(orders);
+}
 async function showCheckoutModal() {
     if(!currentUser) { showToast('Sila log masuk', true); showLoginModal(); return; }
     if(!cart.length) { showToast('Keranjang kosong', true); return; }
