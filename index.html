@@ -1331,43 +1331,61 @@ async function showCheckoutModal() {
     new bootstrap.Modal(document.getElementById('checkoutModal')).show();
 }
 
-document.getElementById('placeOrderBtn').addEventListener('click', async () => {
-    const name = document.getElementById('checkoutName').value.trim();
-    const address = document.getElementById('checkoutAddress').value.trim();
-    const postcode = document.getElementById('checkoutPostcode').value.trim();
-    const state = document.getElementById('checkoutState').value.trim();
-    const payLater = document.getElementById('payLaterCheckbox').checked;
-    const receiptFile = document.getElementById('checkoutReceipt').files[0];
-    const bankName = document.getElementById('bankName').value.trim() || "Tiada";
-    if(!name || !address || !postcode || !state) { showToast('Sila lengkapkan alamat', true); return; }
-    if(!payLater && !receiptFile) { showToast('Sila muat naik resit atau pilih Bayar Kemudian', true); return; }
-    let receiptUrl = null;
-    const progressDiv = document.getElementById('checkoutProgress');
-    if(!payLater && receiptFile) {
-        progressDiv.style.display = 'block';
-        const fileSizeKB = (receiptFile.size / 1024).toFixed(0);
-        progressDiv.innerHTML = `🖼️ Memampatkan (${fileSizeKB}KB → ...)`;
-        let compressedFile;
-        try {
-            compressedFile = await compressImage(receiptFile, 800, 0.5);
-            const compressedKB = (compressedFile.size / 1024).toFixed(0);
-            progressDiv.innerHTML = `⬆️ Memuat naik (${compressedKB}KB) ke ImgBB...`;
-            receiptUrl = await uploadReceiptToImgBB(compressedFile);
-            progressDiv.innerHTML = '✅ Resit berjaya!';
-            setTimeout(() => progressDiv.style.display = 'none', 2000);
-        } catch(err) {
-            progressDiv.style.display = 'none';
-            showToast('Gagal muat naik resit: ' + err.message, true);
-            return;
-        }
-    }
-    const userRef = doc(db, "users", currentUser.phone);
-    await setDoc(userRef, { name, address, postcode, state }, { merge: true });
-    currentUser.name = name;
-    const subtotal = cart.reduce((s,i) => s + i.price * i.qty, 0);
-    const grandTotal = subtotal + checkoutShippingCost;
-    const shippingRegion = checkoutShippingCode === 'SM' ? 'Semenanjung Malaysia' : (checkoutShippingCode === 'SS' ? 'Sabah/Sarawak' : 'Singapura');
+document.getElementById('placeOrderBtn').addEventListener('click', async function(e) {
+    // Cegah double-click
+    if (this.disabled) return;
+    
+    // Disable butang dan tunjuk loading
+    this.disabled = true;
+    this.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memproses...';
+    
     try {
+        const name = document.getElementById('checkoutName').value.trim();
+        const address = document.getElementById('checkoutAddress').value.trim();
+        const postcode = document.getElementById('checkoutPostcode').value.trim();
+        const state = document.getElementById('checkoutState').value.trim();
+        const payLater = document.getElementById('payLaterCheckbox').checked;
+        const receiptFile = document.getElementById('checkoutReceipt').files[0];
+        const bankName = document.getElementById('bankName').value.trim() || "Tiada";
+        
+        if(!name || !address || !postcode || !state) { 
+            showToast('Sila lengkapkan alamat', true); 
+            return; 
+        }
+        if(!payLater && !receiptFile) { 
+            showToast('Sila muat naik resit atau pilih Bayar Kemudian', true); 
+            return; 
+        }
+        
+        let receiptUrl = null;
+        const progressDiv = document.getElementById('checkoutProgress');
+        if(!payLater && receiptFile) {
+            progressDiv.style.display = 'block';
+            const fileSizeKB = (receiptFile.size / 1024).toFixed(0);
+            progressDiv.innerHTML = `🖼️ Memampatkan (${fileSizeKB}KB → ...)`;
+            let compressedFile;
+            try {
+                compressedFile = await compressImage(receiptFile, 800, 0.5);
+                const compressedKB = (compressedFile.size / 1024).toFixed(0);
+                progressDiv.innerHTML = `⬆️ Memuat naik (${compressedKB}KB) ke ImgBB...`;
+                receiptUrl = await uploadReceiptToImgBB(compressedFile);
+                progressDiv.innerHTML = '✅ Resit berjaya!';
+                setTimeout(() => progressDiv.style.display = 'none', 2000);
+            } catch(err) {
+                progressDiv.style.display = 'none';
+                showToast('Gagal muat naik resit: ' + err.message, true);
+                return;
+            }
+        }
+        
+        const userRef = doc(db, "users", currentUser.phone);
+        await setDoc(userRef, { name, address, postcode, state }, { merge: true });
+        currentUser.name = name;
+        
+        const subtotal = cart.reduce((s,i) => s + i.price * i.qty, 0);
+        const grandTotal = subtotal + checkoutShippingCost;
+        const shippingRegion = checkoutShippingCode === 'SM' ? 'Semenanjung Malaysia' : (checkoutShippingCode === 'SS' ? 'Sabah/Sarawak' : 'Singapura');
+        
         let orderId;
         await runTransaction(db, async (transaction) => {
             for(let item of cart) {
@@ -1392,8 +1410,10 @@ document.getElementById('placeOrderBtn').addEventListener('click', async () => {
                 createdAt: new Date().toISOString()
             });
         });
+        
         const customerData = { name, phone: currentUser.phone, address_line1: address, postcode, state };
         await generateAndDownloadPDF(orderId, customerData, cart.map(i => ({ prodName: i.name, size: i.size, type: i.type, qty: i.qty, price: i.price })), grandTotal, checkoutShippingCost, shippingRegion, payLater ? "Bayar Kemudian" : "Pindahan Bank", payLater ? null : bankName);
+        
         cart = [];
         saveCart();
         updateCartUI();
@@ -1401,11 +1421,15 @@ document.getElementById('placeOrderBtn').addEventListener('click', async () => {
         bootstrap.Modal.getInstance(document.getElementById('checkoutModal')).hide();
         document.querySelector('.tab-link[data-tab="orders"]').click();
         loadUserOrders();
+        
     } catch(err) {
         showToast('Ralat: ' + err.message, true);
+    } finally {
+        // Pastikan butang kembali ke keadaan asal
+        this.disabled = false;
+        this.innerHTML = 'Place Order <i class="fa-solid fa-check-circle"></i>';
     }
 });
-
 document.querySelectorAll('.tab-link').forEach(link => {
     link.addEventListener('click', () => {
         document.querySelectorAll('.tab-link').forEach(l => l.classList.remove('active'));
