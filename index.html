@@ -835,25 +835,27 @@ function filterProducts(products, category) {
     if(category === 'oral') return products.filter(p => getProductCategory(p) === 'oral');
     if(category === 'readystock') {
         let filtered = products.filter(p => {
-            const hasStock = p.variations?.some(v => (stockMap.get(getVariationKey(p.id, v.size, v.type))?.stock ?? 100) > 0);
+            // Semak jika ada variasi yang STOK > 0 DAN readyStock > 0
+            const hasStock = p.variations?.some(v => {
+                const inv = stockMap.get(getVariationKey(p.id, v.size, v.type));
+                return (inv?.stock ?? 100) > 0 && (inv?.readyStock ?? 0) > 0;
+            });
             if (!hasStock) return false;
             const hasKit = p.variations?.some(v => v.type && v.type.toLowerCase().includes('kit'));
             return !hasKit;
         });
 
         // ==== SUSUNAN KHUSUS UNTUK READY STOCK ====
-        // Letakkan Retatrutide dan GHK-CU di atas
-        const priorityNames = ['retatrutide', 'ghk-cu']; // huruf kecil untuk perbandingan
+        const priorityNames = ['retatrutide', 'ghk-cu'];
         filtered.sort((a, b) => {
             const aName = a.name.toLowerCase();
             const bName = b.name.toLowerCase();
             const aPriority = priorityNames.indexOf(aName);
             const bPriority = priorityNames.indexOf(bName);
-            // Jika kedua-dua tiada priority, kekalkan susunan asal (0)
             if (aPriority === -1 && bPriority === -1) return 0;
-            if (aPriority === -1) return 1;  // a tiada priority -> letak belakang
-            if (bPriority === -1) return -1; // b tiada priority -> a di depan
-            return aPriority - bPriority;    // ikut urutan dalam priorityNames
+            if (aPriority === -1) return 1;
+            if (bPriority === -1) return -1;
+            return aPriority - bPriority;
         });
         return filtered;
     }
@@ -866,13 +868,15 @@ function listenStockUpdates() {
     stockUnsubscribe = onSnapshot(collection(db, "inventory"), (snapshot) => {
         stockMap.clear();
         snapshot.forEach(doc => {
-            stockMap.set(doc.id, doc.data());
+            stockMap.set(doc.id, {
+                stock: doc.data().stock,
+                initialStock: doc.data().initialStock,
+                readyStock: doc.data().readyStock || 0
+            });
         });
         renderProducts(filterProducts(allProducts, currentCategory));
-        // Optional: showToast("Stok dikemas kini", false);
     });
 }
-
 async function fetchAndRenderProducts() {
     try {
         const prodSnap = await getDocs(collection(db, "products"));
@@ -886,21 +890,24 @@ async function fetchAndRenderProducts() {
         }
         // Baca stok awal
         const invSnap = await getDocs(collection(db, "inventory"));
-        stockMap.clear();
-        invSnap.forEach(d => stockMap.set(d.id, d.data()));
-        // Mulakan listener untuk kemaskini stok secara langsung
-        listenStockUpdates();
-        
-        for (const prod of allProducts) {
-            if (prod.variations) {
-                for (const v of prod.variations) {
-                    const key = getVariationKey(prod.id, v.size, v.type);
-                    if (!stockMap.has(key)) {
-                        stockMap.set(key, { stock: prod.stock || 100, initialStock: prod.stock || 100 });
-                    }
-                }
+stockMap.clear();
+invSnap.forEach(d => stockMap.set(d.id, d.data()));
+listenStockUpdates();
+
+for (const prod of allProducts) {
+    if (prod.variations) {
+        for (const v of prod.variations) {
+            const key = getVariationKey(prod.id, v.size, v.type);
+            if (!stockMap.has(key)) {
+                stockMap.set(key, { 
+                    stock: prod.stock || 100, 
+                    initialStock: prod.stock || 100,
+                    readyStock: 0
+                });
             }
         }
+    }
+}
         renderProducts(filterProducts(allProducts, currentCategory));
         setupCategoryFilters();
     } catch(e) { console.error(e); }
@@ -961,49 +968,49 @@ function renderProducts(products) {
     const container = document.getElementById('product-list');
     container.innerHTML = '';
     if(!products.length) { container.innerHTML = '<div class="text-center py-4">Tiada produk</div>'; return; }
-   // Peta harga khusus untuk produk tertentu di Ready Stock
-// Format: "Nama Produk_Saiz_Jenis" => Harga
-const customReadyStockPrices = {
-    "Bac Water_3ml_Vial": 5,
-    "Bac Water_10ml_Vial": 6,
-    "USP Bac Water_10ml_Vial": 12,
-    "Acetic Acid_10ml_Vial": 6,
-    "Sterilized Water_10ml_Vial": 6,
-    "GHK-Cu_50mg_Vial": 30
-};
 
-// Harga tambahan untuk produk lain (default)
-const readyStockExtra = 20;
+    const customReadyStockPrices = {
+        "Bac Water_3ml_Vial": 5,
+        "Bac Water_10ml_Vial": 6,
+        "USP Bac Water_10ml_Vial": 12,
+        "Acetic Acid_10ml_Vial": 6,
+        "Sterilized Water_10ml_Vial": 6,
+        "GHK-Cu_50mg_Vial": 30
+    };
+    const readyStockExtra = 20;
 
-     products.forEach(p => {
+    products.forEach(p => {
         if(!p.variations?.length) return;
         let options = '';
-        let defaultPrice = 0, defaultStock = 0, defaultSize = '', defaultType = '';
+        let defaultPrice = 0, defaultStock = 0, defaultSize = '', defaultType = '', defaultReadyStock = 0;
+        
         p.variations.forEach(v => {
-           
             const key = getVariationKey(p.id, v.size, v.type);
-            const stock = stockMap.get(key)?.stock ?? 100;
+            const invData = stockMap.get(key) || { stock: 100, readyStock: 0 };
+            const stock = invData.stock ?? 100;
+            const readyStock = invData.readyStock ?? 0;
 
-            // 🔥 HANYA READY STOCK dapat tambahan RM20
-           let displayPrice = v.price;
-if (currentCategory === 'readystock') {
-    // Cek jika ada harga khusus untuk produk ini
-    const key = p.name + "_" + v.size + "_" + v.type;
-    if (customReadyStockPrices.hasOwnProperty(key)) {
-        displayPrice = customReadyStockPrices[key];
-    } else {
-        displayPrice = v.price + readyStockExtra; // default +20
-    }
-}
+            let displayPrice = v.price;
+            if (currentCategory === 'readystock') {
+                const customKey = p.name + "_" + v.size + "_" + v.type;
+                if (customReadyStockPrices.hasOwnProperty(customKey)) {
+                    displayPrice = customReadyStockPrices[customKey];
+                } else {
+                    displayPrice = v.price + readyStockExtra;
+                }
+            }
 
-            options += `<option value="${key}" data-price="${displayPrice}" data-stock="${stock}" data-size="${v.size}" data-type="${v.type}">${v.size} - ${v.type} (RM ${displayPrice.toFixed(2)})</option>`;
+            // Tambah attribute data-readystock dan label jika readyStock = 0
+            const label = readyStock === 0 ? ' - Pre-order/Habis' : '';
+            options += `<option value="${key}" data-price="${displayPrice}" data-stock="${stock}" data-size="${v.size}" data-type="${v.type}" data-readystock="${readyStock}">${v.size} - ${v.type} (RM ${displayPrice.toFixed(2)})${label}</option>`;
 
             if(!defaultPrice) { 
-    defaultPrice = v.price; 
-    defaultStock = stock;
-    defaultSize = v.size;
-    defaultType = v.type;
-}
+                defaultPrice = v.price; 
+                defaultStock = stock;
+                defaultSize = v.size;
+                defaultType = v.type;
+                defaultReadyStock = readyStock;
+            }
         });
 
         let badge = '';
@@ -1014,16 +1021,18 @@ if (currentCategory === 'readystock') {
         else if (cat === 'oral') badge = 'Oral Peptides';
         else badge = 'Peptides';
 
-        // 🔥 HANYA READY STOCK dapat tambahan RM20 untuk paparan
-       let displayDefaultPrice = defaultPrice;
-if (currentCategory === 'readystock') {
-    const key = p.name + "_" + defaultSize + "_" + defaultType;
-    if (customReadyStockPrices.hasOwnProperty(key)) {
-        displayDefaultPrice = customReadyStockPrices[key];
-    } else {
-        displayDefaultPrice = defaultPrice + readyStockExtra;
-    }
-}
+        let displayDefaultPrice = defaultPrice;
+        if (currentCategory === 'readystock') {
+            const key = p.name + "_" + defaultSize + "_" + defaultType;
+            if (customReadyStockPrices.hasOwnProperty(key)) {
+                displayDefaultPrice = customReadyStockPrices[key];
+            } else {
+                displayDefaultPrice = defaultPrice + readyStockExtra;
+            }
+        }
+
+        // Tentukan status stok untuk default
+        const defaultStockDisplay = defaultReadyStock === 0 ? 'Pre-order / Habis' : `Stok: ${defaultStock}`;
 
         const card = document.createElement('div');
         card.className = 'col-12';
@@ -1033,10 +1042,10 @@ if (currentCategory === 'readystock') {
                 <div><h6 class="fw-bold d-inline">${escapeHtml(p.name)}</h6><i class="fa-regular fa-circle-question protocol-icon ms-2" data-product="${escapeHtml(p.name)}" title="Klik untuk lihat protocol dose"></i></div>
                 <div class="row g-2 align-items-end mt-2">
                     <div class="col-7"><label class="small fw-bold">Pilih Jenis</label><select class="form-select form-select-sm product-select" data-id="${p.id}">${options}</select></div>
-                    <div class="col-3"><label class="small fw-bold">Kuantiti</label><input type="number" class="form-control form-control-sm product-qty" value="0" min="0" max="${defaultStock}" step="1"></div>
-                    <div class="col-2 text-end"><div class="product-price fw-bold text-success">RM ${displayDefaultPrice.toFixed(2)}</div><small class="stock-info text-muted">Stok: ${defaultStock}</small></div>
+                    <div class="col-3"><label class="small fw-bold">Kuantiti</label><input type="number" class="form-control form-control-sm product-qty" value="0" min="0" max="${defaultReadyStock === 0 ? 0 : defaultStock}" step="1" ${defaultReadyStock === 0 ? 'disabled' : ''}></div>
+                    <div class="col-2 text-end"><div class="product-price fw-bold text-success">RM ${displayDefaultPrice.toFixed(2)}</div><small class="stock-info text-muted">${defaultStockDisplay}</small></div>
                 </div>
-                <button class="btn btn-sm btn-outline-success mt-2 w-100 add-to-cart"><i class="fa-solid fa-cart-plus"></i> <span class="lang-addtocart">Tambah ke troli saya</span></button>
+                <button class="btn btn-sm ${defaultReadyStock === 0 ? 'btn-secondary' : 'btn-outline-success'} mt-2 w-100 add-to-cart" ${defaultReadyStock === 0 ? 'disabled' : ''}><i class="fa-solid fa-cart-plus"></i> ${defaultReadyStock === 0 ? 'Tidak Tersedia' : 'Tambah ke troli saya'}</button>
             </div>
         `;
         container.appendChild(card);
@@ -1057,34 +1066,69 @@ if (currentCategory === 'readystock') {
         const stockSpan = card.querySelector('.stock-info');
         const addBtn = card.querySelector('.add-to-cart');
 
+        // Ubah apabila pilihan variasi berubah
         select.addEventListener('change', () => {
             const opt = select.options[select.selectedIndex];
             const price = parseFloat(opt.dataset.price);
             const stock = parseInt(opt.dataset.stock);
+            const readyStock = parseInt(opt.dataset.readystock);
+            
             priceSpan.innerText = `RM ${price.toFixed(2)}`;
-            stockSpan.innerText = `Stok: ${stock}`;
-            qtyInp.max = stock;
-            if(parseInt(qtyInp.value) > stock) qtyInp.value = stock;
+            
+            if (readyStock === 0) {
+                stockSpan.innerText = 'Pre-order / Habis';
+                qtyInp.disabled = true;
+                qtyInp.value = 0;
+                qtyInp.max = 0;
+                addBtn.disabled = true;
+                addBtn.className = 'btn btn-sm btn-secondary mt-2 w-100 add-to-cart';
+                addBtn.innerHTML = '<i class="fa-solid fa-ban"></i> Tidak Tersedia';
+            } else {
+                stockSpan.innerText = `Stok: ${stock}`;
+                qtyInp.disabled = false;
+                qtyInp.max = stock;
+                qtyInp.value = 0;
+                addBtn.disabled = false;
+                addBtn.className = 'btn btn-sm btn-outline-success mt-2 w-100 add-to-cart';
+                addBtn.innerHTML = '<i class="fa-solid fa-cart-plus"></i> Tambah ke troli saya';
+            }
         });
 
         addBtn.addEventListener('click', () => {
+            // Cek jika butang disabled
+            if (addBtn.disabled) {
+                showToast('Produk ini tidak tersedia untuk pesanan sekarang', true);
+                return;
+            }
+            
             if(!currentUser) {
                 showToast('Sila log masuk', true);
                 showLoginModal();
                 return;
             }
+            
             let qty = parseInt(qtyInp.value);
             if(isNaN(qty) || qty <= 0) {
                 showToast('Sila masukkan kuantiti', true);
                 return;
             }
+            
             const opt = select.options[select.selectedIndex];
             const price = parseFloat(opt.dataset.price);
             const stock = parseInt(opt.dataset.stock);
+            const readyStock = parseInt(opt.dataset.readystock);
+            
+            // Semak readyStock sekali lagi
+            if (readyStock === 0) {
+                showToast('Produk ini tidak tersedia untuk pesanan sekarang', true);
+                return;
+            }
+            
             if(qty > stock) {
                 showToast(`Stok hanya ${stock}`, true);
                 return;
             }
+            
             const size = opt.dataset.size;
             const type = opt.dataset.type;
             const varKey = select.value;
@@ -1102,7 +1146,7 @@ if (currentCategory === 'readystock') {
                     name: p.name,
                     size: size,
                     type: type,
-                    price: price,   // Harga sudah termasuk +RM20 jika di Ready Stock
+                    price: price,
                     qty: qty,
                     variationKey: varKey,
                     prodId: p.id
@@ -1110,7 +1154,7 @@ if (currentCategory === 'readystock') {
             }
             saveCart();
             updateCartUI();
-            showToast('Item ditambah ke keranjang');
+            showToast('Item ditambah ke troli');
         });
     });
 }
@@ -1326,7 +1370,7 @@ async function loadUserOrdersFallback() {
 }
 async function showCheckoutModal() {
     if(!currentUser) { showToast('Sila log masuk', true); showLoginModal(); return; }
-    if(!cart.length) { showToast('Keranjang kosong', true); return; }
+    if(!cart.length) { showToast('Troli kosong', true); return; }
     const userDoc = await getDoc(doc(db, "users", currentUser.phone));
     const userData = userDoc.exists() ? userDoc.data() : {};
     document.getElementById('checkoutName').value = currentUser.name || '';
@@ -1514,13 +1558,13 @@ const translations = {
         step1: "3 LANGKAH MUDAH", step_pilih: "1. Pilih Item", step_checkout: "2. Checkout", step_bayar: "3. Bayar & Upload",
         home: "Home", cart: "Cart", myorders: "My Orders",
         catalog: "Katalog Eksklusif Viral", all: "Semua", peptides: "Peptides", beauty: "Beauty Peptides", solvent: "Solvent", oral: "Oral Peptides", readystock: "Ready Stock", loading: "Memuatkan produk...",
-        carttitle: "Keranjang Saya", cartempty: "Keranjang kosong", totalitems: "Jumlah item:", totalprice: "Total (RM):", proceed: "Proceed to Checkout",
+        carttitle: "Troli Saya", cartempty: "Troli kosong", totalitems: "Jumlah item:", totalprice: "Total (RM):", proceed: "Proceed to Checkout",
         myorderstitle: "Pesanan Saya", noorders: "Tiada pesanan.",
         protocol: "PROTOCOL DOSE DATABASE", protocolnote: "Rujukan dos adalah daripada Peptide Protocol Portal.",
         checkouttitle: "Selesaikan Pesanan", fullname: "Nama Penuh", phone: "No. WhatsApp", address: "Alamat Lengkap", postcode: "Poskod", state: "Negeri",
         shippingarea: "Pilih Kawasan Penghantaran", payment: "PEMBAYARAN", paylater: "Bayar Kemudian (tanpa resit)", bankname: "Nama Bank Pengirim", receipt: "Resit Pembayaran (Gambar)", total: "TOTAL (Produk + Penghantaran)", cancel: "Batal", placeorder: "Place Order",
         login: "Log Masuk / Daftar", fullname_label: "Nama Penuh", phone_label: "Nombor WhatsApp / Telefon", loginbtn: "Log Masuk / Daftar", loginsuccess: "Log masuk berjaya!",
-        addtocart: "Tambah ke Keranjang"
+        addtocart: "Tambah ke Troli"
     },
     en: {
         step1: "3 EASY STEPS", step_pilih: "1. Select Item", step_checkout: "2. Checkout", step_bayar: "3. Pay & Upload",
