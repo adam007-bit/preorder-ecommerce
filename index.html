@@ -369,6 +369,18 @@
             <button class="cat-btn" data-cat="oral"><span class="lang-oral">Oral Peptides</span></button>
             <button class="cat-btn" data-cat="readystock"><span class="lang-readystock">Ready Stock</span></button>
         </div>
+        <!-- Search Bar -->
+<div class="search-bar my-3">
+    <div class="input-group">
+        <span class="input-group-text bg-white border-end-0">
+            <i class="fa-solid fa-search text-muted"></i>
+        </span>
+        <input type="text" id="productSearchInput" class="form-control border-start-0" placeholder="🔍 Cari produk... (cth: Retatrutide, BPC, GHK)">
+        <button class="btn btn-outline-secondary border-start-0" type="button" id="clearSearchBtn" style="border-radius: 0 14px 14px 0;">
+            <i class="fa-solid fa-times"></i>
+        </button>
+    </div>
+</div>
         <div id="product-list" class="row g-3">
             <div class="text-center py-5"><div class="spinner-border text-emerald"></div><p><span class="lang-loading">Memuatkan produk...</span></p></div>
         </div>
@@ -815,6 +827,7 @@ const additionalProducts = [
 let allProducts = [];
 let stockMap = new Map();
 let currentCategory = 'peptides';
+let searchTerm = '';
 let currentUser = null;
 let cart = [];
 let checkoutShippingCost = 10;
@@ -1175,11 +1188,37 @@ function setupCategoryFilters() {
             document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             currentCategory = btn.dataset.cat;
-            renderProducts(filterProducts(allProducts, currentCategory));
+            applyFilters(); // 👈 Guna fungsi baru
         });
     });
 }
+    // ========== CARIAN PRODUK ==========
+const searchInput = document.getElementById('productSearchInput');
+const clearBtn = document.getElementById('clearSearchBtn');
 
+searchInput.addEventListener('input', (e) => {
+    searchTerm = e.target.value;
+    applyFilters();
+});
+
+clearBtn.addEventListener('click', () => {
+    searchInput.value = '';
+    searchTerm = '';
+    applyFilters();
+});
+    // ========== FUNGSI TAPIS + CARIAN ==========
+function applyFilters() {
+    // Tapis mengikut kategori dahulu
+    let products = filterProducts(allProducts, currentCategory);
+    
+    // Kemudian tapis mengikut carian (jika ada)
+    if (searchTerm.trim() !== '') {
+        const term = searchTerm.trim().toLowerCase();
+        products = products.filter(p => p.name.toLowerCase().includes(term));
+    }
+    
+    renderProducts(products);
+}
 function saveCart() { localStorage.setItem('velxera_cart', JSON.stringify(cart)); }
 function loadCart() { const c = localStorage.getItem('velxera_cart'); if(c) cart = JSON.parse(c); else cart = []; updateCartUI(); }
 function updateCartUI() {
@@ -1649,7 +1688,7 @@ document.getElementById('langToggle').addEventListener('click', () => {
     setLanguage(currentLang);
 });
 
-fetchAndRenderProducts();
+fetchAndRapplyFilters(); 
 loadCart();
 checkUserSession();
 renderProtocolCards();
