@@ -1000,7 +1000,6 @@ function renderProducts(products) {
                 }
             }
 
-            // Tambah attribute data-readystock dan label jika readyStock = 0
             const label = readyStock === 0 ? ' - Pre-order/Habis' : '';
             options += `<option value="${key}" data-price="${displayPrice}" data-stock="${stock}" data-size="${v.size}" data-type="${v.type}" data-readystock="${readyStock}">${v.size} - ${v.type} (RM ${displayPrice.toFixed(2)})${label}</option>`;
 
@@ -1031,8 +1030,20 @@ function renderProducts(products) {
             }
         }
 
-        // Tentukan status stok untuk default
-        const defaultStockDisplay = defaultReadyStock === 0 ? 'Pre-order / Habis' : `Stok: ${defaultStock}`;
+        // ===== BETUL: Paparan stok dan butang =====
+        let defaultStockDisplay = `Stok: ${defaultStock}`;
+        if (currentCategory === 'readystock' && defaultReadyStock === 0) {
+            defaultStockDisplay = 'Pre-order / Habis';
+        }
+
+        let btnClass = 'btn-outline-success';
+        let btnDisabled = '';
+        let btnText = 'Tambah ke troli saya';
+        if (currentCategory === 'readystock' && defaultReadyStock === 0) {
+            btnClass = 'btn-secondary';
+            btnDisabled = 'disabled';
+            btnText = 'Tidak Tersedia';
+        }
 
         const card = document.createElement('div');
         card.className = 'col-12';
@@ -1042,10 +1053,10 @@ function renderProducts(products) {
                 <div><h6 class="fw-bold d-inline">${escapeHtml(p.name)}</h6><i class="fa-regular fa-circle-question protocol-icon ms-2" data-product="${escapeHtml(p.name)}" title="Klik untuk lihat protocol dose"></i></div>
                 <div class="row g-2 align-items-end mt-2">
                     <div class="col-7"><label class="small fw-bold">Pilih Jenis</label><select class="form-select form-select-sm product-select" data-id="${p.id}">${options}</select></div>
-                    <div class="col-3"><label class="small fw-bold">Kuantiti</label><input type="number" class="form-control form-control-sm product-qty" value="0" min="0" max="${defaultReadyStock === 0 ? 0 : defaultStock}" step="1" ${defaultReadyStock === 0 ? 'disabled' : ''}></div>
+                    <div class="col-3"><label class="small fw-bold">Kuantiti</label><input type="number" class="form-control form-control-sm product-qty" value="0" min="0" max="${defaultReadyStock === 0 && currentCategory === 'readystock' ? 0 : defaultStock}" step="1" ${defaultReadyStock === 0 && currentCategory === 'readystock' ? 'disabled' : ''}></div>
                     <div class="col-2 text-end"><div class="product-price fw-bold text-success">RM ${displayDefaultPrice.toFixed(2)}</div><small class="stock-info text-muted">${defaultStockDisplay}</small></div>
                 </div>
-                <button class="btn btn-sm ${defaultReadyStock === 0 ? 'btn-secondary' : 'btn-outline-success'} mt-2 w-100 add-to-cart" ${defaultReadyStock === 0 ? 'disabled' : ''}><i class="fa-solid fa-cart-plus"></i> ${defaultReadyStock === 0 ? 'Tidak Tersedia' : 'Tambah ke troli saya'}</button>
+                <button class="btn btn-sm ${btnClass} mt-2 w-100 add-to-cart" ${btnDisabled}><i class="fa-solid fa-cart-plus"></i> ${btnText}</button>
             </div>
         `;
         container.appendChild(card);
@@ -1075,7 +1086,7 @@ function renderProducts(products) {
             
             priceSpan.innerText = `RM ${price.toFixed(2)}`;
             
-            if (readyStock === 0) {
+            if (currentCategory === 'readystock' && readyStock === 0) {
                 stockSpan.innerText = 'Pre-order / Habis';
                 qtyInp.disabled = true;
                 qtyInp.value = 0;
@@ -1095,7 +1106,6 @@ function renderProducts(products) {
         });
 
         addBtn.addEventListener('click', () => {
-            // Cek jika butang disabled
             if (addBtn.disabled) {
                 showToast('Produk ini tidak tersedia untuk pesanan sekarang', true);
                 return;
@@ -1118,7 +1128,6 @@ function renderProducts(products) {
             const stock = parseInt(opt.dataset.stock);
             const readyStock = parseInt(opt.dataset.readystock);
             
-            // Semak readyStock sekali lagi
             if (readyStock === 0) {
                 showToast('Produk ini tidak tersedia untuk pesanan sekarang', true);
                 return;
@@ -1158,7 +1167,6 @@ function renderProducts(products) {
         });
     });
 }
-
 // ========== FUNGSI TAMBAHAN ==========
 function setupCategoryFilters() {
     document.querySelectorAll('.cat-btn').forEach(btn => {
