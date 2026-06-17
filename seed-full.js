@@ -184,7 +184,10 @@ const additionalProducts = [
   { id: "peptide_insulin", name: "Insulin", category: "peptides", description: "Insulin for injection.", variations: [{ size: "3ml", type: "Vial", price: 15 }], stock: 100 },
   { id: "peptide_lipo_c_focus", name: "Lipo C Focus", category: "peptides", description: "Fat burning focus.", variations: [{ size: "10ml", type: "Vial", price: 50 }], stock: 100 },
   { id: "peptide_lipo_mino_mix", name: "Lipo Mino Mix", category: "peptides", description: "Fat burning blend.", variations: [{ size: "10ml", type: "Vial", price: 50 }], stock: 100 },
-  { id: "peptide_lipo_c_booster", name: "Lipo C Booster", category: "peptides", description: "Fat burning booster.", variations: [{ size: "10ml", type: "Vial", price: 25 }], stock: 100 }
+  { id: "peptide_lipo_c_booster", name: "Lipo C Booster", category: "peptides", description: "Fat burning booster.", variations: [{ size: "10ml", type: "Vial", price: 25 }], stock: 100 },
+  { id: "peptide_slu_pp_322", name: "SLU-PP-322", category: "peptides", description: "SLU-PP-322 peptide.", variations: [{ size: "5mg", type: "Vial", price: 45 }], stock: 100 },
+    { id: "peptide_5amino_1mq", name: "5 Amino 1MQ", category: "peptides", description: "5 Amino 1MQ peptide.", variations: [{ size: "5mg", type: "Vial", price: 25 },{ size: "10mg", type: "Vial", price: 35 },{ size: "50mg", type: "Vial", price: 65 }], stock: 100 },
+    { id: "peptide_kpv", name: "KPV", category: "peptides", description: "KPV peptide.", variations: [{ size: "5mg", type: "Vial", price: 25 },{ size: "10mg", type: "Vial", price: 30 }], stock: 100 }
 ];
 
 // Gabungkan semua produk
