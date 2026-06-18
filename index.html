@@ -471,12 +471,49 @@
         </div>
     </div>
 </div>
-
+<!-- Modal Tambah Item ke Pesanan -->
+<div class="modal fade" id="addItemModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content rounded-4">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-plus-circle text-success"></i> Tambah Item ke Pesanan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">Pilih Produk</label>
+                    <select id="addItemProductSelect" class="form-select">
+                        <option value="">-- Pilih --</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">Variasi</label>
+                    <select id="addItemVariationSelect" class="form-select">
+                        <option value="">-- Pilih variasi --</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">Kuantiti</label>
+                    <input type="number" id="addItemQty" class="form-control" value="1" min="1">
+                </div>
+                <div class="alert alert-info small">
+                    <i class="fa-solid fa-truck-fast"></i> <strong>Kos penghantaran tidak dikenakan</strong> – hanya tambah item ke pesanan sedia ada.
+                </div>
+                <div id="addItemProgress" style="display:none;" class="text-success small">⏳ Memproses...</div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button id="confirmAddItemBtn" class="btn btn-success">Tambah ke Pesanan</button>
+            </div>
+        </div>
+    </div>
+</div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
 import { getFirestore, collection, doc, getDocs, setDoc, updateDoc, query, where, getDoc, runTransaction, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
-
+let selectedOrderId = null;
+let selectedOrderData = null;
 
 
 const firebaseConfig = {
@@ -1400,6 +1437,13 @@ function renderUserOrders(orders) {
         let statusText = o.status==='pending'?'Pending':(o.status==='completed'?'Selesai':'Dibatalkan');
         let itemsHtml = o.items.map(it => `<li class="small">${it.prodName} (${it.size} - ${it.type}) x${it.qty} = RM${(it.price*it.qty).toFixed(2)}</li>`).join('');
         let trackingHtml = o.trackingNumber ? `<div class="mt-1 small"><strong>Tracking:</strong> ${o.trackingNumber}</div>` : '';
+        
+        // 👇 TAMBAH BUTANG TAMBAH ITEM (hanya untuk pending)
+        let addBtnHtml = '';
+        if (o.status === 'pending') {
+            addBtnHtml = `<button class="btn btn-sm btn-outline-success add-item-btn" data-orderid="${o.id}"><i class="fa-solid fa-plus"></i> Tambah Item</button>`;
+        }
+        
         html += `
             <div class="order-card">
                 <div class="order-header d-flex justify-content-between">
@@ -1412,13 +1456,160 @@ function renderUserOrders(orders) {
                     <div><strong>Item:</strong></div>
                     <ul class="mb-2">${itemsHtml}</ul>
                     ${trackingHtml}
+                    <div class="mt-2">
+                        ${addBtnHtml}
+                    </div>
                 </div>
             </div>
         `;
     });
     container.innerHTML = html;
+    
+    // Event listener untuk butang "Tambah Item"
+    document.querySelectorAll('.add-item-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const orderId = this.dataset.orderid;
+            const order = orders.find(o => o.id === orderId);
+            if (order) {
+                openAddItemModal(orderId, order);
+            }
+        });
+    });
 }
 
+function openAddItemModal(orderId, orderData) {
+    selectedOrderId = orderId;
+    selectedOrderData = orderData;
+    
+    const productSelect = document.getElementById('addItemProductSelect');
+    productSelect.innerHTML = '<option value="">-- Pilih --</option>';
+    
+    allProducts.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = p.name + ' (' + getProductCategory(p) + ')';
+        productSelect.appendChild(opt);
+    });
+    
+    document.getElementById('addItemVariationSelect').innerHTML = '<option value="">-- Pilih variasi --</option>';
+    document.getElementById('addItemQty').value = 1;
+    document.getElementById('addItemProgress').style.display = 'none';
+    
+    productSelect.addEventListener('change', function() {
+        const prodId = this.value;
+        const varSelect = document.getElementById('addItemVariationSelect');
+        varSelect.innerHTML = '<option value="">-- Pilih variasi --</option>';
+        if (!prodId) return;
+        const product = allProducts.find(p => p.id === prodId);
+        if (!product || !product.variations) return;
+        
+        product.variations.forEach(v => {
+            const key = getVariationKey(product.id, v.size, v.type);
+            const invData = stockMap.get(key) || { stock: 0, readyStock: 0 };
+            const stock = invData.stock ?? 0;
+            const label = stock > 0 ? ` (Stok: ${stock})` : ' (Habis)';
+            const opt = document.createElement('option');
+            opt.value = key;
+            opt.dataset.price = v.price;
+            opt.dataset.stock = stock;
+            opt.dataset.size = v.size;
+            opt.dataset.type = v.type;
+            opt.dataset.prodid = product.id;
+            opt.dataset.prodname = product.name;
+            opt.textContent = `${v.size} - ${v.type} (RM${v.price})${label}`;
+            opt.disabled = stock <= 0;
+            varSelect.appendChild(opt);
+        });
+    });
+    
+    new bootstrap.Modal(document.getElementById('addItemModal')).show();
+}
+
+document.getElementById('confirmAddItemBtn').addEventListener('click', async function() {
+    if (this.disabled) return;
+    
+    const productSelect = document.getElementById('addItemProductSelect');
+    const varSelect = document.getElementById('addItemVariationSelect');
+    const qtyInput = document.getElementById('addItemQty');
+    const progressDiv = document.getElementById('addItemProgress');
+    
+    const prodId = productSelect.value;
+    const varKey = varSelect.value;
+    const qty = parseInt(qtyInput.value);
+    
+    if (!prodId || !varKey || !qty || qty < 1) {
+        showToast('Sila pilih produk, variasi dan kuantiti yang sah', true);
+        return;
+    }
+    
+    const opt = varSelect.options[varSelect.selectedIndex];
+    const price = parseFloat(opt.dataset.price);
+    const stock = parseInt(opt.dataset.stock);
+    const size = opt.dataset.size;
+    const type = opt.dataset.type;
+    const prodName = opt.dataset.prodname;
+    
+    if (qty > stock) {
+        showToast(`Stok tidak mencukupi. Stok: ${stock}`, true);
+        return;
+    }
+    
+    this.disabled = true;
+    progressDiv.style.display = 'block';
+    progressDiv.innerHTML = '⏳ Memproses...';
+    
+    try {
+        await runTransaction(db, async (transaction) => {
+            const orderRef = doc(db, "orders", selectedOrderId);
+            const orderSnap = await transaction.get(orderRef);
+            if (!orderSnap.exists()) throw new Error('Pesanan tidak dijumpai');
+            const orderData = orderSnap.data();
+            if (orderData.status !== 'pending') {
+                throw new Error('Pesanan sudah tidak aktif (selesai/dibatalkan)');
+            }
+            
+            const invRef = doc(db, "inventory", varKey);
+            const invSnap = await transaction.get(invRef);
+            let currentStock = invSnap.exists() ? invSnap.data().stock : 0;
+            if (currentStock < qty) {
+                throw new Error(`Stok ${prodName} tidak mencukupi`);
+            }
+            
+            transaction.set(invRef, {
+                stock: currentStock - qty,
+                initialStock: invSnap.exists() ? invSnap.data().initialStock : 100
+            }, { merge: true });
+            
+            const newItem = {
+                prodName: prodName,
+                size: size,
+                type: type,
+                qty: qty,
+                price: price
+            };
+            const updatedItems = [...orderData.items, newItem];
+            const newTotal = updatedItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            
+            transaction.update(orderRef, {
+                items: updatedItems,
+                totalAmount: newTotal,
+                updatedAt: new Date().toISOString()
+            });
+        });
+        
+        progressDiv.innerHTML = '✅ Berjaya!';
+        showToast('Item berjaya ditambah ke pesanan!');
+        bootstrap.Modal.getInstance(document.getElementById('addItemModal')).hide();
+        loadUserOrders();
+        
+    } catch (err) {
+        progressDiv.innerHTML = '❌ Gagal: ' + err.message;
+        showToast('Ralat: ' + err.message, true);
+    } finally {
+        this.disabled = false;
+        setTimeout(() => { progressDiv.style.display = 'none'; }, 2000);
+    }
+});
 // Fungsi untuk notifikasi pesanan selesai
 function showOrderCompletedNotification(order) {
     // Gunakan toast yang sedia ada
