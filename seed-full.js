@@ -188,7 +188,9 @@ const additionalProducts = [
   { id: "peptide_slu_pp_322", name: "SLU-PP-322", category: "peptides", description: "SLU-PP-322 peptide.", variations: [{ size: "5mg", type: "Vial", price: 45 }], stock: 100 },
     { id: "peptide_5amino_1mq", name: "5 Amino 1MQ", category: "peptides", description: "5 Amino 1MQ peptide.", variations: [{ size: "5mg", type: "Vial", price: 25 },{ size: "10mg", type: "Vial", price: 35 },{ size: "50mg", type: "Vial", price: 65 }], stock: 100 },
     { id: "peptide_kpv", name: "KPV", category: "peptides", description: "KPV peptide.", variations: [{ size: "5mg", type: "Vial", price: 25 },{ size: "10mg", type: "Vial", price: 30 }], stock: 100 },
-   { id: "peptide_bpc157", name: "BPC-157", category: "peptides", description: "Healing and repair peptide for tissue regeneration, gut health, and injury recovery.", variations: [{ size: "5mg", type: "Vial", price: 25 }, { size: "10mg", type: "Vial", price: 35 }], stock: 100 }
+   { id: "peptide_bpc157", name: "BPC-157", category: "peptides", description: "Healing and repair peptide for tissue regeneration, gut health, and injury recovery.", variations: [{ size: "5mg", type: "Vial", price: 25 }, { size: "10mg", type: "Vial", price: 35 }], stock: 100 },
+    { id: "peptide_larazotide", name: "Larazotide", category: "peptides", description: "Tight junction regulator for gut health and inflammation.", variations: [{ size: "10mg", type: "Vial", price: 40 }, { size: "50mg", type: "Vial", price: 60 }], stock: 100 },
+    { id: "peptide_eloralintide", name: "Eloralintide", category: "peptides", description: "GLP-1 receptor agonist for weight management.", variations: [{ size: "10mg", type: "Vial", price: 40 }, { size: "50mg", type: "Vial", price: 60 }], stock: 100 }
 ];
 
 // Gabungkan semua produk
