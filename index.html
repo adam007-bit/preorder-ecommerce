@@ -1372,7 +1372,7 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
     const userRef = doc(db, "users", phone);
     await setDoc(userRef, { name, phone }, { merge: true });
     currentUser = { name, phone };
-    sessionStorage.setItem('velxera_user', JSON.stringify(currentUser));
+    localStorage.setItem('velxera_user', JSON.stringify(currentUser));
     document.getElementById('loginStep1').style.display = 'none';
     document.getElementById('loginStep2').style.display = 'block';
     setTimeout(() => {
@@ -1382,9 +1382,14 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
     }, 1000);
 });
 function checkUserSession() {
-    const saved = sessionStorage.getItem('velxera_user');
-    if(saved) { currentUser = JSON.parse(saved); loadUserOrders(); }
-    else showLoginModal();
+    const saved = localStorage.getItem('velxera_user');
+    if(saved) { 
+        currentUser = JSON.parse(saved); 
+        // Pastikan nama pengguna diisi ke borang checkout jika perlu
+        loadUserOrders(); 
+    } else {
+        showLoginModal();
+    }
 }
 
 // Untuk mengelakkan notifikasi berulang untuk pesanan yang sama
