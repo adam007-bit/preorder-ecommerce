@@ -608,7 +608,7 @@ async function uploadReceiptToCloudinary(file) {
         throw new Error(`Gagal muat naik ke Cloudinary: ${error.message}`);
     }
 }
-async function generateAndDownloadPDF(orderId, customer, items, totalAmount, shippingCost, shippingRegion, paymentMethod, bankName) {
+async function generateAndDownloadPDF(orderId, customer, items, totalAmount, shippingCost, shippingRegion, paymentMethod, bankName, stickerValue) {
     const invoiceDiv = document.getElementById('invoicePreview');
     const contentDiv = document.getElementById('invoiceContent');
     const subtotal = items.reduce((sum, i) => sum + (i.price * i.qty), 0);
@@ -629,7 +629,7 @@ async function generateAndDownloadPDF(orderId, customer, items, totalAmount, shi
         <table style="width:100%; border-collapse:collapse; margin:20px 0;"><thead><tr><th style="text-align:left;">Produk<\/th><th style="text-align:center;">Kuantiti<\/th><th style="text-align:right;">Harga Unit (RM)<\/th><th style="text-align:right;">Jumlah (RM)<\/th><\/tr><\/thead><tbody>${itemsHtml}<\/tbody><tfoot><tr><td colspan="3" style="text-align:right; padding-top:10px;"><strong>Subtotal:<\/strong><\/td><td style="text-align:right; padding-top:10px;">RM ${subtotal.toFixed(2)}<\/td><\/tr>
         <tr><td colspan="3" style="text-align:right;"><strong>Penghantaran (${shippingRegion}):<\/strong><\/td><td style="text-align:right;">RM ${shippingCost.toFixed(2)}<\/td><\/tr>
         <tr style="border-top:2px solid #10b981;"><td colspan="3" style="text-align:right;"><strong>TOTAL:<\/strong><\/td><td style="text-align:right;"><strong>RM ${totalAmount.toFixed(2)}<\/strong><\/td><\/tr><\/tfoot><\/table>
-        <div><strong>Kaedah Bayaran:<\/strong> ${paymentMethod}<br>${bankName && bankName !== "Tiada" ? `<strong>Bank Pengirim:<\/strong> ${bankName}<br>` : ''}<strong>Status:<\/strong> Pending (Menunggu pengesahan admin)<\/div>
+        <div><strong>Kaedah Bayaran:<\/strong> ${paymentMethod}<br>${bankName && bankName !== "Tiada" ? `<strong>Bank Pengirim:<\/strong> ${bankName}<br>` : ''}<strong>Sticker on vials?</strong> ${stickerValue || 'Yes'}<br><strong>Status:<\/strong> Pending (Menunggu pengesahan admin)<\/div>
     `;
     const { jsPDF } = window.jspdf;
     try {
@@ -1458,7 +1458,7 @@ function renderUserOrders(orders) {
         let statusText = o.status==='pending'?'Pending':(o.status==='completed'?'Selesai':'Dibatalkan');
         let itemsHtml = o.items.map(it => `<li class="small">${it.prodName} (${it.size} - ${it.type}) x${it.qty} = RM${(it.price*it.qty).toFixed(2)}</li>`).join('');
         let trackingHtml = o.trackingNumber ? `<div class="mt-1 small"><strong>Tracking:</strong> ${o.trackingNumber}</div>` : '';
-        
+        let stickerHtml = o.sticker ? `<div><strong>Sticker:</strong> ${o.sticker}</div>` : '';
         // 👇 TAMBAH BUTANG TAMBAH ITEM (hanya untuk pending)
         let addBtnHtml = '';
         if (o.status === 'pending') {
@@ -1477,6 +1477,7 @@ function renderUserOrders(orders) {
                     <div><strong>Item:</strong></div>
                     <ul class="mb-2">${itemsHtml}</ul>
                     ${trackingHtml}
+                    ${stickerHtml} 
                     <div class="mt-2">
                         ${addBtnHtml}
                     </div>
@@ -1695,12 +1696,8 @@ async function showCheckoutModal() {
     });
     new bootstrap.Modal(document.getElementById('checkoutModal')).show();
 }
-
 document.getElementById('placeOrderBtn').addEventListener('click', async function(e) {
-    // Cegah double-click
     if (this.disabled) return;
-    
-    // Disable butang dan tunjuk loading
     this.disabled = true;
     this.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memproses...';
     
@@ -1712,6 +1709,15 @@ document.getElementById('placeOrderBtn').addEventListener('click', async functio
         const payLater = document.getElementById('payLaterCheckbox').checked;
         const receiptFile = document.getElementById('checkoutReceipt').files[0];
         const bankName = document.getElementById('bankName').value.trim() || "Tiada";
+        
+        // Ambil nilai sticker
+        const stickerOption = document.querySelector('input[name="stickerOption"]:checked');
+        const stickerValue = stickerOption ? stickerOption.value : 'Yes';
+        
+        // Tentukan shipping region
+        const shippingRegion = checkoutShippingCode === 'SM' ? 'Semenanjung Malaysia' : 
+                               (checkoutShippingCode === 'SS' ? 'Sabah/Sarawak' : 
+                               (checkoutShippingCode === 'COD' ? 'Lalamove / COD' : 'Singapura'));
         
         if(!name || !address || !postcode || !state) { 
             showToast('Sila lengkapkan alamat', true); 
@@ -1732,7 +1738,7 @@ document.getElementById('placeOrderBtn').addEventListener('click', async functio
             try {
                 compressedFile = await compressImage(receiptFile, 800, 0.5);
                 const compressedKB = (compressedFile.size / 1024).toFixed(0);
-               progressDiv.innerHTML = `⬆️ Memuat naik (${compressedKB}KB) ke Cloudinary...`;
+                progressDiv.innerHTML = `⬆️ Memuat naik (${compressedKB}KB) ke Cloudinary...`;
                 receiptUrl = await uploadReceiptToCloudinary(compressedFile);
                 progressDiv.innerHTML = '✅ Resit berjaya!';
                 setTimeout(() => progressDiv.style.display = 'none', 2000);
@@ -1749,43 +1755,42 @@ document.getElementById('placeOrderBtn').addEventListener('click', async functio
         
         const subtotal = cart.reduce((s,i) => s + i.price * i.qty, 0);
         const grandTotal = subtotal + checkoutShippingCost;
-        const shippingRegion = checkoutShippingCode === 'SM' ? 'Semenanjung Malaysia' : (checkoutShippingCode === 'SS' ? 'Sabah/Sarawak' : 'Singapura');
         
-       let orderId;
-await runTransaction(db, async (transaction) => {
-    // Baca semua inventory dalam satu batch
-    const invRefs = cart.map(item => doc(db, "inventory", item.variationKey));
-    const snapshots = await Promise.all(
-    cart.map(item => transaction.get(doc(db, "inventory", item.variationKey)))
-);
-for (let i = 0; i < cart.length; i++) {
-    const snap = snapshots[i];
-    const item = cart[i];
-    let currentStock = snap.exists() ? snap.data().stock : 100;
-    if (currentStock < item.qty) throw new Error(`Stok ${item.name} tidak cukup`);
-    transaction.set(doc(db, "inventory", item.variationKey), { 
-        stock: currentStock - item.qty, 
-        initialStock: snap.exists() ? snap.data().initialStock : 100 
-    }, { merge: true });
-}
-    orderId = `ORD-${Date.now()}`;
-    const orderRef = doc(db, "orders", orderId);
-    transaction.set(orderRef, {
-        orderId: orderId,
-        customer: { name, phone: currentUser.phone, address_line1: address, postcode, state },
-        items: cart.map(i => ({ prodName: i.name, size: i.size, type: i.type, qty: i.qty, price: i.price })),
-        totalAmount: grandTotal,
-        status: 'pending',
-        paymentMethod: payLater ? 'Bayar Kemudian' : 'Pindahan Bank',
-        bankName: payLater ? null : bankName,
-        receiptUrl: receiptUrl,
-        shipping: { region: shippingRegion, cost: checkoutShippingCost },
-        createdAt: new Date().toISOString()
-    });
-});
+        let orderId;
+        await runTransaction(db, async (transaction) => {
+            const snapshots = await Promise.all(
+                cart.map(item => transaction.get(doc(db, "inventory", item.variationKey)))
+            );
+            for (let i = 0; i < cart.length; i++) {
+                const snap = snapshots[i];
+                const item = cart[i];
+                let currentStock = snap.exists() ? snap.data().stock : 100;
+                if (currentStock < item.qty) throw new Error(`Stok ${item.name} tidak cukup`);
+                transaction.set(doc(db, "inventory", item.variationKey), { 
+                    stock: currentStock - item.qty, 
+                    initialStock: snap.exists() ? snap.data().initialStock : 100 
+                }, { merge: true });
+            }
+            orderId = `ORD-${Date.now()}`;
+            const orderRef = doc(db, "orders", orderId);
+            transaction.set(orderRef, {
+                orderId: orderId,
+                customer: { name, phone: currentUser.phone, address_line1: address, postcode, state },
+                items: cart.map(i => ({ prodName: i.name, size: i.size, type: i.type, qty: i.qty, price: i.price })),
+                totalAmount: grandTotal,
+                status: 'pending',
+                paymentMethod: payLater ? 'Bayar Kemudian' : 'Pindahan Bank',
+                bankName: payLater ? null : bankName,
+                receiptUrl: receiptUrl,
+                shipping: { region: shippingRegion, cost: checkoutShippingCost },
+                sticker: stickerValue,  // 👈 SIMPAN STICKER KE FIRESTORE
+                createdAt: new Date().toISOString()
+            });
+        });
         
         const customerData = { name, phone: currentUser.phone, address_line1: address, postcode, state };
-        await generateAndDownloadPDF(orderId, customerData, cart.map(i => ({ prodName: i.name, size: i.size, type: i.type, qty: i.qty, price: i.price })), grandTotal, checkoutShippingCost, shippingRegion, payLater ? "Bayar Kemudian" : "Pindahan Bank", payLater ? null : bankName);
+        // 👇 HANTAR stickerValue ke PDF
+        await generateAndDownloadPDF(orderId, customerData, cart.map(i => ({ prodName: i.name, size: i.size, type: i.type, qty: i.qty, price: i.price })), grandTotal, checkoutShippingCost, shippingRegion, payLater ? "Bayar Kemudian" : "Pindahan Bank", payLater ? null : bankName, stickerValue);
         
         cart = [];
         saveCart();
@@ -1798,7 +1803,6 @@ for (let i = 0; i < cart.length; i++) {
     } catch(err) {
         showToast('Ralat: ' + err.message, true);
     } finally {
-        // Pastikan butang kembali ke keadaan asal
         this.disabled = false;
         this.innerHTML = 'Place Order <i class="fa-solid fa-check-circle"></i>';
     }
