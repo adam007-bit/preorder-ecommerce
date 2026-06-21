@@ -935,7 +935,41 @@ function getVariationKey(prodId, size, type) { return `${prodId}_${size}_${type}
 function getProductCategory(product) {
     return product.category || 'peptides';
 }
+// ========== FUNGSI KIRA PERUBAHAN STOK ==========
+function calculateInventoryChanges(oldItems, newItems) {
+    const oldMap = {};
+    oldItems.forEach(item => {
+        let key;
+        if (item.variationKey) {
+            key = item.variationKey;
+        } else {
+            // fallback: guna nama produk, saiz, jenis
+            key = getVariationKey(item.prodName || item.prodId, item.size, item.type);
+        }
+        oldMap[key] = (oldMap[key] || 0) + item.qty;
+    });
 
+    const newMap = {};
+    newItems.forEach(item => {
+        let key;
+        if (item.variationKey) {
+            key = item.variationKey;
+        } else {
+            key = getVariationKey(item.prodName || item.prodId, item.size, item.type);
+        }
+        newMap[key] = (newMap[key] || 0) + item.qty;
+    });
+
+    const changes = {};
+    const allKeys = new Set([...Object.keys(oldMap), ...Object.keys(newMap)]);
+    for (const key of allKeys) {
+        const oldQty = oldMap[key] || 0;
+        const newQty = newMap[key] || 0;
+        const diff = newQty - oldQty;
+        if (diff !== 0) changes[key] = diff;
+    }
+    return changes;
+}
 // ========== TAPIS KIT DI READY STOCK ==========
 function filterProducts(products, category) {
     let filtered = [];
@@ -1694,7 +1728,7 @@ let editOrderData = null;
 function openEditOrderModal(orderId, orderData) {
     editOrderId = orderId;
     editOrderData = orderData;
-    
+    editOrderData.originalItems = JSON.parse(JSON.stringify(orderData.items));
     // Isi dropdown produk untuk tambah item
     const productSelect = document.getElementById('editAddProductSelect');
     productSelect.innerHTML = '<option value="">-- Pilih Produk --</option>';
@@ -1918,9 +1952,9 @@ document.getElementById('saveEditOrderBtn').addEventListener('click', async func
                     throw new Error(`Stok tidak mencukupi untuk item (ID: ${key})`);
                 }
                 transaction.set(invRef, {
-                    stock: newStock,
-                    initialStock: invSnap.exists() ? invSnap.data().initialStock : 100
-                }, { merge: true });
+    stock: newStock,
+    initialStock: invSnap.exists() ? invSnap.data().initialStock : 100
+}, { merge: true });
             }
 
             // Kemas kini pesanan
@@ -2089,7 +2123,14 @@ document.getElementById('placeOrderBtn').addEventListener('click', async functio
             transaction.set(orderRef, {
                 orderId: orderId,
                 customer: { name, phone: currentUser.phone, address_line1: address, postcode, state },
-                items: cart.map(i => ({ prodName: i.name, size: i.size, type: i.type, qty: i.qty, price: i.price })),
+               items: cart.map(i => ({ 
+    prodName: i.name, 
+    size: i.size, 
+    type: i.type, 
+    qty: i.qty, 
+    price: i.price,
+    variationKey: i.variationKey   // <-- TAMBAH INI
+})),
                 totalAmount: grandTotal,
                 status: 'pending',
                 paymentMethod: payLater ? 'Bayar Kemudian' : 'Pindahan Bank',
