@@ -1173,12 +1173,17 @@ function renderProducts(products) {
                 }
             }
 
-            const label = readyStock === 0 ? ' - Pre-order/Habis' : '';
-            options += `<option value="${key}" data-price="${displayPrice}" data-stock="${stock}" data-size="${v.size}" data-type="${v.type}" data-readystock="${readyStock}">${v.size} - ${v.type} (RM ${displayPrice.toFixed(2)})${label}</option>`;
+            // ===== INI PERUBAHAN UTAMA =====
+            // Untuk kategori 'readystock', guna readyStock sebagai stok yang dipaparkan
+            // Untuk kategori lain, guna stock biasa
+            const displayStock = (currentCategory === 'readystock') ? readyStock : stock;
+            
+            const label = displayStock === 0 ? ' - Pre-order/Habis' : '';
+            options += `<option value="${key}" data-price="${displayPrice}" data-stock="${displayStock}" data-size="${v.size}" data-type="${v.type}" data-readystock="${readyStock}" data-regularstock="${stock}">${v.size} - ${v.type} (RM ${displayPrice.toFixed(2)})${label}</option>`;
 
             if(!defaultPrice) { 
                 defaultPrice = v.price; 
-                defaultStock = stock;
+                defaultStock = (currentCategory === 'readystock') ? readyStock : stock;
                 defaultSize = v.size;
                 defaultType = v.type;
                 defaultReadyStock = readyStock;
@@ -1203,12 +1208,10 @@ function renderProducts(products) {
             }
         }
 
-        // ===== BETUL: Paparan stok dan butang =====
-               // ===== PAPARAN STOK DAN BUTANG (GLOBAL - SEMUA KATEGORI) =====
+        // Paparan stok dan butang
         let defaultStockDisplay = `Stok: ${defaultStock}`;
-        let isOutOfStock = defaultStock <= 0;  // ✅ Semak stok global
+        let isOutOfStock = defaultStock <= 0;
 
-        // Untuk kategori Ready Stock, semak readyStock juga
         if (currentCategory === 'readystock') {
             if (defaultReadyStock === 0) {
                 defaultStockDisplay = 'Pre-order / Habis';
@@ -1254,13 +1257,12 @@ function renderProducts(products) {
             });
         }
 
-          const select = card.querySelector('.product-select');
+        const select = card.querySelector('.product-select');
         const qtyInp = card.querySelector('.product-qty');
         const priceSpan = card.querySelector('.product-price');
         const stockSpan = card.querySelector('.stock-info');
         const addBtn = card.querySelector('.add-to-cart');
 
-        // Ubah apabila pilihan variasi berubah
         select.addEventListener('change', () => {
             const opt = select.options[select.selectedIndex];
             const price = parseFloat(opt.dataset.price);
@@ -1269,7 +1271,6 @@ function renderProducts(products) {
             
             priceSpan.innerText = `RM ${price.toFixed(2)}`;
             
-            // Semak stok global
             let isStockOut = stock <= 0;
             if (currentCategory === 'readystock' && readyStock === 0) {
                 isStockOut = true;
@@ -1321,7 +1322,7 @@ function renderProducts(products) {
             const stock = parseInt(opt.dataset.stock);
             const readyStock = parseInt(opt.dataset.readystock);
             
-            // ✅ SEMAKAN READYSTOCK HANYA UNTUK KATEGORI READYSTOCK
+            // SEMAKAN READYSTOCK HANYA UNTUK KATEGORI READYSTOCK
             if (currentCategory === 'readystock' && readyStock === 0) {
                 showToast('Produk ini tidak tersedia untuk pesanan sekarang', true);
                 return;
@@ -1359,8 +1360,8 @@ function renderProducts(products) {
             updateCartUI();
             showToast('Item ditambah ke troli');
         });
-    });   // ← Penutup untuk products.forEach
-}   // ← Penutup untuk renderProducts
+    });
+}
 // ========== FUNGSI TAMBAHAN ==========
 function setupCategoryFilters() {
     document.querySelectorAll('.cat-btn').forEach(btn => {
