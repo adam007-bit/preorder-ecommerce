@@ -1173,9 +1173,7 @@ function renderProducts(products) {
                 }
             }
 
-            // ===== INI PERUBAHAN UTAMA =====
-            // Untuk kategori 'readystock', guna readyStock sebagai stok yang dipaparkan
-            // Untuk kategori lain, guna stock biasa
+            // ===== PERUBAHAN UTAMA =====
             const displayStock = (currentCategory === 'readystock') ? readyStock : stock;
             
             const label = displayStock === 0 ? ' - Pre-order/Habis' : '';
@@ -1208,7 +1206,6 @@ function renderProducts(products) {
             }
         }
 
-        // Paparan stok dan butang
         let defaultStockDisplay = `Stok: ${defaultStock}`;
         let isOutOfStock = defaultStock <= 0;
 
@@ -1247,7 +1244,7 @@ function renderProducts(products) {
         `;
         container.appendChild(card);
 
-        // Event listener untuk protocol icon
+        // Protocol icon
         const protocolIcon = card.querySelector('.protocol-icon');
         if(protocolIcon) {
             protocolIcon.addEventListener('click', (e) => {
@@ -1322,7 +1319,6 @@ function renderProducts(products) {
             const stock = parseInt(opt.dataset.stock);
             const readyStock = parseInt(opt.dataset.readystock);
             
-            // SEMAKAN READYSTOCK HANYA UNTUK KATEGORI READYSTOCK
             if (currentCategory === 'readystock' && readyStock === 0) {
                 showToast('Produk ini tidak tersedia untuk pesanan sekarang', true);
                 return;
