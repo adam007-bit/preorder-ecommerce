@@ -1543,12 +1543,13 @@ function renderUserOrders(orders) {
 
         // 👇 HANYA SATU SET BUTANG UNTUK PENDING
         let actionBtns = '';
-        if (o.status === 'pending') {
-            actionBtns = `
-                <button class="btn btn-sm btn-outline-success add-item-btn" data-orderid="${o.id}"><i class="fa-solid fa-plus"></i> Tambah Item</button>
-                <button class="btn btn-sm btn-outline-primary edit-order-btn" data-orderid="${o.id}"><i class="fa-solid fa-pen"></i> Edit Pesanan</button>
-            `;
-        }
+if (o.status === 'pending') {
+    actionBtns = `
+        <button class="btn btn-sm btn-outline-success add-item-btn" data-orderid="${o.id}"><i class="fa-solid fa-plus"></i> Tambah Item</button>
+        <button class="btn btn-sm btn-outline-primary edit-order-btn" data-orderid="${o.id}"><i class="fa-solid fa-pen"></i> Edit Pesanan</button>
+        <button class="btn btn-sm btn-outline-warning payment-order-btn" data-orderid="${o.id}"><i class="fa-solid fa-credit-card"></i> Bayar Sekarang</button>
+    `;
+}
 
         html += `
             <div class="order-card">
@@ -1589,6 +1590,14 @@ function renderUserOrders(orders) {
             if (order) openEditOrderModal(orderId, order);
         });
     });
+    // Event listener untuk butang Bayar Sekarang
+document.querySelectorAll('.payment-order-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const orderId = this.dataset.orderid;
+        const order = orders.find(o => o.id === orderId);
+        if (order) openPaymentForOrder(orderId, order);
+    });
+});
 }
 function openAddItemModal(orderId, orderData) {
     selectedOrderId = orderId;
@@ -2045,6 +2054,52 @@ async function showCheckoutModal() {
     });
     new bootstrap.Modal(document.getElementById('checkoutModal')).show();
 }
+    // ========== BAYAR PESANAN SEDIA ADA ==========
+let payingOrderId = null;
+
+async function openPaymentForOrder(orderId, orderData) {
+    if (!currentUser) {
+        showToast('Sila log masuk', true);
+        showLoginModal();
+        return;
+    }
+
+    payingOrderId = orderId;
+
+    // Isi borang checkout dengan maklumat pelanggan dari pesanan
+    document.getElementById('checkoutName').value = orderData.customer.name || currentUser.name;
+    document.getElementById('checkoutPhone').value = orderData.customer.phone || currentUser.phone;
+    document.getElementById('checkoutAddress').value = orderData.customer.address_line1 || '';
+    document.getElementById('checkoutPostcode').value = orderData.customer.postcode || '';
+    document.getElementById('checkoutState').value = orderData.customer.state || '';
+
+    // Kos penghantaran dari pesanan
+    const shippingCost = orderData.shipping?.cost || 0;
+    const shippingCode = orderData.shipping?.region || 'SM';
+    const shipDiv = document.getElementById('checkoutShipping');
+    shipDiv.querySelectorAll('.shipping-option').forEach(opt => {
+        opt.classList.remove('selected');
+        if (opt.dataset.code === shippingCode) {
+            opt.classList.add('selected');
+            checkoutShippingCode = shippingCode;
+            checkoutShippingCost = shippingCost;
+        }
+    });
+
+    // Kosongkan resit dan bank
+    document.getElementById('bankName').value = '';
+    document.getElementById('checkoutReceipt').value = '';
+    document.getElementById('payLaterCheckbox').checked = false;
+    document.getElementById('paymentFields').style.display = 'block';
+
+    // Kira jumlah dari item pesanan (termasuk item yang baru ditambah)
+    const subtotal = orderData.items.reduce((sum, item) => sum + (item.price * item.qty), 0);
+    const grandTotal = subtotal + shippingCost;
+    document.getElementById('checkoutTotal').innerText = `RM ${grandTotal.toFixed(2)}`;
+
+    // Tunjukkan modal
+    new bootstrap.Modal(document.getElementById('checkoutModal')).show();
+}
 document.getElementById('placeOrderBtn').addEventListener('click', async function(e) {
     if (this.disabled) return;
     this.disabled = true;
@@ -2077,28 +2132,59 @@ document.getElementById('placeOrderBtn').addEventListener('click', async functio
             return; 
         }
         
-        let receiptUrl = null;
-        const progressDiv = document.getElementById('checkoutProgress');
-        if(!payLater && receiptFile) {
-            progressDiv.style.display = 'block';
-            const fileSizeKB = (receiptFile.size / 1024).toFixed(0);
-            progressDiv.innerHTML = `🖼️ Memampatkan (${fileSizeKB}KB → ...)`;
-            let compressedFile;
-            try {
-                compressedFile = await compressImage(receiptFile, 800, 0.5);
-                const compressedKB = (compressedFile.size / 1024).toFixed(0);
-                progressDiv.innerHTML = `⬆️ Memuat naik (${compressedKB}KB) ke Cloudinary...`;
-                receiptUrl = await uploadReceiptToCloudinary(compressedFile);
-                progressDiv.innerHTML = '✅ Resit berjaya!';
-                setTimeout(() => progressDiv.style.display = 'none', 2000);
-            } catch(err) {
-                progressDiv.style.display = 'none';
-                showToast('Gagal muat naik resit: ' + err.message, true);
-                return;
-            }
-        }
-        
-        const userRef = doc(db, "users", currentUser.phone);
+       let receiptUrl = null;
+const progressDiv = document.getElementById('checkoutProgress');
+if(!payLater && receiptFile) {
+    progressDiv.style.display = 'block';
+    const fileSizeKB = (receiptFile.size / 1024).toFixed(0);
+    progressDiv.innerHTML = `🖼️ Memampatkan (${fileSizeKB}KB → ...)`;
+    let compressedFile;
+    try {
+        compressedFile = await compressImage(receiptFile, 800, 0.5);
+        const compressedKB = (compressedFile.size / 1024).toFixed(0);
+        progressDiv.innerHTML = `⬆️ Memuat naik (${compressedKB}KB) ke Cloudinary...`;
+        receiptUrl = await uploadReceiptToCloudinary(compressedFile);
+        progressDiv.innerHTML = '✅ Resit berjaya!';
+        setTimeout(() => progressDiv.style.display = 'none', 2000);
+    } catch(err) {
+        progressDiv.style.display = 'none';
+        showToast('Gagal muat naik resit: ' + err.message, true);
+        return;
+    }
+}
+
+// ===== JIKA INI BAYARAN UNTUK PESANAN SEDIA ADA =====
+if (payingOrderId) {
+    const orderRef = doc(db, "orders", payingOrderId);
+    const orderSnap = await getDoc(orderRef);
+    if (!orderSnap.exists()) {
+        throw new Error('Pesanan tidak dijumpai');
+    }
+    const orderData = orderSnap.data();
+
+    // Kemas kini pesanan dengan resit dan maklumat bayaran
+    const updateData = {
+        receiptUrl: receiptUrl,
+        paymentMethod: payLater ? 'Bayar Kemudian' : 'Pindahan Bank',
+        bankName: payLater ? null : bankName,
+        updatedAt: new Date().toISOString()
+    };
+    if (!orderData.sticker) {
+        updateData.sticker = stickerValue;
+    }
+    await updateDoc(orderRef, updateData);
+
+    showToast('✅ Resit berjaya dimuat naik! Admin akan proses.');
+    bootstrap.Modal.getInstance(document.getElementById('checkoutModal')).hide();
+    loadUserOrders(); // refresh senarai
+    payingOrderId = null; // reset
+    this.disabled = false;
+    this.innerHTML = 'Place Order <i class="fa-solid fa-check-circle"></i>';
+    return;
+}
+
+const userRef = doc(db, "users", currentUser.phone);
+// ... selebihnya kod untuk pesanan baru ...
         await setDoc(userRef, { name, address, postcode, state }, { merge: true });
         currentUser.name = name;
         
@@ -2304,6 +2390,9 @@ loadCart();
 checkUserSession();
 renderProtocolCards();
 setLanguage('ms');
+    document.getElementById('checkoutModal').addEventListener('hidden.bs.modal', function () {
+    payingOrderId = null;
+});
 </script>
 
 <!-- Service Worker untuk PWA -->
