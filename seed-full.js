@@ -57,6 +57,10 @@ const additionalProducts = [
   { id: "beauty_fiona_masker", name: "Fiona Masker", category: "beauty", description: "Facial mask.", variations: [{ size: "10mg", type: "Set", price: 15 }], stock: 100 },
   { id: "beauty_curenex_booster", name: "Curenex Daily Skincare Booster", category: "beauty", description: "Daily skincare booster for skin rejuvenation and hydration.", variations: [{ size: "1 set", type: "Booster", price: 50 }], stock: 100 },
   { id: "beauty_glutathione_factory", name: "Glutathione (Factory)", category: "beauty", description: "Glutathione injection for skin brightening and antioxidant support.", variations: [{ size: "600mg", type: "Vial", price: 10 }, { size: "15000mg", type: "Vial", price: 15 }], stock: 100 },
+  // ===== MARINE COLLAGEN =====
+{ id: "beauty_marine_collagen", name: "Marine Collagen", category: "beauty", description: "Marine collagen for skin elasticity and hydration.", variations: [{ size: "5ml", type: "Vial", price: 25 }], stock: 100 },
+// ===== EXOSOME PDRN =====
+{ id: "beauty_exosome_pdrn", name: "Exosome PDRN", category: "beauty", description: "Exosome PDRN for cellular regeneration and tissue repair.", variations: [{ size: "100mg", type: "Vial", price: 35 }], stock: 100 },
   
 // ===== PRODUK BEAUTY TAMBAHAN (dari senarai) =====
 { id: "beauty_gluthion_600mg_1vial", name: "Gluthion Injection - 600mg", category: "beauty", description: "Gluthion injection 600mg per vial.", variations: [{ size: "1 vial", type: "Vial", price: 16 }, { size: "10 vials", type: "Vial", price: 160 }], stock: 100 },
