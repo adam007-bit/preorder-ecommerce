@@ -1401,52 +1401,104 @@ function updateCartUI() {
     const totalItemsSpan = document.getElementById('cartTotalItems');
     const totalPriceSpan = document.getElementById('cartTotalPrice');
     const badge = document.getElementById('cartCountBadge');
+    
     if(!cart.length) {
         container.innerHTML = '<div class="text-center py-4">Troli kosong</div>';
         summary.style.display = 'none';
         badge.style.display = 'none';
         return;
     }
+    
+    // Pastikan setiap item ada property 'selected' (default true)
+    cart.forEach(item => {
+        if (item.selected === undefined) item.selected = true;
+    });
+    
     let totalQty = 0, totalPrice = 0;
     let html = '';
+    
+    // Select All checkbox
+    const allSelected = cart.every(item => item.selected);
+    html += `
+        <div class="d-flex align-items-center mb-2 p-2 bg-light rounded">
+            <input class="form-check-input me-2" type="checkbox" id="selectAllCheckbox" ${allSelected ? 'checked' : ''}>
+            <label class="form-check-label small fw-bold" for="selectAllCheckbox">Pilih Semua</label>
+        </div>
+    `;
+    
     cart.forEach((item, idx) => {
-        totalQty += item.qty;
-        totalPrice += item.price * item.qty;
+        const isSelected = item.selected !== false; // default true
+        if (isSelected) {
+            totalQty += item.qty;
+            totalPrice += item.price * item.qty;
+        }
         html += `
             <div class="cart-item d-flex justify-content-between align-items-center">
-                <div><strong>${escapeHtml(item.name)}</strong><br><small>${item.size} - ${item.type}</small><br><small class="text-success">RM ${item.price}</small></div>
-                <div><input type="number" class="form-control form-control-sm cart-qty" data-idx="${idx}" value="${item.qty}" min="1" max="100" style="width:70px;"></div>
-                <div>RM ${(item.price * item.qty).toFixed(2)}</div>
-                <button class="btn btn-sm btn-outline-danger remove-item" data-idx="${idx}"><i class="fa-regular fa-trash-can"></i></button>
+                <div class="d-flex align-items-center">
+                    <input class="form-check-input me-2 item-checkbox" type="checkbox" data-idx="${idx}" ${isSelected ? 'checked' : ''}>
+                    <div>
+                        <strong>${escapeHtml(item.name)}</strong><br>
+                        <small>${item.size} - ${item.type}</small><br>
+                        <small class="text-success">RM ${item.price}</small>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center">
+                    <input type="number" class="form-control form-control-sm cart-qty" data-idx="${idx}" value="${item.qty}" min="1" max="100" style="width:70px;">
+                    <div class="ms-2">RM ${(item.price * item.qty).toFixed(2)}</div>
+                    <button class="btn btn-sm btn-outline-danger remove-item ms-2" data-idx="${idx}"><i class="fa-regular fa-trash-can"></i></button>
+                </div>
             </div>
         `;
     });
     container.innerHTML = html;
+    
     summary.style.display = 'block';
     totalItemsSpan.innerText = totalQty;
     totalPriceSpan.innerText = totalPrice.toFixed(2);
-    badge.innerText = totalQty;
-    badge.style.display = totalQty ? 'inline-block' : 'none';
+    badge.innerText = cart.reduce((sum, i) => sum + i.qty, 0);
+    badge.style.display = cart.length ? 'inline-block' : 'none';
+    
+    // Event listeners
+    // Select All
+    document.getElementById('selectAllCheckbox')?.addEventListener('change', function() {
+        const checked = this.checked;
+        cart.forEach(item => item.selected = checked);
+        saveCart();
+        updateCartUI();
+    });
+    
+    // Individual checkboxes
+    document.querySelectorAll('.item-checkbox').forEach(cb => {
+        cb.addEventListener('change', function() {
+            const idx = parseInt(this.dataset.idx);
+            cart[idx].selected = this.checked;
+            saveCart();
+            updateCartUI();
+        });
+    });
+    
+    // Quantity change
     document.querySelectorAll('.cart-qty').forEach(inp => {
-        inp.addEventListener('change', (e) => {
-            const idx = parseInt(inp.dataset.idx);
-            let newQty = parseInt(inp.value);
+        inp.addEventListener('change', function() {
+            const idx = parseInt(this.dataset.idx);
+            let newQty = parseInt(this.value);
             if(isNaN(newQty) || newQty < 1) newQty = 1;
             cart[idx].qty = newQty;
             saveCart();
             updateCartUI();
         });
     });
+    
+    // Remove item
     document.querySelectorAll('.remove-item').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const idx = parseInt(btn.dataset.idx);
+        btn.addEventListener('click', function() {
+            const idx = parseInt(this.dataset.idx);
             cart.splice(idx, 1);
             saveCart();
             updateCartUI();
         });
     });
 }
-
 function showLoginModal() {
     document.getElementById('loginName').value = '';
     document.getElementById('loginPhone').value = '';
@@ -2029,7 +2081,12 @@ async function loadUserOrdersFallback() {
    
 async function showCheckoutModal() {
     if(!currentUser) { showToast('Sila log masuk', true); showLoginModal(); return; }
-    if(!cart.length) { showToast('Troli kosong', true); return; }
+    
+    // Tapis item yang dipilih sahaja
+    const selectedItems = cart.filter(item => item.selected !== false);
+    if(!selectedItems.length) { showToast('Tiada item dipilih', true); return; }
+    
+    // ... selebihnya sama, guna selectedItems sebagai ganti cart
     const userDoc = await getDoc(doc(db, "users", currentUser.phone));
     const userData = userDoc.exists() ? userDoc.data() : {};
     document.getElementById('checkoutName').value = currentUser.name || '';
@@ -2040,8 +2097,11 @@ async function showCheckoutModal() {
     document.getElementById('payLaterCheckbox').checked = false;
     document.getElementById('paymentFields').style.display = 'block';
     document.getElementById('checkoutReceipt').value = '';
-    const subtotal = cart.reduce((s,i) => s + i.price * i.qty, 0);
+    
+    const subtotal = selectedItems.reduce((s,i) => s + i.price * i.qty, 0);
     document.getElementById('checkoutTotal').innerText = `RM ${(subtotal + checkoutShippingCost).toFixed(2)}`;
+    
+    // ... shipping event listeners (sama)
     const shipDiv = document.getElementById('checkoutShipping');
     shipDiv.querySelectorAll('.shipping-option').forEach(opt => {
         opt.addEventListener('click', () => {
@@ -2049,10 +2109,11 @@ async function showCheckoutModal() {
             opt.classList.add('selected');
             checkoutShippingCode = opt.dataset.code;
             checkoutShippingCost = parseInt(opt.dataset.cost);
-            const newSub = cart.reduce((s,i) => s + i.price * i.qty, 0);
+            const newSub = selectedItems.reduce((s,i) => s + i.price * i.qty, 0);
             document.getElementById('checkoutTotal').innerText = `RM ${(newSub + checkoutShippingCost).toFixed(2)}`;
         });
     });
+    
     new bootstrap.Modal(document.getElementById('checkoutModal')).show();
 }
     // ========== BAYAR PESANAN SEDIA ADA ==========
@@ -2189,55 +2250,55 @@ const userRef = doc(db, "users", currentUser.phone);
         await setDoc(userRef, { name, address, postcode, state }, { merge: true });
         currentUser.name = name;
         
-        const subtotal = cart.reduce((s,i) => s + i.price * i.qty, 0);
+        const selectedItems = cart.filter(item => item.selected !== false);
+const subtotal = selectedItems.reduce((s,i) => s + i.price * i.qty, 0);
         const grandTotal = subtotal + checkoutShippingCost;
         
         let orderId;
         await runTransaction(db, async (transaction) => {
-            const snapshots = await Promise.all(
-                cart.map(item => transaction.get(doc(db, "inventory", item.variationKey)))
-            );
-            for (let i = 0; i < cart.length; i++) {
-                const snap = snapshots[i];
-                const item = cart[i];
-                let currentStock = snap.exists() ? snap.data().stock : 100;
-                if (currentStock < item.qty) throw new Error(`Stok ${item.name} tidak cukup`);
-                transaction.set(doc(db, "inventory", item.variationKey), { 
-                    stock: currentStock - item.qty, 
-                    initialStock: snap.exists() ? snap.data().initialStock : 100 
-                }, { merge: true });
-            }
-            orderId = `ORD-${Date.now()}`;
-            const orderRef = doc(db, "orders", orderId);
-            transaction.set(orderRef, {
-                orderId: orderId,
-                customer: { name, phone: currentUser.phone, address_line1: address, postcode, state },
-               items: cart.map(i => ({ 
-    prodName: i.name, 
-    size: i.size, 
-    type: i.type, 
-    qty: i.qty, 
-    price: i.price,
-    variationKey: i.variationKey   // <-- TAMBAH INI
-})),
-                totalAmount: grandTotal,
-                status: 'pending',
-                paymentMethod: payLater ? 'Bayar Kemudian' : 'Pindahan Bank',
-                bankName: payLater ? null : bankName,
-                receiptUrl: receiptUrl,
-                shipping: { region: shippingRegion, cost: checkoutShippingCost },
-                sticker: stickerValue,  // 👈 SIMPAN STICKER KE FIRESTORE
-                createdAt: new Date().toISOString()
-            });
-        });
-        
+    const snapshots = await Promise.all(
+        selectedItems.map(item => transaction.get(doc(db, "inventory", item.variationKey)))
+    );
+    for (let i = 0; i < selectedItems.length; i++) {
+        const snap = snapshots[i];
+        const item = selectedItems[i];
+        let currentStock = snap.exists() ? snap.data().stock : 100;
+        if (currentStock < item.qty) throw new Error(`Stok ${item.name} tidak cukup`);
+        transaction.set(doc(db, "inventory", item.variationKey), { 
+            stock: currentStock - item.qty, 
+            initialStock: snap.exists() ? snap.data().initialStock : 100 
+        }, { merge: true });
+    }
+    orderId = `ORD-${Date.now()}`;
+    const orderRef = doc(db, "orders", orderId);
+    transaction.set(orderRef, {
+        orderId: orderId,
+        customer: { name, phone: currentUser.phone, address_line1: address, postcode, state },
+        items: selectedItems.map(i => ({ 
+            prodName: i.name, 
+            size: i.size, 
+            type: i.type, 
+            qty: i.qty, 
+            price: i.price,
+            variationKey: i.variationKey
+        })),
+        totalAmount: grandTotal,
+        status: 'pending',
+        paymentMethod: payLater ? 'Bayar Kemudian' : 'Pindahan Bank',
+        bankName: payLater ? null : bankName,
+        receiptUrl: receiptUrl,
+        shipping: { region: shippingRegion, cost: checkoutShippingCost },
+        sticker: stickerValue,
+        createdAt: new Date().toISOString()
+    });
+});
         const customerData = { name, phone: currentUser.phone, address_line1: address, postcode, state };
         // 👇 HANTAR stickerValue ke PDF
         await generateAndDownloadPDF(orderId, customerData, cart.map(i => ({ prodName: i.name, size: i.size, type: i.type, qty: i.qty, price: i.price })), grandTotal, checkoutShippingCost, shippingRegion, payLater ? "Bayar Kemudian" : "Pindahan Bank", payLater ? null : bankName, stickerValue);
         
-        cart = [];
-        saveCart();
-        updateCartUI();
+        cart = cart.filter(item => item.selected === false);
+saveCart();
+updateCartUI();
         showToast('✅ Pesanan berjaya! Invois PDF dimuat turun. Admin akan proses.');
         bootstrap.Modal.getInstance(document.getElementById('checkoutModal')).hide();
         document.querySelector('.tab-link[data-tab="orders"]').click();
