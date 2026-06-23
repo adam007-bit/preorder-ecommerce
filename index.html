@@ -1208,7 +1208,7 @@ function renderProducts(products) {
 
         if (currentCategory === 'readystock') {
             if (defaultReadyStock === 0) {
-                defaultStockDisplay = 'Pre-order / Habis';
+                defaultStockDisplay = 'OOS';
                 isOutOfStock = true;
             }
         } else if (isOutOfStock) {
@@ -1272,7 +1272,7 @@ function renderProducts(products) {
 
             if (isStockOut) {
                 if (currentCategory === 'readystock' && readyStock === 0) {
-                    stockSpan.innerText = 'Pre-order / Habis';
+                    stockSpan.innerText = 'OOS';
                 } else {
                     stockSpan.innerText = 'Stok Habis';
                 }
