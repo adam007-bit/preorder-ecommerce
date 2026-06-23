@@ -26,8 +26,7 @@ const additionalProducts = [
   { id: "solvent_bac_water", name: "Bac Water", category: "solvent", description: "Bacteriostatic water for reconstitution.", variations: [{ size: "3ml", type: "Vial", price: 4 }, { size: "10ml", type: "Vial", price: 5 }], stock: 100 },
   { id: "solvent_usb_bac_water", name: "USP Bac Water", category: "solvent", description: "Bacteriostatic water for reconstitution.", variations: [{ size: "10ml", type: "Vial", price: 12 }], stock: 100 },
   { id: "solvent_steriled_water", name: "Sterilized Water", category: "solvent", description: "Sterile water for injection.", variations: [{ size: "10ml", type: "Vial", price: 5 }], stock: 100 },
-  { id: "solvent_acetic_acid", name: "Acetic Acid", category: "solvent", description: "For peptide reconstitution.", variations: [{ size: "10ml", type: "Vial", price: 5 }], stock: 100 },
-
+  { id: "solvent_acetic_acid", name: "Acetic Acid", category: "solvent", description: "For peptide reconstitution.", variations: [{ size: "3ml", type: "Vial", price: 4 }, { size: "10ml", type: "Vial", price: 5 }], stock: 100 },
   // BEAUTY PEPTIDES
   { id: "beauty_ghk_cu", name: "GHK-Cu", category: "beauty", description: "Copper peptide for hair and skin (injectable).", variations: [{ size: "50mg", type: "Vial", price: 12 }, { size: "100mg", type: "Vial", price: 15 }], stock: 100 },
   { id: "beauty_ahk_cu", name: "AHK-CU", category: "beauty", description: "Copper peptide for hair growth.", variations: [{ size: "50mg", type: "Vial", price: 20 }, { size: "100mg", type: "Vial", price: 35 }], stock: 100 },
