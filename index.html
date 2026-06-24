@@ -1655,51 +1655,67 @@ document.querySelectorAll('.payment-order-btn').forEach(btn => {
 function openAddItemModal(orderId, orderData) {
     selectedOrderId = orderId;
     selectedOrderData = orderData;
-    
+
     const productSelect = document.getElementById('addItemProductSelect');
     productSelect.innerHTML = '<option value="">-- Pilih --</option>';
-    
+
     allProducts.forEach(p => {
         const opt = document.createElement('option');
         opt.value = p.id;
         opt.textContent = p.name + ' (' + getProductCategory(p) + ')';
         productSelect.appendChild(opt);
     });
-    
+
     document.getElementById('addItemVariationSelect').innerHTML = '<option value="">-- Pilih variasi --</option>';
     document.getElementById('addItemQty').value = 1;
     document.getElementById('addItemProgress').style.display = 'none';
-    
+
     productSelect.addEventListener('change', function() {
         const prodId = this.value;
         const varSelect = document.getElementById('addItemVariationSelect');
         varSelect.innerHTML = '<option value="">-- Pilih variasi --</option>';
         if (!prodId) return;
+
         const product = allProducts.find(p => p.id === prodId);
         if (!product || !product.variations) return;
-        
+
+        // ===== BINA MAP HARGA DARI ORDER ASAL =====
+        const orderPriceMap = {};
+        if (orderData && orderData.items) {
+            orderData.items.forEach(item => {
+                const key = getVariationKey(item.prodName, item.size, item.type);
+                orderPriceMap[key] = item.price; // simpan harga yang digunakan dalam order
+            });
+        }
+
         product.variations.forEach(v => {
             const key = getVariationKey(product.id, v.size, v.type);
-            const invData = stockMap.get(key) || { stock: 0, readyStock: 0 };
+            // Cuba cari harga dari order asal (jika ada)
+            let displayPrice = orderPriceMap[key] ?? v.price;
+
+            const invData = stockMap.get(key) || { stock: 0 };
             const stock = invData.stock ?? 0;
             const label = stock > 0 ? ` (Stok: ${stock})` : ' (Habis)';
+
             const opt = document.createElement('option');
             opt.value = key;
-            opt.dataset.price = v.price;
+            opt.dataset.price = displayPrice;
             opt.dataset.stock = stock;
             opt.dataset.size = v.size;
             opt.dataset.type = v.type;
             opt.dataset.prodid = product.id;
             opt.dataset.prodname = product.name;
-            opt.textContent = `${v.size} - ${v.type} (RM${v.price})${label}`;
+
+            // Tandakan jika harga ini datang dari order asal
+            const fromOrder = orderPriceMap.hasOwnProperty(key) ? ' ✓ (harga order)' : '';
+            opt.textContent = `${v.size} - ${v.type} (RM${displayPrice.toFixed(2)})${fromOrder}${label}`;
             opt.disabled = stock <= 0;
             varSelect.appendChild(opt);
         });
     });
-    
+
     new bootstrap.Modal(document.getElementById('addItemModal')).show();
 }
-
 document.getElementById('confirmAddItemBtn').addEventListener('click', async function() {
     if (this.disabled) return;
     
