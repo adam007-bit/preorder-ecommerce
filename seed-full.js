@@ -198,7 +198,8 @@ const additionalProducts = [
     { id: "peptide_eloralintide", name: "Eloralintide", category: "peptides", description: "GLP-1 receptor agonist for weight management.", variations: [{ size: "10mg", type: "Vial", price: 40 }, { size: "50mg", type: "Vial", price: 60 }], stock: 100 },
     // ===== ELORA TIRZE =====
 { id: "peptide_elora_tirze", name: "Elora Tirze", category: "peptides", description: "Elora Tirze peptide for weight management and metabolic support.", variations: [{ size: "5mg", type: "Vial", price: 30 },{ size: "10mg", type: "Vial", price: 40 },{ size: "15mg", type: "Vial", price: 45 },{ size: "20mg", type: "Vial", price: 60 },{ size: "30mg", type: "Vial", price: 65 },{ size: "40mg", type: "Vial", price: 85 }
-], stock: 100 }
+], stock: 100 },
+  { id: "peptide_reta_elora", name: "Reta Elora", category: "peptides", description: "Reta Elora peptide for weight management and metabolic support.", variations: [{ size: "15mg", type: "Vial", price: 45 },{ size: "30mg", type: "Vial", price: 70 }], stock: 100 }
 ];
 
 // Gabungkan semua produk
