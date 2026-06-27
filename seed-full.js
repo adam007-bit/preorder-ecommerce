@@ -7,22 +7,21 @@ admin.initializeApp({
 
 const db = admin.firestore();
 
-// ==================== PRODUK HANYA DARI SENARAI PENDEK ====================
-// Oral Peptides (kapsul)
+// ORAL PEPTIDES - kategori 'oral'
 const oralPeptidesData = [
-  { id: "oral_5amino_1mq", name: "5-Amino-1MQ", category: "oral", description: "Supports metabolism, helps increase calorie burning, and may assist with fat loss.", variations: [{ size: "50mg", type: "60 Capsules", price: 210 }], stock: 100 },
-  { id: "oral_bpc157", name: "BPC-157", category: "oral", description: "Supports recovery, tissue repair, gut health, and injury healing.", variations: [{ size: "500mcg", type: "100 Capsules", price: 160 }], stock: 100 },
-  { id: "oral_tesofensine", name: "Tesofensine", category: "oral", description: "Helps reduce appetite, control cravings, and support weight loss.", variations: [{ size: "500mcg", type: "60 Capsules", price: 140 }], stock: 100 },
-  { id: "oral_dihexa", name: "Dihexa", category: "oral", description: "Supports memory, focus, learning, and cognitive performance.", variations: [{ size: "10mg", type: "60 Capsules", price: 150 }], stock: 100 },
-  { id: "oral_bam15", name: "BAM15", category: "oral", description: "May increase energy expenditure and support fat loss without stimulants.", variations: [{ size: "50mg", type: "60 Capsules", price: 470 }], stock: 100 },
-  { id: "oral_orforglipron", name: "Orforglipron", category: "oral", description: "Helps reduce appetite, improve blood sugar control, and support weight management.", variations: [{ size: "6mg", type: "90 Capsules", price: 480 }], stock: 100 },
-  { id: "oral_slupp332", name: "SLU-PP-332", category: "oral", description: "Designed to enhance endurance, increase energy utilization, and support fat burning.", variations: [{ size: "250mcg", type: "100 Capsules", price: 70 }], stock: 100 },
-  { id: "oral_kpv", name: "KPV", category: "oral", description: "Used to calm inflammation in the gut, skin, and throughout the body.", variations: [{ size: "300mcg", type: "60 Capsules", price: 100 }], stock: 100 }
+    { id: "oral_5amino_1mq", name: "5-Amino-1MQ", category: "oral", description: "Supports metabolism, helps increase calorie burning, and may assist with fat loss.", variations: [{ size: "50mg", type: "60 Capsules", price: 210 }], stock: 100 },
+    { id: "oral_bpc157", name: "BPC-157", category: "oral", description: "Supports recovery, tissue repair, gut health, and injury healing.", variations: [{ size: "500mcg", type: "100 Capsules", price: 160 }], stock: 100 },
+    { id: "oral_tesofensine", name: "Tesofensine", category: "oral", description: "Helps reduce appetite, control cravings, and support weight loss.", variations: [{ size: "500mcg", type: "60 Capsules", price: 140 }], stock: 100 },
+    { id: "oral_dihexa", name: "Dihexa", category: "oral", description: "Supports memory, focus, learning, and cognitive performance.", variations: [{ size: "10mg", type: "60 Capsules", price: 150 }], stock: 100 },
+    { id: "oral_bam15", name: "BAM15", category: "oral", description: "May increase energy expenditure and support fat loss without stimulants.", variations: [{ size: "50mg", type: "60 Capsules", price: 470 }], stock: 100 },
+    { id: "oral_orforglipron", name: "Orforglipron", category: "oral", description: "Helps reduce appetite, improve blood sugar control, and support weight management.", variations: [{ size: "6mg", type: "90 Capsules", price: 480 }], stock: 100 },
+    { id: "oral_slupp332", name: "SLU-PP-332", category: "oral", description: "Designed to enhance endurance, increase energy utilization, and support fat burning.", variations: [{ size: "250mcg", type: "100 Capsules", price: 70 }], stock: 100 },
+    { id: "oral_kpv", name: "KPV", category: "oral", description: "Used to calm inflammation in the gut, skin, and throughout the body.", variations: [{ size: "300mcg", type: "60 Capsules", price: 100 }], stock: 100 }
 ];
 
-// Additional Products (solvent, beauty, peptides – hanya VIAL dan harga asal)
+// ========== PRODUK TAMBAHAN ==========
 const additionalProducts = [
- // SOLVENT
+    // SOLVENT
     { id: "solvent_bac_water", name: "Bac Water", category: "solvent", description: "Bacteriostatic water for reconstitution.", variations: [{ size: "3ml", type: "Vial", price: 4 }, { size: "10ml", type: "Vial", price: 5 }], stock: 100 },
     { id: "solvent_usb_bac_water", name: "USP Bac Water", category: "solvent", description: "Bacteriostatic water for reconstitution.", variations: [{ size: "10ml", type: "Vial", price: 12 }], stock: 100 },
     { id: "solvent_steriled_water", name: "Sterilized Water", category: "solvent", description: "Sterile water for injection.", variations: [{ size: "10ml", type: "Vial", price: 5 }], stock: 100 },
@@ -37,7 +36,6 @@ const additionalProducts = [
     { id: "beauty_matrixyl", name: "Matrixyl", category: "beauty", description: "Anti-wrinkle peptide.", variations: [{ size: "10mg", type: "Vial", price: 25 }], stock: 100 },
     { id: "beauty_matrixyl3000", name: "Matrixyl 3000", category: "beauty", description: "Advanced anti-aging peptide.", variations: [{ size: "10mg", type: "Vial", price: 120 }], stock: 100 },
     { id: "beauty_ggh", name: "GGH", category: "beauty", description: "Growth hormone releasing peptide for skin.", variations: [{ size: "10ml", type: "Vial", price: 70 }], stock: 100 },
-    { id: "beauty_exosome", name: "Exosome", category: "beauty", description: "Exosome for cellular regeneration.", variations: [{ size: "100mg", type: "Vial", price: 45 }], stock: 100 },
     { id: "beauty_pdrn", name: "PDRN", category: "beauty", description: "Polydeoxyribonucleotide for tissue repair.", variations: [{ size: "5ml", type: "Vial", price: 25 }], stock: 100 },
     { id: "beauty_botulinum_toxin", name: "Botulinum Toxin", category: "beauty", description: "Neurotoxin for cosmetic use.", variations: [{ size: "100iu", type: "Vial", price: 40 }], stock: 100 },
     { id: "beauty_super_beauty", name: "Super Beauty (HHB)", category: "beauty", description: "Skin brightening and anti-aging.", variations: [{ size: "10ml", type: "Vial", price: 35 }], stock: 100 },
@@ -90,7 +88,7 @@ const additionalProducts = [
 // ===== MARINE COLLAGEN =====
 { id: "beauty_marine_collagen", name: "Marine Collagen", category: "beauty", description: "Marine collagen for skin elasticity and hydration.", variations: [{ size: "5ml", type: "Vial", price: 25 }], stock: 100 },
 // ===== EXOSOME PDRN =====
-{ id: "beauty_exosome_pdrn", name: "Exosome PDRN", category: "beauty", description: "Exosome PDRN for cellular regeneration and tissue repair.", variations: [{ size: "100mg", type: "Vial", price: 35 }], stock: 100 },
+{ id: "beauty_exosome_pdrn", name: "Exosome PDRN", category: "beauty", description: "Exosome PDRN for cellular regeneration and tissue repair.", variations: [{ size: "100mg", type: "Vial", price: 45 }], stock: 100 },
 { id: "beauty_hikari_premium_drip", name: "Hikari Premium Drip", category: "beauty", description: "Hikari Premium Drip for skin hydration and rejuvenation.", variations: [{ size: "500ml", type: "Drip", price: 220 }], stock: 100 },
     // PEPTIDES (injectable & fat loss)
     { id: "peptide_retatrutide", name: "Retatrutide", category: "peptides", description: "Triple agonist for weight management.", variations: [{ size: "5mg", type: "Vial", price: 25 }, { size: "10mg", type: "Vial", price: 30 }, { size: "15mg", type: "Vial", price: 45 }, { size: "20mg", type: "Vial", price: 50 }, { size: "30mg", type: "Vial", price: 75 }, { size: "40mg", type: "Vial", price: 90 }], stock: 100 },
@@ -123,7 +121,7 @@ const additionalProducts = [
     { id: "peptide_hcg", name: "HCG", category: "peptides", description: "Human chorionic gonadotropin.", variations: [{ size: "5000iu", type: "Vial", price: 50 }, { size: "10000iu", type: "Vial", price: 90 }], stock: 100 },
     { id: "peptide_hmg", name: "HMG 75iu", category: "peptides", description: "Human menopausal gonadotropin.", variations: [{ size: "75iu", type: "Vial", price: 35 }], stock: 100 },
     { id: "peptide_semax", name: "Semax", category: "peptides", description: "Nootropic.", variations: [{ size: "5mg", type: "Vial", price: 20 }, { size: "10mg", type: "Vial", price: 30 }], stock: 100 },
-    { id: "peptide_semax_selank", name: "Semax Selank", category: "peptides", description: "Nootropic blend.", variations: [{ size: "20mg", type: "Vial", price: 55 }], stock: 100 },
+    { id: "peptide_semax_selank", name: "Semax Selank", category: "peptides", description: "Nootropic blend.", variations: [{ size: "20mg", type: "Vial", price: 65 }], stock: 100 },
     { id: "peptide_selank", name: "Selank", category: "peptides", description: "Anxiolytic.", variations: [{ size: "5mg", type: "Vial", price: 20 }, { size: "10mg", type: "Vial", price: 30 }], stock: 100 },
     { id: "peptide_ss31", name: "SS-31", category: "peptides", description: "Mitochondrial peptide.", variations: [{ size: "10mg", type: "Vial", price: 35 }, { size: "50mg", type: "Vial", price: 130 }], stock: 100 },
     { id: "peptide_epithalon", name: "Epithalon", category: "peptides", description: "Telomere lengthening.", variations: [{ size: "10mg", type: "Vial", price: 20 }, { size: "50mg", type: "Vial", price: 55 }], stock: 100 },
@@ -195,11 +193,10 @@ const additionalProducts = [
     { id: "peptide_bpc157", name: "BPC-157", category: "peptides", description: "Healing and repair peptide for tissue regeneration, gut health, and injury recovery.", variations: [{ size: "5mg", type: "Vial", price: 25 }, { size: "10mg", type: "Vial", price: 35 }], stock: 100 },
     { id: "peptide_larazotide", name: "Larazotide", category: "peptides", description: "Tight junction regulator for gut health and inflammation.", variations: [{ size: "10mg", type: "Vial", price: 40 }, { size: "50mg", type: "Vial", price: 60 }], stock: 100 },
     { id: "peptide_eloralintide", name: "Eloralintide", category: "peptides", description: "GLP-1 receptor agonist for weight management.", variations: [{ size: "10mg", type: "Vial", price: 40 }, { size: "50mg", type: "Vial", price: 60 }], stock: 100 },
-    // ===== ELORA TIRZE =====
-{ id: "peptide_elora_tirze", name: "Elora Tirze", category: "peptides", description: "Elora Tirze peptide for weight management and metabolic support.", variations: [{ size: "5mg", type: "Vial", price: 30 },{ size: "10mg", type: "Vial", price: 40 },{ size: "15mg", type: "Vial", price: 45 },{ size: "20mg", type: "Vial", price: 60 },{ size: "30mg", type: "Vial", price: 65 },{ size: "40mg", type: "Vial", price: 85 }
-], stock: 100 },
-  { id: "peptide_reta_elora", name: "Reta Elora", category: "peptides", description: "Reta Elora peptide for weight management and metabolic support.", variations: [{ size: "15mg", type: "Vial", price: 45 },{ size: "30mg", type: "Vial", price: 70 }], stock: 100 }
+    { id: "peptide_elora_tirze", name: "Elora Tirze", category: "peptides", description: "Elora Tirze peptide for weight management and metabolic support.", variations: [{ size: "5mg", type: "Vial", price: 30 },{ size: "10mg", type: "Vial", price: 40 },{ size: "15mg", type: "Vial", price: 45 },{ size: "20mg", type: "Vial", price: 60 },{ size: "30mg", type: "Vial", price: 65 },{ size: "40mg", type: "Vial", price: 85 }], stock: 100 },
+    { id: "peptide_reta_elora", name: "Reta Elora", category: "peptides", description: "Reta Elora peptide for weight management and metabolic support.", variations: [{ size: "15mg", type: "Vial", price: 45 },{ size: "30mg", type: "Vial", price: 70 }], stock: 100 }
 ];
+
 
 // Gabungkan semua produk
 const allProducts = [...oralPeptidesData, ...additionalProducts];
