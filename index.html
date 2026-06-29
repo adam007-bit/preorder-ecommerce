@@ -1307,16 +1307,28 @@ function renderProducts(products) {
         });
 
         addBtn.addEventListener('click', () => {
-            if (addBtn.disabled) {
-                showToast('Produk ini tidak tersedia untuk pesanan sekarang', true);
-                return;
-            }
-           
-            if(!currentUser) {
-                showToast('Sila log masuk', true);
-                showLoginModal();
-                return;
-            }
+    if (addBtn.disabled) {
+        showToast('Produk ini tidak tersedia untuk pesanan sekarang', true);
+        return;
+    }
+
+    // ===== SEMAKAN PRE-ORDER =====
+    const opt = select.options[select.selectedIndex];
+    const varKey = select.value;
+    const invData = stockMap.get(varKey);
+    const allowPreorder = invData?.allowPreorder ?? true;
+    const readyStock = parseInt(opt.dataset.readystock) || 0;
+
+    if (!allowPreorder && readyStock === 0) {
+        showToast('Pre-order ditutup untuk produk ini. Sila pilih Ready Stock.', true);
+        return;
+    }
+
+    if(!currentUser) {
+        showToast('Sila log masuk', true);
+        showLoginModal();
+        return;
+    }
            
             let qty = parseInt(qtyInp.value);
             if(isNaN(qty) || qty <= 0) {
