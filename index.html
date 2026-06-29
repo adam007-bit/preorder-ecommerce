@@ -1271,10 +1271,10 @@ function renderProducts(products) {
         const addBtn = card.querySelector('.add-to-cart');
 
         select.addEventListener('change', () => {
-            const opt = select.options[select.selectedIndex];
-            const price = parseFloat(opt.dataset.price);
-            const stock = parseInt(opt.dataset.stock);
-            const readyStock = parseInt(opt.dataset.readystock);
+    const selectedOption = select.options[select.selectedIndex];
+    const price = parseFloat(selectedOption.dataset.price);
+    const stock = parseInt(selectedOption.dataset.stock);
+    const readyStock = parseInt(selectedOption.dataset.readystock);
            
             priceSpan.innerText = `RM ${price.toFixed(2)}`;
            
@@ -1306,18 +1306,18 @@ function renderProducts(products) {
             }
         });
 
-        addBtn.addEventListener('click', () => {
+       addBtn.addEventListener('click', () => {
     if (addBtn.disabled) {
         showToast('Produk ini tidak tersedia untuk pesanan sekarang', true);
         return;
     }
 
     // ===== SEMAKAN PRE-ORDER =====
-    const opt = select.options[select.selectedIndex];
+    const selectedOption = select.options[select.selectedIndex];   // ← tukar nama
     const varKey = select.value;
     const invData = stockMap.get(varKey);
     const allowPreorder = invData?.allowPreorder ?? true;
-    const readyStock = parseInt(opt.dataset.readystock) || 0;
+    const readyStock = parseInt(selectedOption.dataset.readystock) || 0;
 
     if (!allowPreorder && readyStock === 0) {
         showToast('Pre-order ditutup untuk produk ini. Sila pilih Ready Stock.', true);
@@ -1330,54 +1330,55 @@ function renderProducts(products) {
         return;
     }
            
-            let qty = parseInt(qtyInp.value);
-            if(isNaN(qty) || qty <= 0) {
-                showToast('Sila masukkan kuantiti', true);
-                return;
-            }
+    let qty = parseInt(qtyInp.value);
+    if(isNaN(qty) || qty <= 0) {
+        showToast('Sila masukkan kuantiti', true);
+        return;
+    }
            
-            const opt = select.options[select.selectedIndex];
-            const price = parseFloat(opt.dataset.price);
-            const stock = parseInt(opt.dataset.stock);
-            const readyStock = parseInt(opt.dataset.readystock);
+    // ===== GUNA SEMULA pembolehubah yang sama =====
+    const price = parseFloat(selectedOption.dataset.price);
+    const stock = parseInt(selectedOption.dataset.stock);
+    const readyStock2 = parseInt(selectedOption.dataset.readystock); // atau guna readyStock di atas
            
-            if (currentCategory === 'readystock' && readyStock === 0) {
-                showToast('Produk ini tidak tersedia untuk pesanan sekarang', true);
-                return;
-            }
+    if (currentCategory === 'readystock' && readyStock2 === 0) {
+        showToast('Produk ini tidak tersedia untuk pesanan sekarang', true);
+        return;
+    }
            
-            if(qty > stock) {
-                showToast(`Stok hanya ${stock}`, true);
-                return;
-            }
+    if(qty > stock) {
+        showToast(`Stok hanya ${stock}`, true);
+        return;
+    }
            
-            const size = opt.dataset.size;
-            const type = opt.dataset.type;
-            const varKey = select.value;
-            const existingIdx = cart.findIndex(i => i.variationKey === varKey);
-            if(existingIdx !== -1) {
-                const newQty = cart[existingIdx].qty + qty;
-                if(newQty > stock) {
-                    showToast(`Stok tidak cukup`, true);
-                    return;
-                }
-                cart[existingIdx].qty = newQty;
-            } else {
-                cart.push({
-                    id: p.id,
-                    name: p.name,
-                    size: size,
-                    type: type,
-                    price: price,
-                    qty: qty,
-                    variationKey: varKey,
-                    prodId: p.id
-                });
-            }
-            saveCart();
-            updateCartUI();
-            showToast('Item ditambah ke troli');
+    const size = selectedOption.dataset.size;
+    const type = selectedOption.dataset.type;
+    // varKey sudah ada di atas, jangan isytihar semula
+           
+    const existingIdx = cart.findIndex(i => i.variationKey === varKey);
+    if(existingIdx !== -1) {
+        const newQty = cart[existingIdx].qty + qty;
+        if(newQty > stock) {
+            showToast(`Stok tidak cukup`, true);
+            return;
+        }
+        cart[existingIdx].qty = newQty;
+    } else {
+        cart.push({
+            id: p.id,
+            name: p.name,
+            size: size,
+            type: type,
+            price: price,
+            qty: qty,
+            variationKey: varKey,
+            prodId: p.id
         });
+    }
+    saveCart();
+    updateCartUI();
+    showToast('Item ditambah ke troli');
+});
     });
 }
 // ========== FUNGSI TAMBAHAN ==========
