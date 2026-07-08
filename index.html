@@ -266,6 +266,63 @@
             background: white;
             color: #10b981;
         }
+        /* ===== BARU: CSS untuk kawasan muat naik berbilang resit ===== */
+        .receipt-upload-area {
+            border: 2px dashed #d1d5db;
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+            transition: 0.2s;
+            cursor: pointer;
+            background: #fafcff;
+        }
+        .receipt-upload-area:hover {
+            border-color: var(--emerald-primary);
+            background: #f0fdf4;
+        }
+        .receipt-upload-area.dragover {
+            border-color: var(--emerald-primary);
+            background: #d1fae5;
+        }
+        .receipt-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 6px;
+        }
+        .receipt-file-item {
+            background: #f8fafc;
+            border-radius: 20px;
+            padding: 4px 12px 4px 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            border: 1px solid #e2e8f0;
+            margin: 2px;
+        }
+        .receipt-file-item .remove-file {
+            cursor: pointer;
+            color: #ef4444;
+            font-size: 14px;
+            margin-left: 4px;
+        }
+        .receipt-file-item .remove-file:hover {
+            color: #b91c1c;
+        }
+        .receipt-thumb {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .receipt-thumb:hover {
+            transform: scale(1.05);
+            border-color: var(--emerald-primary);
+        }
     </style>
 </head>
 <body>
@@ -472,7 +529,17 @@
                         <div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="payLaterCheckbox"><label class="form-check-label small fw-bold"><span class="lang-paylater">Bayar Kemudian (tanpa resit)</span></label></div>
                         <div id="paymentFields">
                             <div class="mb-2"><label class="form-label text-muted small"><span class="lang-bankname">Nama Bank Pengirim</span></label><input type="text" class="form-control form-control-sm" id="bankName" placeholder="CIMB / Maybank"></div>
-                            <div><label class="form-label text-muted small"><span class="lang-receipt">Resit Pembayaran (Gambar)</span></label><input type="file" class="form-control form-control-sm" id="checkoutReceipt" accept="image/jpeg,image/png,image/webp,image/gif"><div id="checkoutProgress" class="progress-upload" style="display:none;">⏳ Memuat naik & memampatkan...</div></div>
+<!-- ===== BARU: Kawasan muat naik berbilang resit ===== -->
+<div>
+    <label class="form-label text-muted small">Resit Pembayaran (Pilih berbilang gambar)</label>
+    <div class="receipt-upload-area" id="receiptDropArea">
+        <i class="fa-regular fa-image fa-2x text-muted"></i>
+        <p class="small mb-0">Klik atau seret gambar ke sini</p>
+        <input type="file" id="checkoutReceipts" class="d-none" accept="image/*" multiple>
+    </div>
+    <div id="receiptFileList" class="receipt-list mt-2"></div>
+    <div id="checkoutProgress" class="progress-upload" style="display:none;">⏳ Memuat naik & memampatkan...</div>
+</div>
                         </div>
                     </div>
                     <div class="total-box text-center my-3 p-3 rounded-4" style="background: var(--emerald-grad); color: white;">
@@ -649,6 +716,26 @@ async function uploadReceiptToCloudinary(file) {
         throw new Error(`Gagal muat naik ke Cloudinary: ${error.message}`);
     }
 }
+
+// ===== BARU: Fungsi muat naik berbilang resit =====
+async function uploadMultipleReceipts(files) {
+    const urls = [];
+    const progressDiv = document.getElementById('checkoutProgress');
+    progressDiv.style.display = 'block';
+    for (let i = 0; i < files.length; i++) {
+        progressDiv.innerHTML = `⬆️ Muat naik ${i+1}/${files.length}...`;
+        let file = files[i];
+        if (file.size > 200 * 1024) {
+            file = await compressImage(file, 800, 0.5);
+        }
+        const url = await uploadReceiptToCloudinary(file);
+        urls.push(url);
+    }
+    progressDiv.innerHTML = '✅ Semua resit berjaya!';
+    setTimeout(() => progressDiv.style.display = 'none', 2000);
+    return urls;
+}
+
 async function generateAndDownloadPDF(orderId, customer, items, totalAmount, shippingCost, shippingRegion, paymentMethod, bankName, stickerValue) {
     const invoiceDiv = document.getElementById('invoicePreview');
     const contentDiv = document.getElementById('invoiceContent');
@@ -932,6 +1019,7 @@ let currentCategory = 'peptides';
 let searchTerm = '';
 let currentUser = null;
 let cart = [];
+let selectedReceiptFiles = []; // ===== BARU: simpan fail resit yang dipilih =====
 let checkoutShippingCost = 10;
 let checkoutShippingCode = 'SM';
 let stockUnsubscribe = null; // untuk realtime listener
@@ -1624,6 +1712,19 @@ function renderUserOrders(orders) {
         let trackingHtml = o.trackingNumber ? `<div class="mt-1 small"><strong>Tracking:</strong> ${escapeHtml(o.trackingNumber)}</div>` : '';
         let stickerHtml = o.sticker ? `<div><strong>Sticker:</strong> ${escapeHtml(o.sticker)}</div>` : '';
 
+        // ===== BARU: Paparan berbilang resit =====
+        let receiptHtml = '';
+        if (o.receiptUrls && o.receiptUrls.length) {
+            receiptHtml = '<div><strong>Resit:</strong><div class="receipt-list">';
+            o.receiptUrls.forEach(url => {
+                receiptHtml += `<a href="${url}" target="_blank"><img src="${url}" class="receipt-thumb" onerror="this.style.display=\'none\'"></a>`;
+            });
+            receiptHtml += '</div></div>';
+        } else if (o.receiptUrl) {
+            // Sokongan ke belakang untuk pesanan lama dengan receiptUrl tunggal
+            receiptHtml = `<div><strong>Resit:</strong><div class="receipt-list"><a href="${o.receiptUrl}" target="_blank"><img src="${o.receiptUrl}" class="receipt-thumb" onerror="this.style.display=\'none\'"></a></div></div>`;
+        }
+
         // 👇 HANYA SATU SET BUTANG UNTUK PENDING
         let actionBtns = '';
 if (o.status === 'pending') {
@@ -1647,6 +1748,7 @@ if (o.status === 'pending') {
                     <ul class="mb-2">${itemsHtml}</ul>
                     ${trackingHtml}
                     ${stickerHtml}
+                    ${receiptHtml}
                     <div class="mt-2 d-flex gap-2 flex-wrap">
                         ${actionBtns}
                     </div>
@@ -2140,7 +2242,12 @@ async function showCheckoutModal() {
     const selectedItems = cart.filter(item => item.selected !== false);
     if(!selectedItems.length) { showToast('Tiada item dipilih', true); return; }
    
-    // ... selebihnya sama, guna selectedItems sebagai ganti cart
+    // ===== BARU: Reset senarai resit =====
+    selectedReceiptFiles = [];
+    document.getElementById('receiptFileList').innerHTML = '';
+    document.getElementById('checkoutReceipts').value = '';
+    document.getElementById('checkoutProgress').style.display = 'none';
+   
     const userDoc = await getDoc(doc(db, "users", currentUser.phone));
     const userData = userDoc.exists() ? userDoc.data() : {};
     document.getElementById('checkoutName').value = currentUser.name || '';
@@ -2150,7 +2257,6 @@ async function showCheckoutModal() {
     document.getElementById('checkoutState').value = userData.state || '';
     document.getElementById('payLaterCheckbox').checked = false;
     document.getElementById('paymentFields').style.display = 'block';
-    document.getElementById('checkoutReceipt').value = '';
    
     const subtotal = selectedItems.reduce((s,i) => s + i.price * i.qty, 0);
     document.getElementById('checkoutTotal').innerText = `RM ${(subtotal + checkoutShippingCost).toFixed(2)}`;
@@ -2181,6 +2287,12 @@ async function openPaymentForOrder(orderId, orderData) {
 
     payingOrderId = orderId;
 
+    // ===== BARU: Reset senarai resit =====
+    selectedReceiptFiles = [];
+    document.getElementById('receiptFileList').innerHTML = '';
+    document.getElementById('checkoutReceipts').value = '';
+    document.getElementById('checkoutProgress').style.display = 'none';
+
     // Isi borang checkout dengan maklumat pelanggan dari pesanan
     document.getElementById('checkoutName').value = orderData.customer.name || currentUser.name;
     document.getElementById('checkoutPhone').value = orderData.customer.phone || currentUser.phone;
@@ -2203,7 +2315,6 @@ async function openPaymentForOrder(orderId, orderData) {
 
     // Kosongkan resit dan bank
     document.getElementById('bankName').value = '';
-    document.getElementById('checkoutReceipt').value = '';
     document.getElementById('payLaterCheckbox').checked = false;
     document.getElementById('paymentFields').style.display = 'block';
 
@@ -2215,6 +2326,65 @@ async function openPaymentForOrder(orderId, orderData) {
     // Tunjukkan modal
     safeBootstrapModal(document.getElementById('checkoutModal')).show();
 }
+
+// ===== BARU: Event listener untuk muat naik berbilang resit =====
+document.getElementById('checkoutReceipts').addEventListener('change', function(e) {
+    selectedReceiptFiles = Array.from(e.target.files);
+    renderReceiptFileList();
+});
+
+document.getElementById('receiptDropArea').addEventListener('click', function() {
+    document.getElementById('checkoutReceipts').click();
+});
+
+// Seret dan lepas
+const dropArea = document.getElementById('receiptDropArea');
+dropArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropArea.classList.add('dragover');
+});
+dropArea.addEventListener('dragleave', () => {
+    dropArea.classList.remove('dragover');
+});
+dropArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropArea.classList.remove('dragover');
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length) {
+        selectedReceiptFiles = files;
+        renderReceiptFileList();
+        // Sync dengan input file
+        const dataTransfer = new DataTransfer();
+        files.forEach(f => dataTransfer.items.add(f));
+        document.getElementById('checkoutReceipts').files = dataTransfer.files;
+    }
+});
+
+function renderReceiptFileList() {
+    const container = document.getElementById('receiptFileList');
+    container.innerHTML = '';
+    selectedReceiptFiles.forEach((file, idx) => {
+        const div = document.createElement('span');
+        div.className = 'receipt-file-item';
+        div.innerHTML = `
+            <i class="fa-regular fa-file-image"></i> ${file.name} (${(file.size/1024).toFixed(0)}KB)
+            <span class="remove-file" data-idx="${idx}"><i class="fa-regular fa-circle-xmark"></i></span>
+        `;
+        container.appendChild(div);
+    });
+    container.querySelectorAll('.remove-file').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const idx = parseInt(this.dataset.idx);
+            selectedReceiptFiles.splice(idx, 1);
+            renderReceiptFileList();
+            // Sync dengan input file
+            const dataTransfer = new DataTransfer();
+            selectedReceiptFiles.forEach(f => dataTransfer.items.add(f));
+            document.getElementById('checkoutReceipts').files = dataTransfer.files;
+        });
+    });
+}
+
 document.getElementById('placeOrderBtn').addEventListener('click', async function(e) {
     if (this.disabled) return;
     this.disabled = true;
@@ -2226,7 +2396,6 @@ document.getElementById('placeOrderBtn').addEventListener('click', async functio
         const postcode = document.getElementById('checkoutPostcode').value.trim();
         const state = document.getElementById('checkoutState').value.trim();
         const payLater = document.getElementById('payLaterCheckbox').checked;
-        const receiptFile = document.getElementById('checkoutReceipt').files[0];
         const bankName = document.getElementById('bankName').value.trim() || "Tiada";
        
         // Ambil nilai sticker
@@ -2242,120 +2411,105 @@ document.getElementById('placeOrderBtn').addEventListener('click', async functio
             showToast('Sila lengkapkan alamat', true);
             return;
         }
-        if(!payLater && !receiptFile) {
-            showToast('Sila muat naik resit atau pilih Bayar Kemudian', true);
+        
+        // ===== BARU: Semak resit – guna selectedReceiptFiles =====
+        if(!payLater && selectedReceiptFiles.length === 0) {
+            showToast('Sila muat naik sekurang-kurangnya satu resit atau pilih Bayar Kemudian', true);
             return;
         }
        
-       let receiptUrl = null;
-const progressDiv = document.getElementById('checkoutProgress');
-if(!payLater && receiptFile) {
-    progressDiv.style.display = 'block';
-    const fileSizeKB = (receiptFile.size / 1024).toFixed(0);
-    progressDiv.innerHTML = `🖼️ Memampatkan (${fileSizeKB}KB → ...)`;
-    let compressedFile;
-    try {
-        compressedFile = await compressImage(receiptFile, 800, 0.5);
-        const compressedKB = (compressedFile.size / 1024).toFixed(0);
-        progressDiv.innerHTML = `⬆️ Memuat naik (${compressedKB}KB) ke Cloudinary...`;
-        receiptUrl = await uploadReceiptToCloudinary(compressedFile);
-        progressDiv.innerHTML = '✅ Resit berjaya!';
-        setTimeout(() => progressDiv.style.display = 'none', 2000);
-    } catch(err) {
-        progressDiv.style.display = 'none';
-        showToast('Gagal muat naik resit: ' + err.message, true);
-        return;
-    }
-}
+        let receiptUrls = [];
+        const progressDiv = document.getElementById('checkoutProgress');
+        if(!payLater && selectedReceiptFiles.length > 0) {
+            receiptUrls = await uploadMultipleReceipts(selectedReceiptFiles);
+        }
 
-// ===== JIKA INI BAYARAN UNTUK PESANAN SEDIA ADA =====
-if (payingOrderId) {
-    const orderRef = doc(db, "orders", payingOrderId);
-    const orderSnap = await getDoc(orderRef);
-    if (!orderSnap.exists()) {
-        throw new Error('Pesanan tidak dijumpai');
-    }
-    const orderData = orderSnap.data();
+        // ===== JIKA INI BAYARAN UNTUK PESANAN SEDIA ADA =====
+        if (payingOrderId) {
+            const orderRef = doc(db, "orders", payingOrderId);
+            const orderSnap = await getDoc(orderRef);
+            if (!orderSnap.exists()) {
+                throw new Error('Pesanan tidak dijumpai');
+            }
+            const orderData = orderSnap.data();
 
-    // Kemas kini pesanan dengan resit dan maklumat bayaran
-    const updateData = {
-        receiptUrl: receiptUrl,
-        paymentMethod: payLater ? 'Bayar Kemudian' : 'Pindahan Bank',
-        bankName: payLater ? null : bankName,
-        updatedAt: new Date().toISOString()
-    };
-    if (!orderData.sticker) {
-        updateData.sticker = stickerValue;
-    }
-    await updateDoc(orderRef, updateData);
+            // Kemas kini pesanan dengan resit dan maklumat bayaran
+            const updateData = {
+                receiptUrls: receiptUrls, // ===== BARU: array =====
+                paymentMethod: payLater ? 'Bayar Kemudian' : 'Pindahan Bank',
+                bankName: payLater ? null : bankName,
+                updatedAt: new Date().toISOString()
+            };
+            if (!orderData.sticker) {
+                updateData.sticker = stickerValue;
+            }
+            await updateDoc(orderRef, updateData);
 
-    showToast('✅ Resit berjaya dimuat naik! Admin akan proses.');
-    if (typeof window.bootstrap !== 'undefined' && window.bootstrap.Modal) {
-        window.bootstrap.Modal.getInstance(document.getElementById('checkoutModal')).hide();
-    } else {
-        document.getElementById('checkoutModal').style.display = 'none';
-    }
-    loadUserOrders(); // refresh senarai
-    payingOrderId = null; // reset
-    this.disabled = false;
-    this.innerHTML = 'Place Order <i class="fa-solid fa-check-circle"></i>';
-    return;
-}
+            showToast('✅ Resit berjaya dimuat naik! Admin akan proses.');
+            if (typeof window.bootstrap !== 'undefined' && window.bootstrap.Modal) {
+                window.bootstrap.Modal.getInstance(document.getElementById('checkoutModal')).hide();
+            } else {
+                document.getElementById('checkoutModal').style.display = 'none';
+            }
+            loadUserOrders(); // refresh senarai
+            payingOrderId = null; // reset
+            this.disabled = false;
+            this.innerHTML = 'Place Order <i class="fa-solid fa-check-circle"></i>';
+            return;
+        }
 
-const userRef = doc(db, "users", currentUser.phone);
-// ... selebihnya kod untuk pesanan baru ...
+        const userRef = doc(db, "users", currentUser.phone);
         await setDoc(userRef, { name, address, postcode, state }, { merge: true });
         currentUser.name = name;
        
         const selectedItems = cart.filter(item => item.selected !== false);
-const subtotal = selectedItems.reduce((s,i) => s + i.price * i.qty, 0);
+        const subtotal = selectedItems.reduce((s,i) => s + i.price * i.qty, 0);
         const grandTotal = subtotal + checkoutShippingCost;
        
         let orderId;
         await runTransaction(db, async (transaction) => {
-    const snapshots = await Promise.all(
-        selectedItems.map(item => transaction.get(doc(db, "inventory", item.variationKey)))
-    );
-    for (let i = 0; i < selectedItems.length; i++) {
-        const snap = snapshots[i];
-        const item = selectedItems[i];
-        let currentStock = snap.exists() ? snap.data().stock : 100;
-        if (currentStock < item.qty) throw new Error(`Stok ${item.name} tidak cukup`);
-        transaction.set(doc(db, "inventory", item.variationKey), {
-            stock: currentStock - item.qty,
-            initialStock: snap.exists() ? snap.data().initialStock : 100
-        }, { merge: true });
-    }
-    orderId = `ORD-${Date.now()}`;
-    const orderRef = doc(db, "orders", orderId);
-    transaction.set(orderRef, {
-        orderId: orderId,
-        customer: { name, phone: currentUser.phone, address_line1: address, postcode, state },
-        items: selectedItems.map(i => ({
-            prodName: i.name,
-            size: i.size,
-            type: i.type,
-            qty: i.qty,
-            price: i.price,
-            variationKey: i.variationKey
-        })),
-        totalAmount: grandTotal,
-        status: 'pending',
-        paymentMethod: payLater ? 'Bayar Kemudian' : 'Pindahan Bank',
-        bankName: payLater ? null : bankName,
-        receiptUrl: receiptUrl,
-        shipping: { region: shippingRegion, cost: checkoutShippingCost },
-        sticker: stickerValue,
-        createdAt: new Date().toISOString()
-    });
-});
+            const snapshots = await Promise.all(
+                selectedItems.map(item => transaction.get(doc(db, "inventory", item.variationKey)))
+            );
+            for (let i = 0; i < selectedItems.length; i++) {
+                const snap = snapshots[i];
+                const item = selectedItems[i];
+                let currentStock = snap.exists() ? snap.data().stock : 100;
+                if (currentStock < item.qty) throw new Error(`Stok ${item.name} tidak cukup`);
+                transaction.set(doc(db, "inventory", item.variationKey), {
+                    stock: currentStock - item.qty,
+                    initialStock: snap.exists() ? snap.data().initialStock : 100
+                }, { merge: true });
+            }
+            orderId = `ORD-${Date.now()}`;
+            const orderRef = doc(db, "orders", orderId);
+            transaction.set(orderRef, {
+                orderId: orderId,
+                customer: { name, phone: currentUser.phone, address_line1: address, postcode, state },
+                items: selectedItems.map(i => ({
+                    prodName: i.name,
+                    size: i.size,
+                    type: i.type,
+                    qty: i.qty,
+                    price: i.price,
+                    variationKey: i.variationKey
+                })),
+                totalAmount: grandTotal,
+                status: 'pending',
+                paymentMethod: payLater ? 'Bayar Kemudian' : 'Pindahan Bank',
+                bankName: payLater ? null : bankName,
+                receiptUrls: receiptUrls, // ===== BARU: array =====
+                shipping: { region: shippingRegion, cost: checkoutShippingCost },
+                sticker: stickerValue,
+                createdAt: new Date().toISOString()
+            });
+        });
         const customerData = { name, phone: currentUser.phone, address_line1: address, postcode, state };
-        // 👇 HANTAR stickerValue ke PDF – GUNA selectedItems
         await generateAndDownloadPDF(orderId, customerData, selectedItems.map(i => ({ prodName: i.name, size: i.size, type: i.type, qty: i.qty, price: i.price })), grandTotal, checkoutShippingCost, shippingRegion, payLater ? "Bayar Kemudian" : "Pindahan Bank", payLater ? null : bankName, stickerValue);
        
         cart = cart.filter(item => item.selected === false);
-saveCart();
-updateCartUI();
+        saveCart();
+        updateCartUI();
         showToast('✅ Pesanan berjaya! Invois PDF dimuat turun. Admin akan proses.');
         if (typeof window.bootstrap !== 'undefined' && window.bootstrap.Modal) {
             window.bootstrap.Modal.getInstance(document.getElementById('checkoutModal')).hide();
