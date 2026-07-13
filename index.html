@@ -421,11 +421,12 @@
         </div>
         <div class="category-filters" id="homeFilters">
             <!-- Butang kategori: Tiada "Semua" -->
-            <button class="cat-btn active" data-cat="peptides"><span class="lang-peptides">Peptides</span></button>
-            <button class="cat-btn" data-cat="beauty"><span class="lang-beauty">Beauty Peptides</span></button>
-            <button class="cat-btn" data-cat="solvent"><span class="lang-solvent">Solvent</span></button>
-            <button class="cat-btn" data-cat="oral"><span class="lang-oral">Oral Peptides</span></button>
-            <button class="cat-btn" data-cat="readystock"><span class="lang-readystock">Ready Stock</span></button>
+<button class="cat-btn active" data-cat="peptides"><span class="lang-peptides">Peptides</span></button>
+<button class="cat-btn" data-cat="cbeauty"><span class="lang-cbeauty">C-Beauty</span></button>
+<button class="cat-btn" data-cat="kbeauty"><span class="lang-kbeauty">K-Beauty</span></button>
+<button class="cat-btn" data-cat="solvent"><span class="lang-solvent">Solvent</span></button>
+<button class="cat-btn" data-cat="wellness"><span class="lang-wellness">Wellness</span></button>
+<button class="cat-btn" data-cat="readystock"><span class="lang-readystock">Ready Stock</span></button>
         </div>
         <!-- Search Bar -->
 <div class="search-bar my-3">
@@ -1027,7 +1028,11 @@ let stockUnsubscribe = null; // untuk realtime listener
 function getVariationKey(prodId, size, type) { return `${prodId}_${size}_${type}`.replace(/\s/g, '_'); }
 
 function getProductCategory(product) {
-    return product.category || 'peptides';
+    const cat = product.category || 'peptides';
+    // Mapping kategori lama ke baru
+    if (cat === 'beauty') return 'cbeauty';
+    if (cat === 'oral') return 'wellness';
+    return cat;
 }
 // ========== FUNGSI KIRA PERUBAHAN STOK ==========
 function calculateInventoryChanges(oldItems, newItems) {
@@ -1068,15 +1073,17 @@ function calculateInventoryChanges(oldItems, newItems) {
 function filterProducts(products, category) {
     let filtered = [];
 
-    if (category === 'peptides') {
-        filtered = products.filter(p => getProductCategory(p) === 'peptides');
-    } else if (category === 'beauty') {
-        filtered = products.filter(p => getProductCategory(p) === 'beauty');
-    } else if (category === 'solvent') {
-        filtered = products.filter(p => getProductCategory(p) === 'solvent');
-    } else if (category === 'oral') {
-        filtered = products.filter(p => getProductCategory(p) === 'oral');
-    } else if (category === 'readystock') {
+if (category === 'peptides') {
+    filtered = products.filter(p => getProductCategory(p) === 'peptides');
+} else if (category === 'cbeauty') {
+    filtered = products.filter(p => getProductCategory(p) === 'cbeauty');
+} else if (category === 'kbeauty') {
+    filtered = products.filter(p => getProductCategory(p) === 'kbeauty');
+} else if (category === 'solvent') {
+    filtered = products.filter(p => getProductCategory(p) === 'solvent');
+} else if (category === 'wellness') {
+    filtered = products.filter(p => getProductCategory(p) === 'wellness');
+} else if (category === 'readystock') {
         // Tapis untuk ready stock (hanya yang ada stok dan readyStock > 0)
         filtered = products.filter(p => {
             const hasStock = p.variations?.some(v => {
@@ -2581,7 +2588,10 @@ const translations = {
         checkouttitle: "Selesaikan Pesanan", fullname: "Nama Penuh", phone: "No. WhatsApp", address: "Alamat Lengkap", postcode: "Poskod", state: "Negeri",
         shippingarea: "Pilih Kawasan Penghantaran", payment: "PEMBAYARAN", paylater: "Bayar Kemudian (tanpa resit)", bankname: "Nama Bank Pengirim", receipt: "Resit Pembayaran (Gambar)", total: "TOTAL (Produk + Penghantaran)", cancel: "Batal", placeorder: "Place Order",
         login: "Log Masuk / Daftar", fullname_label: "Nama Penuh", phone_label: "Nombor WhatsApp / Telefon", loginbtn: "Log Masuk / Daftar", loginsuccess: "Log masuk berjaya!",
-        addtocart: "Tambah ke Troli"
+        addtocart: "Tambah ke Troli",
+        cbeauty: "C-Beauty",
+        kbeauty: "K-Beauty",
+        wellness: "Wellness"
     },
     en: {
         step1: "3 EASY STEPS", step_pilih: "1. Select Item", step_checkout: "2. Checkout", step_bayar: "3. Pay & Upload",
@@ -2593,7 +2603,10 @@ const translations = {
         checkouttitle: "Complete Order", fullname: "Full Name", phone: "WhatsApp Number", address: "Full Address", postcode: "Postcode", state: "State",
         shippingarea: "Select Shipping Area", payment: "PAYMENT", paylater: "Pay Later (no receipt)", bankname: "Sender's Bank Name", receipt: "Payment Receipt (Image)", total: "TOTAL (Product + Shipping)", cancel: "Cancel", placeorder: "Place Order",
         login: "Login / Register", fullname_label: "Full Name", phone_label: "WhatsApp Number", loginbtn: "Login / Register", loginsuccess: "Login successful!",
-        addtocart: "Add to Cart"
+        addtocart: "Add to Cart",
+        cbeauty: "C-Beauty",
+        kbeauty: "K-Beauty",
+        wellness: "Wellness"
     }
 };
 
