@@ -421,25 +421,26 @@
         </div>
         <div class="category-filters" id="homeFilters">
             <!-- Butang kategori: Tiada "Semua" -->
-<button class="cat-btn active" data-cat="peptides"><span class="lang-peptides">Peptides</span></button>
-<button class="cat-btn" data-cat="cbeauty"><span class="lang-cbeauty">C-Beauty</span></button>
-<button class="cat-btn" data-cat="kbeauty"><span class="lang-kbeauty">K-Beauty</span></button>
-<button class="cat-btn" data-cat="solvent"><span class="lang-solvent">Solvent</span></button>
-<button class="cat-btn" data-cat="wellness"><span class="lang-wellness">Wellness</span></button>
-<button class="cat-btn" data-cat="readystock"><span class="lang-readystock">Ready Stock</span></button>
+            <button class="cat-btn active" data-cat="peptides"><span class="lang-peptides">Peptides</span></button>
+            <button class="cat-btn" data-cat="cbeauty"><span class="lang-cbeauty">C-Beauty</span></button>
+            <button class="cat-btn" data-cat="kbeauty"><span class="lang-kbeauty">K-Beauty</span></button>
+            <button class="cat-btn" data-cat="cosmetics"><span class="lang-cosmetics">Cosmetics</span></button>
+            <button class="cat-btn" data-cat="solvent"><span class="lang-solvent">Solvent</span></button>
+            <button class="cat-btn" data-cat="wellness"><span class="lang-wellness">Wellness</span></button>
+            <button class="cat-btn" data-cat="readystock"><span class="lang-readystock">Ready Stock</span></button>
         </div>
         <!-- Search Bar -->
-<div class="search-bar my-3">
-    <div class="input-group">
-        <span class="input-group-text bg-white border-end-0">
-            <i class="fa-solid fa-search text-muted"></i>
-        </span>
-        <input type="text" id="productSearchInput" class="form-control border-start-0" placeholder="🔍 Cari produk... (cth: Retatrutide, BPC, GHK)">
-        <button class="btn btn-outline-secondary border-start-0" type="button" id="clearSearchBtn" style="border-radius: 0 14px 14px 0;">
-            <i class="fa-solid fa-times"></i>
-        </button>
-    </div>
-</div>
+        <div class="search-bar my-3">
+            <div class="input-group">
+                <span class="input-group-text bg-white border-end-0">
+                    <i class="fa-solid fa-search text-muted"></i>
+                </span>
+                <input type="text" id="productSearchInput" class="form-control border-start-0" placeholder="🔍 Cari produk... (cth: Retatrutide, BPC, GHK)">
+                <button class="btn btn-outline-secondary border-start-0" type="button" id="clearSearchBtn" style="border-radius: 0 14px 14px 0;">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+        </div>
         <div id="product-list" class="row g-3">
             <div class="text-center py-5"><div class="spinner-border text-emerald"></div><p><span class="lang-loading">Memuatkan produk...</span></p></div>
         </div>
@@ -498,29 +499,29 @@
                         <div class="col-6"><label class="small fw-bold"><span class="lang-state">Negeri</span></label><input id="checkoutState" class="form-control"></div>
                     </div>
                     <div class="mb-4">
-    <label class="form-label fw-bold small"><i class="fa-solid fa-truck-fast"></i> <span class="lang-shippingarea">Pilih Kawasan Penghantaran</span></label>
-    <div class="row g-2" id="checkoutShipping">
-        <div class="col-4"><div class="shipping-option text-center p-2 selected" data-code="SM" data-cost="10">SM - RM10</div></div>
-        <div class="col-4"><div class="shipping-option text-center p-2" data-code="SS" data-cost="20">SS - RM20</div></div>
-        <div class="col-4"><div class="shipping-option text-center p-2" data-code="SG" data-cost="80">Singapore - RM80</div></div>
-     
-        <div class="col-4"><div class="shipping-option text-center p-2" data-code="COD" data-cost="0">Lalamove / COD</div></div>
-    </div>
-</div>
+                        <label class="form-label fw-bold small"><i class="fa-solid fa-truck-fast"></i> <span class="lang-shippingarea">Pilih Kawasan Penghantaran</span></label>
+                        <div class="row g-2" id="checkoutShipping">
+                            <div class="col-4"><div class="shipping-option text-center p-2 selected" data-code="SM" data-cost="10">SM - RM10</div></div>
+                            <div class="col-4"><div class="shipping-option text-center p-2" data-code="SS" data-cost="20">SS - RM20</div></div>
+                            <div class="col-4"><div class="shipping-option text-center p-2" data-code="SG" data-cost="50">Singapore - RM50</div></div>
+                            <div class="col-4"><div class="shipping-option text-center p-2" data-code="COD" data-cost="0">Lalamove / COD</div></div>
+                            <div class="col-4"><div class="shipping-option text-center p-2" data-code="ADDON" data-cost="5">Add On - RM5</div></div>
+                        </div>
+                    </div>
                     <!-- Sticker on vials? -->
-<div class="mb-3">
-    <label class="form-label fw-bold small"><i class="fa-regular fa-circle-check"></i> Sticker on vials?</label>
-    <div class="d-flex gap-3">
-        <div class="form-check">
-            <input class="form-check-input" type="radio" name="stickerOption" id="stickerYes" value="Yes" checked>
-            <label class="form-check-label" for="stickerYes">Yes</label>
-        </div>
-        <div class="form-check">
-            <input class="form-check-input" type="radio" name="stickerOption" id="stickerNo" value="No">
-            <label class="form-check-label" for="stickerNo">No</label>
-        </div>
-    </div>
-</div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small"><i class="fa-regular fa-circle-check"></i> Sticker on vials?</label>
+                        <div class="d-flex gap-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="stickerOption" id="stickerYes" value="Yes" checked>
+                                <label class="form-check-label" for="stickerYes">Yes</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="stickerOption" id="stickerNo" value="No">
+                                <label class="form-check-label" for="stickerNo">No</label>
+                            </div>
+                        </div>
+                    </div>
                     <div class="qr-placeholder text-center mb-4 shadow-sm p-4">
                         <h6 class="fw-bold mb-3"><i class="fa-solid fa-building-columns text-emerald"></i> <span class="lang-payment">PEMBAYARAN</span></h6>
                         <div class="p-3 border rounded-4 bg-white mb-3"><small class="text-muted">MAYBANK</small><br><strong class="fs-5">552107746164</strong><br><small>VELXERA VENTURES</small></div>
@@ -530,17 +531,17 @@
                         <div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="payLaterCheckbox"><label class="form-check-label small fw-bold"><span class="lang-paylater">Bayar Kemudian (tanpa resit)</span></label></div>
                         <div id="paymentFields">
                             <div class="mb-2"><label class="form-label text-muted small"><span class="lang-bankname">Nama Bank Pengirim</span></label><input type="text" class="form-control form-control-sm" id="bankName" placeholder="CIMB / Maybank"></div>
-<!-- ===== BARU: Kawasan muat naik berbilang resit ===== -->
-<div>
-    <label class="form-label text-muted small">Resit Pembayaran (Pilih berbilang gambar)</label>
-    <div class="receipt-upload-area" id="receiptDropArea">
-        <i class="fa-regular fa-image fa-2x text-muted"></i>
-        <p class="small mb-0">Klik atau seret gambar ke sini</p>
-        <input type="file" id="checkoutReceipts" class="d-none" accept="image/*" multiple>
-    </div>
-    <div id="receiptFileList" class="receipt-list mt-2"></div>
-    <div id="checkoutProgress" class="progress-upload" style="display:none;">⏳ Memuat naik & memampatkan...</div>
-</div>
+                            <!-- ===== BARU: Kawasan muat naik berbilang resit ===== -->
+                            <div>
+                                <label class="form-label text-muted small">Resit Pembayaran (Pilih berbilang gambar)</label>
+                                <div class="receipt-upload-area" id="receiptDropArea">
+                                    <i class="fa-regular fa-image fa-2x text-muted"></i>
+                                    <p class="small mb-0">Klik atau seret gambar ke sini</p>
+                                    <input type="file" id="checkoutReceipts" class="d-none" accept="image/*" multiple>
+                                </div>
+                                <div id="receiptFileList" class="receipt-list mt-2"></div>
+                                <div id="checkoutProgress" class="progress-upload" style="display:none;">⏳ Memuat naik & memampatkan...</div>
+                            </div>
                         </div>
                     </div>
                     <div class="total-box text-center my-3 p-3 rounded-4" style="background: var(--emerald-grad); color: white;">
@@ -1029,9 +1030,10 @@ function getVariationKey(prodId, size, type) { return `${prodId}_${size}_${type}
 
 function getProductCategory(product) {
     const cat = product.category || 'peptides';
-    // Mapping kategori lama ke baru
+    // Mapping kategori lama ke baru (untuk keserasian)
     if (cat === 'beauty') return 'cbeauty';
     if (cat === 'oral') return 'wellness';
+    if (cat === 'cosmetics') return 'cosmetics';
     return cat;
 }
 // ========== FUNGSI KIRA PERUBAHAN STOK ==========
@@ -1079,6 +1081,8 @@ if (category === 'peptides') {
     filtered = products.filter(p => getProductCategory(p) === 'cbeauty');
 } else if (category === 'kbeauty') {
     filtered = products.filter(p => getProductCategory(p) === 'kbeauty');
+} else if (category === 'cosmetics') {
+    filtered = products.filter(p => getProductCategory(p) === 'cosmetics');
 } else if (category === 'solvent') {
     filtered = products.filter(p => getProductCategory(p) === 'solvent');
 } else if (category === 'wellness') {
@@ -1294,6 +1298,7 @@ function renderProducts(products) {
         else if (cat === 'solvent') badge = 'Solvent';
         else if (cat === 'peptides') badge = 'Peptides';
         else if (cat === 'oral') badge = 'Oral Peptides';
+        else if (cat === 'cosmetics') badge = 'Cosmetics';
         else badge = 'Peptides';
 
         let displayDefaultPrice = defaultPrice;
@@ -2407,7 +2412,8 @@ document.getElementById('placeOrderBtn').addEventListener('click', async functio
         // Tentukan shipping region
         const shippingRegion = checkoutShippingCode === 'SM' ? 'Semenanjung Malaysia' :
                                (checkoutShippingCode === 'SS' ? 'Sabah/Sarawak' :
-                               (checkoutShippingCode === 'COD' ? 'Lalamove / COD' : 'Singapura'));
+                               (checkoutShippingCode === 'COD' ? 'Lalamove / COD' :
+                               (checkoutShippingCode === 'ADDON' ? 'Add On' : 'Singapura')));
        
         if(!name || !address || !postcode || !state) {
             showToast('Sila lengkapkan alamat', true);
@@ -2591,7 +2597,8 @@ const translations = {
         addtocart: "Tambah ke Troli",
         cbeauty: "C-Beauty",
         kbeauty: "K-Beauty",
-        wellness: "Wellness"
+        wellness: "Wellness",
+        cosmetics: "Kosmetik"
     },
     en: {
         step1: "3 EASY STEPS", step_pilih: "1. Select Item", step_checkout: "2. Checkout", step_bayar: "3. Pay & Upload",
@@ -2606,7 +2613,8 @@ const translations = {
         addtocart: "Add to Cart",
         cbeauty: "C-Beauty",
         kbeauty: "K-Beauty",
-        wellness: "Wellness"
+        wellness: "Wellness",
+        cosmetics: "Cosmetics"
     }
 };
 
@@ -2634,6 +2642,7 @@ function setLanguage(lang) {
     document.querySelectorAll('.lang-solvent').forEach(el => el.innerText = t.solvent);
     document.querySelectorAll('.lang-oral').forEach(el => el.innerText = t.oral);
     document.querySelectorAll('.lang-readystock').forEach(el => el.innerText = t.readystock);
+    document.querySelectorAll('.lang-cosmetics').forEach(el => el.innerText = t.cosmetics);
     if(el('.lang-loading')) el('.lang-loading').innerText = t.loading;
     if(el('.lang-carttitle')) el('.lang-carttitle').innerText = t.carttitle;
     if(el('.lang-cartempty')) el('.lang-cartempty').innerText = t.cartempty;
