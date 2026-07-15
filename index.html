@@ -642,7 +642,9 @@ import { getFirestore, collection, doc, getDocs, setDoc, updateDoc, query, where
 let selectedOrderId = null;
 let selectedOrderData = null;
 
-
+function isItemReady(category) {
+    return category === 'readystock';
+}
 const firebaseConfig = {
     apiKey: "AIzaSyAdUZs-P5SPcivHHP9lRmdyOC355Op8bOU",
     authDomain: "spmn-af4f9.firebaseapp.com",
@@ -1275,16 +1277,17 @@ function renderProducts(products) {
         }
         cart[existingIdx].qty = newQty;
     } else {
-        cart.push({
-            id: p.id,
-            name: p.name,
-            size: size,
-            type: type,
-            price: price,
-            qty: qty,
-            variationKey: varKey,
-            prodId: p.id
-        });
+     cart.push({
+    id: p.id,
+    name: p.name,
+    size: size,
+    type: type,
+    price: price,
+    qty: qty,
+    variationKey: varKey,
+    prodId: p.id,
+    isReady: currentCategory === 'readystock'   // <--- TAMBAH BARIS INI
+});
     }
     saveCart();
     updateCartUI();
@@ -2315,14 +2318,15 @@ document.getElementById('placeOrderBtn').addEventListener('click', async functio
             transaction.set(orderRef, {
                 orderId: orderId,
                 customer: { name, phone: currentUser.phone, address_line1: address, postcode, state },
-                items: selectedItems.map(i => ({
-                    prodName: i.name,
-                    size: i.size,
-                    type: i.type,
-                    qty: i.qty,
-                    price: i.price,
-                    variationKey: i.variationKey
-                })),
+items: selectedItems.map(i => ({
+    prodName: i.name,
+    size: i.size,
+    type: i.type,
+    qty: i.qty,
+    price: i.price,
+    variationKey: i.variationKey,
+    isReady: i.isReady !== undefined ? i.isReady : false   // <--- TAMBAH BARIS INI
+})),
                 totalAmount: grandTotal,
                 status: 'pending',
                 paymentMethod: payLater ? 'Bayar Kemudian' : 'Pindahan Bank',
