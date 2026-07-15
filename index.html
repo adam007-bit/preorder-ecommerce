@@ -1767,7 +1767,8 @@ let editOrderData = null;
 function openEditOrderModal(orderId, orderData) {
     editOrderId = orderId;
     editOrderData = orderData;
-    editOrderData.originalItems = JSON.parse(JSON.stringify(orderData.items));
+    editOrderData.originalItems = JSON.parse(JSON.stringify(orderData.items || [])); // <-- FIX: jika items undefined
+    
     // Isi dropdown produk untuk tambah item
     const productSelect = document.getElementById('editAddProductSelect');
     productSelect.innerHTML = '<option value="">-- Pilih Produk --</option>';
@@ -1782,7 +1783,7 @@ function openEditOrderModal(orderId, orderData) {
     document.getElementById('editOrderProgress').style.display = 'none';
    
     // Muat variasi untuk produk yang dipilih
-    productSelect.addEventListener('change', function() {
+    productSelect.onchange = function() {  // <-- FIX: guna onchange event
         const prodId = this.value;
         const varSelect = document.getElementById('editAddVariationSelect');
         varSelect.innerHTML = '<option value="">-- Variasi --</option>';
@@ -1805,11 +1806,15 @@ function openEditOrderModal(orderId, orderData) {
             opt.disabled = stock <= 0;
             varSelect.appendChild(opt);
         });
-    });
+    };
    
     // Papar item sedia ada
-    renderEditOrderItems(orderData.items);
-    safeBootstrapModal(document.getElementById('editOrderModal')).show();
+    renderEditOrderItems(orderData.items || []);
+    
+    // Tunjukkan modal
+    const modalEl = document.getElementById('editOrderModal');
+    const modal = new bootstrap.Modal(modalEl);  // <-- FIX: guna bootstrap langsung
+    modal.show();
 }
 
 function renderEditOrderItems(items) {
