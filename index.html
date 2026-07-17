@@ -2106,8 +2106,11 @@ async function showCheckoutModal() {
     });
      safeBootstrapModal(document.getElementById('checkoutModal')).show();
 }
-    // ========== BAYAR PESANAN SEDIA ADA ==========
+// ========== BAYAR PESANAN SEDIA ADA (TAMBAH RESIT TANPA RESET) ==========
 let payingOrderId = null;
+// Simpan resit sedia ada dan fail baru
+let existingReceipts = [];
+let newReceiptFiles = [];
 
 async function openPaymentForOrder(orderId, orderData) {
     if (!currentUser) {
@@ -2118,9 +2121,14 @@ async function openPaymentForOrder(orderId, orderData) {
 
     payingOrderId = orderId;
 
-    // ===== BARU: Reset senarai resit =====
-    selectedReceiptFiles = [];
-    document.getElementById('receiptFileList').innerHTML = '';
+    // ===== MUAT RESIT SEDIA ADA =====
+    existingReceipts = orderData.receiptUrls || [];
+    newReceiptFiles = []; // reset fail baru
+
+    // Papar resit sedia ada di UI
+    renderReceiptFileList();
+
+    // Reset input file
     document.getElementById('checkoutReceipts').value = '';
     document.getElementById('checkoutProgress').style.display = 'none';
 
@@ -2144,12 +2152,12 @@ async function openPaymentForOrder(orderId, orderData) {
         }
     });
 
-    // Kosongkan resit dan bank
+    // Kosongkan bank dan payment fields
     document.getElementById('bankName').value = '';
     document.getElementById('payLaterCheckbox').checked = false;
     document.getElementById('paymentFields').style.display = 'block';
 
-    // Kira jumlah dari item pesanan (termasuk item yang baru ditambah)
+    // Kira jumlah dari item pesanan
     const subtotal = orderData.items.reduce((sum, item) => sum + (item.price * item.qty), 0);
     const grandTotal = subtotal + shippingCost;
     document.getElementById('checkoutTotal').innerText = `RM ${grandTotal.toFixed(2)}`;
@@ -2160,8 +2168,14 @@ async function openPaymentForOrder(orderId, orderData) {
 
 // ===== BARU: Event listener untuk muat naik berbilang resit =====
 document.getElementById('checkoutReceipts').addEventListener('change', function(e) {
-    selectedReceiptFiles = Array.from(e.target.files);
-    renderReceiptFileList();
+    const files = Array.from(e.target.files);
+    if (files.length) {
+        // Tambah ke newReceiptFiles
+        newReceiptFiles.push(...files);
+        renderReceiptFileList();
+        // Reset input untuk membolehkan pilih fail sama lagi
+        this.value = '';
+    }
 });
 
 document.getElementById('receiptDropArea').addEventListener('click', function() {
@@ -2182,7 +2196,8 @@ dropArea.addEventListener('drop', (e) => {
     dropArea.classList.remove('dragover');
     const files = Array.from(e.dataTransfer.files);
     if (files.length) {
-        selectedReceiptFiles = files;
+        // ✅ TAMBAH KE newReceiptFiles
+        newReceiptFiles.push(...files);
         renderReceiptFileList();
         // Sync dengan input file
         const dataTransfer = new DataTransfer();
@@ -2194,24 +2209,51 @@ dropArea.addEventListener('drop', (e) => {
 function renderReceiptFileList() {
     const container = document.getElementById('receiptFileList');
     container.innerHTML = '';
-    selectedReceiptFiles.forEach((file, idx) => {
-        const div = document.createElement('span');
-        div.className = 'receipt-file-item';
-        div.innerHTML = `
-            <i class="fa-regular fa-file-image"></i> ${file.name} (${(file.size/1024).toFixed(0)}KB)
-            <span class="remove-file" data-idx="${idx}"><i class="fa-regular fa-circle-xmark"></i></span>
-        `;
-        container.appendChild(div);
+
+    // Papar resit sedia ada
+    if (existingReceipts && existingReceipts.length > 0) {
+        existingReceipts.forEach((url, idx) => {
+            const div = document.createElement('span');
+            div.className = 'receipt-file-item';
+            div.innerHTML = `
+                <i class="fa-regular fa-file-image"></i> Resit ${idx+1} (sedia ada)
+                <a href="${url}" target="_blank" style="color:#10b981; margin-left:4px;"><i class="fa-regular fa-eye"></i></a>
+                <span class="remove-existing" data-url="${url}" style="cursor:pointer; color:#ef4444; margin-left:4px;"><i class="fa-regular fa-circle-xmark"></i></span>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    // Papar fail baru yang dipilih
+    if (newReceiptFiles && newReceiptFiles.length > 0) {
+        newReceiptFiles.forEach((file, idx) => {
+            const div = document.createElement('span');
+            div.className = 'receipt-file-item';
+            div.innerHTML = `
+                <i class="fa-regular fa-file-image"></i> ${file.name} (${(file.size/1024).toFixed(0)}KB) [BARU]
+                <span class="remove-new" data-idx="${idx}" style="cursor:pointer; color:#ef4444; margin-left:4px;"><i class="fa-regular fa-circle-xmark"></i></span>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    // Event untuk padam resit sedia ada
+    container.querySelectorAll('.remove-existing').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const url = this.dataset.url;
+            if (confirm('Padam resit ini? Tindakan akan disimpan.')) {
+                existingReceipts = existingReceipts.filter(u => u !== url);
+                renderReceiptFileList();
+            }
+        });
     });
-    container.querySelectorAll('.remove-file').forEach(btn => {
+
+    // Event untuk padam fail baru
+    container.querySelectorAll('.remove-new').forEach(btn => {
         btn.addEventListener('click', function() {
             const idx = parseInt(this.dataset.idx);
-            selectedReceiptFiles.splice(idx, 1);
+            newReceiptFiles.splice(idx, 1);
             renderReceiptFileList();
-            // Sync dengan input file
-            const dataTransfer = new DataTransfer();
-            selectedReceiptFiles.forEach(f => dataTransfer.items.add(f));
-            document.getElementById('checkoutReceipts').files = dataTransfer.files;
         });
     });
 }
@@ -2256,39 +2298,53 @@ document.getElementById('placeOrderBtn').addEventListener('click', async functio
             receiptUrls = await uploadMultipleReceipts(selectedReceiptFiles);
         }
 
-        // ===== JIKA INI BAYARAN UNTUK PESANAN SEDIA ADA =====
-        if (payingOrderId) {
-            const orderRef = doc(db, "orders", payingOrderId);
-            const orderSnap = await getDoc(orderRef);
-            if (!orderSnap.exists()) {
-                throw new Error('Pesanan tidak dijumpai');
-            }
-            const orderData = orderSnap.data();
+ if (payingOrderId) {
+    const orderRef = doc(db, "orders", payingOrderId);
+    const orderSnap = await getDoc(orderRef);
+    if (!orderSnap.exists()) {
+        throw new Error('Pesanan tidak dijumpai');
+    }
+    const orderData = orderSnap.data();
 
-            // Kemas kini pesanan dengan resit dan maklumat bayaran
-            const updateData = {
-                receiptUrls: receiptUrls, // ===== BARU: array =====
-                paymentMethod: payLater ? 'Bayar Kemudian' : 'Pindahan Bank',
-                bankName: payLater ? null : bankName,
-                updatedAt: new Date().toISOString()
-            };
-            if (!orderData.sticker) {
-                updateData.sticker = stickerValue;
-            }
-            await updateDoc(orderRef, updateData);
+    // ===== UPLOAD FAIL BARU =====
+    let newUploadUrls = [];
+    if (!payLater && newReceiptFiles.length > 0) {
+        newUploadUrls = await uploadMultipleReceipts(newReceiptFiles);
+    }
 
-            showToast('✅ Resit berjaya dimuat naik! Admin akan proses.');
-            if (typeof window.bootstrap !== 'undefined' && window.bootstrap.Modal) {
-                window.bootstrap.Modal.getInstance(document.getElementById('checkoutModal')).hide();
-            } else {
-                document.getElementById('checkoutModal').style.display = 'none';
-            }
-            loadUserOrders(); // refresh senarai
-            payingOrderId = null; // reset
-            this.disabled = false;
-            this.innerHTML = 'Place Order <i class="fa-solid fa-check-circle"></i>';
-            return;
-        }
+    // ===== GABUNGKAN RESIT SEDIA ADA + BARU =====
+    // existingReceipts sudah mengandungi resit sedia ada (termasuk yang mungkin dipadam)
+    // pastikan existingReceipts diselaraskan dengan yang ada dalam order? Kita guna existingReceipts yang dikemas kini.
+    // Jika tiada perubahan pada existingReceipts, guna orderData.receiptUrls sebagai asas.
+    const finalUrls = [...existingReceipts, ...newUploadUrls];
+
+    // Kemas kini pesanan
+    const updateData = {
+        receiptUrls: finalUrls,
+        paymentMethod: payLater ? 'Bayar Kemudian' : 'Pindahan Bank',
+        bankName: payLater ? null : bankName,
+        updatedAt: new Date().toISOString()
+    };
+    if (!orderData.sticker) {
+        updateData.sticker = stickerValue;
+    }
+    await updateDoc(orderRef, updateData);
+
+    // Reset state
+    existingReceipts = [];
+    newReceiptFiles = [];
+    showToast('✅ Resit berjaya dimuat naik! Admin akan proses.');
+    if (typeof window.bootstrap !== 'undefined' && window.bootstrap.Modal) {
+        window.bootstrap.Modal.getInstance(document.getElementById('checkoutModal')).hide();
+    } else {
+        document.getElementById('checkoutModal').style.display = 'none';
+    }
+    loadUserOrders(); // refresh senarai
+    payingOrderId = null; // reset
+    this.disabled = false;
+    this.innerHTML = 'Place Order <i class="fa-solid fa-check-circle"></i>';
+    return;
+}
 
         const userRef = doc(db, "users", currentUser.phone);
         await setDoc(userRef, { name, address, postcode, state }, { merge: true });
@@ -2511,6 +2567,9 @@ renderProtocolCards();
 setLanguage('ms');
     document.getElementById('checkoutModal').addEventListener('hidden.bs.modal', function () {
     payingOrderId = null;
+    // ✅ GUNA VARIABLE YANG BETUL
+    existingReceipts = [];
+    newReceiptFiles = [];
 });
 </script>
 
