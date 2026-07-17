@@ -2502,7 +2502,45 @@ document.getElementById('payLaterCheckbox').addEventListener('change', (e) => {
     document.getElementById('paymentFields').style.display = e.target.checked ? 'none' : 'block';
 });
 function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => m==='&'?'&amp;':m==='<'?'&lt;':m==='>'?'&gt;':m); }
+function renderEditReceiptList() {
+    const container = document.getElementById('editReceiptFileList');
+    container.innerHTML = '';
 
+    // Papar resit sedia ada (hanya paparan, tiada butang padam)
+    if (editExistingReceipts && editExistingReceipts.length > 0) {
+        editExistingReceipts.forEach((url, idx) => {
+            const div = document.createElement('span');
+            div.className = 'receipt-file-item';
+            div.innerHTML = `
+                <i class="fa-regular fa-file-image"></i> Resit ${idx+1} (sedia ada)
+                <a href="${url}" target="_blank" style="color:#10b981; margin-left:4px;"><i class="fa-regular fa-eye"></i></a>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    // Papar fail baru yang dipilih
+    if (editNewReceiptFiles && editNewReceiptFiles.length > 0) {
+        editNewReceiptFiles.forEach((file, idx) => {
+            const div = document.createElement('span');
+            div.className = 'receipt-file-item';
+            div.innerHTML = `
+                <i class="fa-regular fa-file-image"></i> ${file.name} (baru)
+                <span class="remove-new-receipt" data-idx="${idx}" style="cursor:pointer; color:#ef4444; margin-left:4px;"><i class="fa-regular fa-circle-xmark"></i></span>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    // Event untuk padam fail baru
+    container.querySelectorAll('.remove-new-receipt').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const idx = parseInt(this.dataset.idx);
+            editNewReceiptFiles.splice(idx, 1);
+            renderEditReceiptList();
+        });
+    });
+}
 function renderProtocolCards() {
     const container = document.getElementById('protocolCardsContainer');
     if (!container) return;
