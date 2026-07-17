@@ -1552,12 +1552,11 @@ function renderUserOrders(orders) {
         }
 
         // 👇 HANYA SATU SET BUTANG UNTUK PENDING
-        let actionBtns = '';
+  let actionBtns = '';
 if (o.status === 'pending') {
     actionBtns = `
         <button class="btn btn-sm btn-outline-success add-item-btn" data-orderid="${o.id}"><i class="fa-solid fa-plus"></i> Tambah Item</button>
-        <button class="btn btn-sm btn-outline-primary edit-order-btn" data-orderid="${o.id}"><i class="fa-solid fa-pen"></i> Edit Pesanan</button>
-        <button class="btn btn-sm btn-outline-warning payment-order-btn" data-orderid="${o.id}"><i class="fa-solid fa-credit-card"></i> Bayar Sekarang</button>
+        <button class="btn btn-sm btn-outline-primary edit-order-btn" data-orderid="${o.id}"><i class="fa-solid fa-pen"></i> Edit / Bayar</button>
     `;
 }
 
