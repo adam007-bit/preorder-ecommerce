@@ -837,7 +837,7 @@ let currentCategory = 'peptides';
 let searchTerm = '';
 let currentUser = null;
 let cart = [];
-let selectedReceiptFiles = []; // ===== BARU: simpan fail resit yang dipilih =====
+ // ===== BARU: simpan fail resit yang dipilih =====
 let checkoutShippingCost = 10;
 let checkoutShippingCode = 'SM';
 let stockUnsubscribe = null; // untuk realtime listener
@@ -2073,11 +2073,11 @@ async function showCheckoutModal() {
     const selectedItems = cart.filter(item => item.selected !== false);
     if(!selectedItems.length) { showToast('Tiada item dipilih', true); return; }
    
-    // ===== BARU: Reset senarai resit =====
-    selectedReceiptFiles = [];
-    document.getElementById('receiptFileList').innerHTML = '';
-    document.getElementById('checkoutReceipts').value = '';
-    document.getElementById('checkoutProgress').style.display = 'none';
+   newReceiptFiles = [];
+existingReceipts = [];
+document.getElementById('receiptFileList').innerHTML = '';
+document.getElementById('checkoutReceipts').value = '';
+document.getElementById('checkoutProgress').style.display = 'none';
    
     const userDoc = await getDoc(doc(db, "users", currentUser.phone));
     const userData = userDoc.exists() ? userDoc.data() : {};
@@ -2287,16 +2287,16 @@ document.getElementById('placeOrderBtn').addEventListener('click', async functio
         }
         
         // ===== BARU: Semak resit – guna selectedReceiptFiles =====
-        if(!payLater && selectedReceiptFiles.length === 0) {
-            showToast('Sila muat naik sekurang-kurangnya satu resit atau pilih Bayar Kemudian', true);
-            return;
-        }
-       
-        let receiptUrls = [];
-        const progressDiv = document.getElementById('checkoutProgress');
-        if(!payLater && selectedReceiptFiles.length > 0) {
-            receiptUrls = await uploadMultipleReceipts(selectedReceiptFiles);
-        }
+     if(!payLater && newReceiptFiles.length === 0) {
+    showToast('Sila muat naik sekurang-kurangnya satu resit atau pilih Bayar Kemudian', true);
+    return;
+}
+...
+let receiptUrls = [];
+const progressDiv = document.getElementById('checkoutProgress');
+if(!payLater && newReceiptFiles.length > 0) {
+    receiptUrls = await uploadMultipleReceipts(newReceiptFiles);
+}
 
  if (payingOrderId) {
     const orderRef = doc(db, "orders", payingOrderId);
