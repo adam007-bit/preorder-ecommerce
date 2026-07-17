@@ -606,6 +606,18 @@
                 <div id="editOrderItemsList">
                     <div class="text-center py-3">Memuatkan item...</div>
                 </div>
+                <!-- Resit Upload Section -->
+<div class="mt-3">
+    <label class="fw-bold small"><i class="fa-regular fa-receipt"></i> Resit Pembayaran (Tambah baru, kekal lama)</label>
+    <div class="receipt-upload-area" id="editReceiptDropArea">
+        <i class="fa-regular fa-image fa-2x text-muted"></i>
+        <p class="small mb-0">Klik atau seret gambar resit baru di sini</p>
+        <input type="file" id="editReceiptInput" class="d-none" accept="image/*" multiple>
+    </div>
+    <div id="editReceiptFileList" class="receipt-list mt-2"></div>
+    <div id="editReceiptProgress" class="progress-upload" style="display:none;">⏳ Memuat naik...</div>
+</div>
+<hr>
                 <hr>
                 <div class="mb-3">
                     <label class="form-label fw-bold small">Tambah Item Baru</label>
@@ -1765,11 +1777,16 @@ document.getElementById('confirmAddItemBtn').addEventListener('click', async fun
     // ========== EDIT ORDER ==========
 let editOrderId = null;
 let editOrderData = null;
+let editExistingReceipts = [];
+let editNewReceiptFiles = [];
 
 function openEditOrderModal(orderId, orderData) {
     editOrderId = orderId;
     editOrderData = orderData;
     editOrderData.originalItems = JSON.parse(JSON.stringify(orderData.items || [])); // <-- FIX: jika items undefined
+    editExistingReceipts = orderData.receiptUrls || [];
+editNewReceiptFiles = [];
+renderEditReceiptList();
     
     // Isi dropdown produk untuk tambah item
     const productSelect = document.getElementById('editAddProductSelect');
@@ -1812,7 +1829,40 @@ function openEditOrderModal(orderId, orderData) {
    
     // Papar item sedia ada
     renderEditOrderItems(orderData.items || []);
-    
+    // Setup receipt upload events
+const dropArea = document.getElementById('editReceiptDropArea');
+const fileInput = document.getElementById('editReceiptInput');
+
+dropArea.addEventListener('click', () => fileInput.click());
+
+dropArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropArea.classList.add('dragover');
+});
+dropArea.addEventListener('dragleave', () => {
+    dropArea.classList.remove('dragover');
+});
+dropArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropArea.classList.remove('dragover');
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length) {
+        editNewReceiptFiles.push(...files);
+        renderEditReceiptList();
+        const dataTransfer = new DataTransfer();
+        files.forEach(f => dataTransfer.items.add(f));
+        fileInput.files = dataTransfer.files;
+    }
+});
+
+fileInput.addEventListener('change', (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length) {
+        editNewReceiptFiles.push(...files);
+        renderEditReceiptList();
+        this.value = ''; // allow re-selection
+    }
+});
     // Tunjukkan modal
     const modalEl = document.getElementById('editOrderModal');
     const modal = new bootstrap.Modal(modalEl);  // <-- FIX: guna bootstrap langsung
@@ -1960,7 +2010,6 @@ document.getElementById('editAddItemBtn').addEventListener('click', async functi
 
 // Kita tambah butang Simpan dalam footer modal edit:
 // Butang sudah ada dalam HTML, jadi kita hanya perlu event listener.
-
 document.getElementById('saveEditOrderBtn').addEventListener('click', async function() {
     if (this.disabled) return;
     this.disabled = true;
@@ -1974,6 +2023,20 @@ document.getElementById('saveEditOrderBtn').addEventListener('click', async func
             showToast('Pesanan tidak boleh kosong', true);
             return;
         }
+
+        // === UPLOAD RESIT BARU ===
+        let newUploadUrls = [];
+        const receiptProgress = document.getElementById('editReceiptProgress');
+        if (editNewReceiptFiles.length > 0) {
+            receiptProgress.style.display = 'block';
+            receiptProgress.innerHTML = `⬆️ Memuat naik ${editNewReceiptFiles.length} resit...`;
+            newUploadUrls = await uploadMultipleReceipts(editNewReceiptFiles);
+            receiptProgress.innerHTML = '✅ Resit baru berjaya!';
+            setTimeout(() => receiptProgress.style.display = 'none', 2000);
+        }
+
+        // === GABUNGKAN RESIT LAMA + BARU ===
+        const finalReceiptUrls = [...editExistingReceipts, ...newUploadUrls];
 
         // Dapatkan item asal
         const originalItems = editOrderData.originalItems || [];
@@ -1998,16 +2061,17 @@ document.getElementById('saveEditOrderBtn').addEventListener('click', async func
                     throw new Error(`Stok tidak mencukupi untuk item (ID: ${key})`);
                 }
                 transaction.set(invRef, {
-    stock: newStock,
-    initialStock: invSnap.exists() ? invSnap.data().initialStock : 100
-}, { merge: true });
+                    stock: newStock,
+                    initialStock: invSnap.exists() ? invSnap.data().initialStock : 100
+                }, { merge: true });
             }
 
-            // Kemas kini pesanan
+            // Kemas kini pesanan – TAMBAH receiptUrls
             const newTotal = updatedItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
             transaction.update(orderRef, {
                 items: updatedItems,
                 totalAmount: newTotal,
+                receiptUrls: finalReceiptUrls,   // <--- INI YANG PENTING
                 updatedAt: new Date().toISOString()
             });
         });
