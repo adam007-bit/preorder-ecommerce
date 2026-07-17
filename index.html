@@ -1808,7 +1808,8 @@ const varSelect = document.getElementById('editAddVariationSelect');
 const qtyInput = document.getElementById('editAddQty');
 const priceDisplay = document.getElementById('editAddPriceDisplay');
 const totalDisplay = document.getElementById('editAddTotalDisplay');
-
+// Populate dropdown produk
+populateEditProductDropdown();
 // === FUNGSI KEMAS KINI HARGA ===
 // === FUNGSI KEMAS KINI HARGA ===
 function updateEditPrice() {
@@ -1904,7 +1905,38 @@ fileInput.addEventListener('change', (e) => {
     const modal = new bootstrap.Modal(modalEl);  // <-- FIX: guna bootstrap langsung
     modal.show();
 }
-
+function populateEditProductDropdown() {
+    const productSelect = document.getElementById('editAddProductSelect');
+    if (!productSelect) return;
+    
+    // Simpan nilai yang dipilih (jika ada)
+    const currentValue = productSelect.value;
+    
+    productSelect.innerHTML = '<option value="">-- Pilih Produk --</option>';
+    
+    if (allProducts.length === 0) {
+        // Produk belum dimuat – tunjuk mesej dan cuba lagi selepas 1 saat
+        const opt = document.createElement('option');
+        opt.value = '';
+        opt.textContent = '⏳ Memuatkan produk...';
+        opt.disabled = true;
+        productSelect.appendChild(opt);
+        setTimeout(populateEditProductDropdown, 1000);
+        return;
+    }
+    
+    allProducts.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = p.name + ' (' + getProductCategory(p) + ')';
+        productSelect.appendChild(opt);
+    });
+    
+    // Pulihkan nilai yang dipilih (jika masih sah)
+    if (currentValue && [...productSelect.options].some(o => o.value === currentValue)) {
+        productSelect.value = currentValue;
+    }
+}
 function renderEditOrderItems(items) {
     const container = document.getElementById('editOrderItemsList');
     if (!items || items.length === 0) {
