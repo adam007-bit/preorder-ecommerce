@@ -2285,7 +2285,14 @@ document.getElementById('placeOrderBtn').addEventListener('click', async functio
             showToast('Sila lengkapkan alamat', true);
             return;
         }
-        
+        // === AMBIL SEMULA FAIL DARI INPUT (untuk elak newReceiptFiles kosong) ===
+if (newReceiptFiles.length === 0) {
+    const input = document.getElementById('checkoutReceipts');
+    if (input.files && input.files.length > 0) {
+        newReceiptFiles = Array.from(input.files);
+        renderReceiptFileList(); // kemaskini paparan
+    }
+}
         // ===== BARU: Semak resit – guna selectedReceiptFiles =====
      if(!payLater && newReceiptFiles.length === 0) {
     showToast('Sila muat naik sekurang-kurangnya satu resit atau pilih Bayar Kemudian', true);
