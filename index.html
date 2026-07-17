@@ -594,7 +594,7 @@
         </div>
     </div>
 </div>
-    <!-- Modal Edit Pesanan -->
+   <!-- Modal Edit Pesanan -->
 <div class="modal fade" id="editOrderModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content rounded-4">
@@ -603,22 +603,26 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
+                <!-- Senarai Item Sedia Ada -->
                 <div id="editOrderItemsList">
                     <div class="text-center py-3">Memuatkan item...</div>
                 </div>
+
                 <!-- Resit Upload Section -->
-<div class="mt-3">
-    <label class="fw-bold small"><i class="fa-regular fa-receipt"></i> Resit Pembayaran (Tambah baru, kekal lama)</label>
-    <div class="receipt-upload-area" id="editReceiptDropArea">
-        <i class="fa-regular fa-image fa-2x text-muted"></i>
-        <p class="small mb-0">Klik atau seret gambar resit baru di sini</p>
-        <input type="file" id="editReceiptInput" class="d-none" accept="image/*" multiple>
-    </div>
-    <div id="editReceiptFileList" class="receipt-list mt-2"></div>
-    <div id="editReceiptProgress" class="progress-upload" style="display:none;">⏳ Memuat naik...</div>
-</div>
-<hr>
+                <div class="mt-3">
+                    <label class="fw-bold small"><i class="fa-regular fa-receipt"></i> Resit Pembayaran (Tambah baru, kekal lama)</label>
+                    <div class="receipt-upload-area" id="editReceiptDropArea">
+                        <i class="fa-regular fa-image fa-2x text-muted"></i>
+                        <p class="small mb-0">Klik atau seret gambar resit baru di sini</p>
+                        <input type="file" id="editReceiptInput" class="d-none" accept="image/*" multiple>
+                    </div>
+                    <div id="editReceiptFileList" class="receipt-list mt-2"></div>
+                    <div id="editReceiptProgress" class="progress-upload" style="display:none;">⏳ Memuat naik...</div>
+                </div>
+
                 <hr>
+
+                <!-- Tambah Item Baru -->
                 <div class="mb-3">
                     <label class="form-label fw-bold small">Tambah Item Baru</label>
                     <div class="row g-2">
@@ -636,8 +640,18 @@
                             <input type="number" id="editAddQty" class="form-control" value="1" min="1">
                         </div>
                     </div>
+
+                    <!-- === PAPARAN HARGA (BARU) === -->
+                    <div class="mt-2">
+                        <span class="small text-muted">Harga seunit: </span>
+                        <span id="editAddPriceDisplay" class="fw-bold text-success">RM 0.00</span>
+                        <span class="small text-muted ms-3">Jumlah: </span>
+                        <span id="editAddTotalDisplay" class="fw-bold text-success">RM 0.00</span>
+                    </div>
+
                     <button id="editAddItemBtn" class="btn btn-sm btn-success mt-2"><i class="fa-solid fa-plus"></i> Tambah ke Pesanan</button>
                 </div>
+
                 <div id="editOrderProgress" style="display:none;" class="text-success small">⏳ Memproses...</div>
             </div>
             <div class="modal-footer">
@@ -1788,44 +1802,66 @@ function openEditOrderModal(orderId, orderData) {
 editNewReceiptFiles = [];
 renderEditReceiptList();
     
-    // Isi dropdown produk untuk tambah item
-    const productSelect = document.getElementById('editAddProductSelect');
-    productSelect.innerHTML = '<option value="">-- Pilih Produk --</option>';
-    allProducts.forEach(p => {
+// === ELEMEN ===
+const productSelect = document.getElementById('editAddProductSelect');
+const varSelect = document.getElementById('editAddVariationSelect');
+const qtyInput = document.getElementById('editAddQty');
+const priceDisplay = document.getElementById('editAddPriceDisplay');
+const totalDisplay = document.getElementById('editAddTotalDisplay');
+
+// === FUNGSI KEMAS KINI HARGA ===
+// === FUNGSI KEMAS KINI HARGA ===
+function updateEditPrice() {
+    const selectedOption = varSelect.options[varSelect.selectedIndex];
+    if (selectedOption && selectedOption.dataset.price) {
+        const price = parseFloat(selectedOption.dataset.price);
+        const qty = parseInt(qtyInput.value) || 1;
+        priceDisplay.textContent = `RM ${price.toFixed(2)}`;
+        totalDisplay.textContent = `RM ${(price * qty).toFixed(2)}`;
+    } else {
+        priceDisplay.textContent = 'RM 0.00';
+        totalDisplay.textContent = 'RM 0.00';
+    }
+}
+
+// === PRODUK DIPILIH ===
+productSelect.onchange = function() {
+    const prodId = this.value;
+    varSelect.innerHTML = '<option value="">-- Variasi --</option>';
+    priceDisplay.textContent = 'RM 0.00';
+    totalDisplay.textContent = 'RM 0.00';
+    
+    if (!prodId) return;
+    
+    const product = allProducts.find(p => p.id === prodId);
+    if (!product || !product.variations) return;
+    
+    product.variations.forEach(v => {
+        const key = getVariationKey(product.id, v.size, v.type);
+        const invData = stockMap.get(key) || { stock: 0 };
+        const stock = invData.stock ?? 0;
         const opt = document.createElement('option');
-        opt.value = p.id;
-        opt.textContent = p.name + ' (' + getProductCategory(p) + ')';
-        productSelect.appendChild(opt);
+        opt.value = key;
+        opt.dataset.price = v.price;
+        opt.dataset.stock = stock;
+        opt.dataset.size = v.size;
+        opt.dataset.type = v.type;
+        opt.dataset.prodid = product.id;
+        opt.dataset.prodname = product.name;
+        opt.textContent = `${v.size} - ${v.type} (RM${v.price}) ${stock > 0 ? `Stok: ${stock}` : '(Habis)'}`;
+        opt.disabled = stock <= 0;
+        varSelect.appendChild(opt);
     });
-    document.getElementById('editAddVariationSelect').innerHTML = '<option value="">-- Variasi --</option>';
-    document.getElementById('editAddQty').value = 1;
-    document.getElementById('editOrderProgress').style.display = 'none';
-   
-    // Muat variasi untuk produk yang dipilih
-    productSelect.onchange = function() {  // <-- FIX: guna onchange event
-        const prodId = this.value;
-        const varSelect = document.getElementById('editAddVariationSelect');
-        varSelect.innerHTML = '<option value="">-- Variasi --</option>';
-        if (!prodId) return;
-        const product = allProducts.find(p => p.id === prodId);
-        if (!product || !product.variations) return;
-        product.variations.forEach(v => {
-            const key = getVariationKey(product.id, v.size, v.type);
-            const invData = stockMap.get(key) || { stock: 0 };
-            const stock = invData.stock ?? 0;
-            const opt = document.createElement('option');
-            opt.value = key;
-            opt.dataset.price = v.price;
-            opt.dataset.stock = stock;
-            opt.dataset.size = v.size;
-            opt.dataset.type = v.type;
-            opt.dataset.prodid = product.id;
-            opt.dataset.prodname = product.name;
-            opt.textContent = `${v.size} - ${v.type} (RM${v.price}) ${stock > 0 ? `Stok: ${stock}` : '(Habis)'}`;
-            opt.disabled = stock <= 0;
-            varSelect.appendChild(opt);
-        });
-    };
+    
+    // Kemas kini harga untuk variasi pertama (jika ada)
+    updateEditPrice();
+};
+
+// === VARIASI DIPILIH ===
+varSelect.addEventListener('change', updateEditPrice);
+
+// === KUANTITI DIUBAH ===
+qtyInput.addEventListener('input', updateEditPrice);
    
     // Papar item sedia ada
     renderEditOrderItems(orderData.items || []);
