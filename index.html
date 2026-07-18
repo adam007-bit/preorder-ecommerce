@@ -504,8 +504,8 @@
                             <div class="col-4"><div class="shipping-option text-center p-2 selected" data-code="SM" data-cost="10">SM - RM10</div></div>
                             <div class="col-4"><div class="shipping-option text-center p-2" data-code="SS" data-cost="20">SS - RM20</div></div>
                             <div class="col-4"><div class="shipping-option text-center p-2" data-code="SG" data-cost="50">Singapore - RM50</div></div>
-                            <div class="col-4"><div class="shipping-option text-center p-2" data-code="COD" data-cost="0">Lalamove / COD</div></div>
-                            <div class="col-4"><div class="shipping-option text-center p-2" data-code="ADDON" data-cost="5">Add On - RM5</div></div>
+                            <div class="col-4"><div class="shipping-option text-center p-2" data-code="COD" data-cost="0"> COD</div></div>
+                            <div class="col-4"><div class="shipping-option text-center p-2" data-code="ADDON" data-cost="5">Add On - Free</div></div>
                         </div>
                     </div>
                     <!-- Sticker on vials? -->
@@ -2406,11 +2406,10 @@ document.getElementById('placeOrderBtn').addEventListener('click', async functio
         const stickerOption = document.querySelector('input[name="stickerOption"]:checked');
         const stickerValue = stickerOption ? stickerOption.value : 'Yes';
        
-        // Tentukan shipping region
         const shippingRegion = checkoutShippingCode === 'SM' ? 'Semenanjung Malaysia' :
-                               (checkoutShippingCode === 'SS' ? 'Sabah/Sarawak' :
-                               (checkoutShippingCode === 'COD' ? 'Lalamove / COD' :
-                               (checkoutShippingCode === 'ADDON' ? 'Add On' : 'Singapura')));
+                       (checkoutShippingCode === 'SS' ? 'Sabah/Sarawak' :
+                       (checkoutShippingCode === 'COD' ? 'COD' :
+                       (checkoutShippingCode === 'ADDON' ? 'Add On (Percuma)' : 'Singapura')));
        
         if(!name || !address || !postcode || !state) {
             showToast('Sila lengkapkan alamat', true);
