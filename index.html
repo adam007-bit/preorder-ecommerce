@@ -1762,7 +1762,9 @@ document.getElementById('confirmAddItemBtn').addEventListener('click', async fun
                 price: price
             };
             const updatedItems = [...orderData.items, newItem];
-            const newTotal = updatedItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            const subtotal = updatedItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
+const shippingCost = orderData.shipping?.cost || 0;
+const newTotal = subtotal + shippingCost;
            
             transaction.update(orderRef, {
                 items: updatedItems,
@@ -2092,7 +2094,7 @@ document.getElementById('saveEditOrderBtn').addEventListener('click', async func
             return;
         }
 
-        // === UPLOAD RESIT BARU ===
+        // Upload resit baru
         let newUploadUrls = [];
         const receiptProgress = document.getElementById('editReceiptProgress');
         if (editNewReceiptFiles.length > 0) {
@@ -2103,10 +2105,8 @@ document.getElementById('saveEditOrderBtn').addEventListener('click', async func
             setTimeout(() => receiptProgress.style.display = 'none', 2000);
         }
 
-        // === GABUNGKAN RESIT LAMA + BARU ===
         const finalReceiptUrls = [...editExistingReceipts, ...newUploadUrls];
 
-        // Dapatkan item asal
         const originalItems = editOrderData.originalItems || [];
         const changes = calculateInventoryChanges(originalItems, updatedItems);
 
@@ -2119,12 +2119,12 @@ document.getElementById('saveEditOrderBtn').addEventListener('click', async func
                 throw new Error('Pesanan sudah tidak aktif');
             }
 
-            // Untuk setiap perubahan, kemas kini stok
+            // Kemas kini stok
             for (const [key, diff] of Object.entries(changes)) {
                 const invRef = doc(db, "inventory", key);
                 const invSnap = await transaction.get(invRef);
                 let currentStock = invSnap.exists() ? invSnap.data().stock : 0;
-                const newStock = currentStock - diff; // jika diff +ve, stok berkurang
+                const newStock = currentStock - diff;
                 if (newStock < 0) {
                     throw new Error(`Stok tidak mencukupi untuk item (ID: ${key})`);
                 }
@@ -2134,12 +2134,15 @@ document.getElementById('saveEditOrderBtn').addEventListener('click', async func
                 }, { merge: true });
             }
 
-            // Kemas kini pesanan – TAMBAH receiptUrls
-            const newTotal = updatedItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            // 🔥 BETULKAN DI SINI – tambah shipping
+            const subtotal = updatedItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            const shippingCost = orderData.shipping?.cost || 0;
+            const newTotal = subtotal + shippingCost;
+
             transaction.update(orderRef, {
                 items: updatedItems,
                 totalAmount: newTotal,
-                receiptUrls: finalReceiptUrls,   // <--- INI YANG PENTING
+                receiptUrls: finalReceiptUrls,
                 updatedAt: new Date().toISOString()
             });
         });
