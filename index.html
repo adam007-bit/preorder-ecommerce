@@ -1744,6 +1744,12 @@ document.getElementById('confirmAddItemBtn').addEventListener('click', async fun
            
             const invRef = doc(db, "inventory", varKey);
             const invSnap = await transaction.get(invRef);
+            const invDataForCheck = invSnap.exists() ? invSnap.data() : {};
+            const allowPreorderForCheck = invDataForCheck.allowPreorder ?? true;
+            const readyStockForCheck = invDataForCheck.readyStock ?? 0;
+            if (!allowPreorderForCheck && readyStockForCheck <= 0) {
+                throw new Error(`Pre-order untuk ${prodName} telah ditutup oleh admin`);
+            }
             let currentStock = invSnap.exists() ? invSnap.data().stock : 0;
             if (currentStock < qty) {
                 throw new Error(`Stok ${prodName} tidak mencukupi`);
@@ -2029,6 +2035,12 @@ document.getElementById('editAddItemBtn').addEventListener('click', async functi
             // Semak stok
             const invRef = doc(db, "inventory", varKey);
             const invSnap = await transaction.get(invRef);
+            const invDataEditCheck = invSnap.exists() ? invSnap.data() : {};
+            const allowPreorderEditCheck = invDataEditCheck.allowPreorder ?? true;
+            const readyStockEditCheck = invDataEditCheck.readyStock ?? 0;
+            if (!allowPreorderEditCheck && readyStockEditCheck <= 0) {
+                throw new Error(`Pre-order untuk ${prodName} telah ditutup oleh admin`);
+            }
             let currentStock = invSnap.exists() ? invSnap.data().stock : 0;
             if (currentStock < qty) {
                 throw new Error(`Stok ${prodName} tidak mencukupi`);
@@ -2502,6 +2514,11 @@ if(!payLater && newReceiptFiles.length > 0) {
             for (let i = 0; i < selectedItems.length; i++) {
                 const snap = snapshots[i];
                 const item = selectedItems[i];
+                const invDataCheck = snap.exists() ? snap.data() : {};
+                const allowPreorderCheck = invDataCheck.allowPreorder ?? true;
+                if (!item.isReady && !allowPreorderCheck) {
+                    throw new Error(`Pre-order untuk ${item.name} telah ditutup oleh admin. Sila pilih Ready Stock.`);
+                }
                 let currentStock = snap.exists() ? snap.data().stock : 100;
                 if (currentStock < item.qty) throw new Error(`Stok ${item.name} tidak cukup`);
                 transaction.set(doc(db, "inventory", item.variationKey), {
