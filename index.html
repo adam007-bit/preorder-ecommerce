@@ -1105,6 +1105,9 @@ function renderProducts(products) {
         let options = '';
         let defaultPrice = 0, defaultStock = 0, defaultSize = '', defaultType = '', defaultReadyStock = 0;
        
+        let defaultIsPromo = false;
+        let defaultOriginalPrice = 0;
+
         p.variations.forEach(v => {
             const key = getVariationKey(p.id, v.size, v.type);
             const invData = stockMap.get(key) || { stock: 100, readyStock: 0 };
@@ -1121,11 +1124,19 @@ function renderProducts(products) {
                 }
             }
 
+            // ===== HARGA PROMO =====
+            const originalPrice = displayPrice;
+            const isPromo = !!(invData.promoActive && invData.promoPrice > 0);
+            if (isPromo) {
+                displayPrice = invData.promoPrice;
+            }
+
             // ===== PERUBAHAN UTAMA =====
             const displayStock = (currentCategory === 'readystock') ? readyStock : stock;
            
             const label = displayStock === 0 ? ' - Pre-order/Habis' : '';
-            options += `<option value="${key}" data-price="${displayPrice}" data-stock="${displayStock}" data-size="${v.size}" data-type="${v.type}" data-readystock="${readyStock}" data-regularstock="${stock}">${v.size} - ${v.type} (RM ${displayPrice.toFixed(2)})${label}</option>`;
+            const promoLabel = isPromo ? ' 🔥PROMO' : '';
+            options += `<option value="${key}" data-price="${displayPrice}" data-original-price="${originalPrice}" data-ispromo="${isPromo ? '1' : '0'}" data-stock="${displayStock}" data-size="${v.size}" data-type="${v.type}" data-readystock="${readyStock}" data-regularstock="${stock}">${v.size} - ${v.type} (RM ${displayPrice.toFixed(2)})${isPromo ? ` (was RM ${originalPrice.toFixed(2)})` : ''}${promoLabel}${label}</option>`;
 
             if(!defaultPrice) {
                 defaultPrice = v.price;
@@ -1133,6 +1144,8 @@ function renderProducts(products) {
                 defaultSize = v.size;
                 defaultType = v.type;
                 defaultReadyStock = readyStock;
+                defaultIsPromo = isPromo;
+                defaultOriginalPrice = originalPrice;
             }
         });
 
@@ -1153,6 +1166,9 @@ function renderProducts(products) {
             } else {
                 displayDefaultPrice = defaultPrice + readyStockExtra;
             }
+        }
+        if (defaultIsPromo) {
+            displayDefaultPrice = stockMap.get(getVariationKey(p.id, defaultSize, defaultType))?.promoPrice || displayDefaultPrice;
         }
 
         let defaultStockDisplay = `Stok: ${defaultStock}`;
@@ -1179,14 +1195,19 @@ function renderProducts(products) {
 
         const card = document.createElement('div');
         card.className = 'col-12';
+        const promoBadgeHtml = defaultIsPromo ? '<span class="badge bg-danger">🔥 PROMO</span>' : '<span class="badge bg-warning text-dark">Hot</span>';
+        const priceBlockHtml = defaultIsPromo
+            ? `<div class="product-price-original text-muted text-decoration-line-through" style="font-size:0.75rem;">RM ${defaultOriginalPrice.toFixed(2)}</div><div class="product-price fw-bold text-danger">RM ${displayDefaultPrice.toFixed(2)}</div>`
+            : `<div class="product-price fw-bold text-success">RM ${displayDefaultPrice.toFixed(2)}</div>`;
+
         card.innerHTML = `
             <div class="card product-card">
-                <div class="d-flex justify-content-between mb-2"><span class="category-badge">${escapeHtml(badge)}</span><span class="badge bg-warning text-dark">Hot</span></div>
+                <div class="d-flex justify-content-between mb-2"><span class="category-badge">${escapeHtml(badge)}</span>${promoBadgeHtml}</div>
                 <div><h6 class="fw-bold d-inline">${escapeHtml(p.name)}</h6><i class="fa-regular fa-circle-question protocol-icon ms-2" data-product="${escapeHtml(p.name)}" title="Klik untuk lihat protocol dose"></i></div>
                 <div class="row g-2 align-items-end mt-2">
                     <div class="col-7"><label class="small fw-bold">Pilih Jenis</label><select class="form-select form-select-sm product-select" data-id="${p.id}">${options}</select></div>
                     <div class="col-3"><label class="small fw-bold">Kuantiti</label><input type="number" class="form-control form-control-sm product-qty" value="0" min="0" max="${isOutOfStock ? 0 : defaultStock}" step="1" ${isOutOfStock ? 'disabled' : ''}></div>
-                    <div class="col-2 text-end"><div class="product-price fw-bold text-success">RM ${displayDefaultPrice.toFixed(2)}</div><small class="stock-info text-muted">${defaultStockDisplay}</small></div>
+                    <div class="col-2 text-end">${priceBlockHtml}<small class="stock-info text-muted">${defaultStockDisplay}</small></div>
                 </div>
                 <button class="btn btn-sm ${btnClass} mt-2 w-100 add-to-cart" ${btnDisabled}><i class="fa-solid fa-cart-plus"></i> ${btnText}</button>
             </div>
@@ -1206,15 +1227,42 @@ function renderProducts(products) {
         const select = card.querySelector('.product-select');
         const qtyInp = card.querySelector('.product-qty');
         const priceSpan = card.querySelector('.product-price');
+        const priceCol = priceSpan.closest('.col-2');
         const stockSpan = card.querySelector('.stock-info');
         const addBtn = card.querySelector('.add-to-cart');
+        const cardBadgeRow = card.querySelector('.d-flex.justify-content-between');
 
         select.addEventListener('change', () => {
     const selectedOption = select.options[select.selectedIndex];
     const price = parseFloat(selectedOption.dataset.price);
+    const originalPrice = parseFloat(selectedOption.dataset.originalPrice ?? selectedOption.dataset.price);
+    const isPromo = selectedOption.dataset.ispromo === '1';
     const stock = parseInt(selectedOption.dataset.stock);
     const readyStock = parseInt(selectedOption.dataset.readystock);
-           
+
+            let existingOriginal = priceCol.querySelector('.product-price-original');
+            if (isPromo) {
+                if (!existingOriginal) {
+                    existingOriginal = document.createElement('div');
+                    existingOriginal.className = 'product-price-original text-muted text-decoration-line-through';
+                    existingOriginal.style.fontSize = '0.75rem';
+                    priceCol.insertBefore(existingOriginal, priceSpan);
+                }
+                existingOriginal.innerText = `RM ${originalPrice.toFixed(2)}`;
+                priceSpan.className = 'product-price fw-bold text-danger';
+                if (cardBadgeRow && !cardBadgeRow.querySelector('.badge.bg-danger')) {
+                    const hotBadge = cardBadgeRow.querySelector('.badge.bg-warning');
+                    if (hotBadge) hotBadge.outerHTML = '<span class="badge bg-danger">🔥 PROMO</span>';
+                }
+            } else {
+                if (existingOriginal) existingOriginal.remove();
+                priceSpan.className = 'product-price fw-bold text-success';
+                if (cardBadgeRow) {
+                    const promoBadge = cardBadgeRow.querySelector('.badge.bg-danger');
+                    if (promoBadge) promoBadge.outerHTML = '<span class="badge bg-warning text-dark">Hot</span>';
+                }
+            }
+
             priceSpan.innerText = `RM ${price.toFixed(2)}`;
            
             let isStockOut = stock <= 0;
@@ -1849,15 +1897,17 @@ productSelect.onchange = function() {
         const key = getVariationKey(product.id, v.size, v.type);
         const invData = stockMap.get(key) || { stock: 0 };
         const stock = invData.stock ?? 0;
+        const isPromo = !!(invData.promoActive && invData.promoPrice > 0);
+        const finalPrice = isPromo ? invData.promoPrice : v.price;
         const opt = document.createElement('option');
         opt.value = key;
-        opt.dataset.price = v.price;
+        opt.dataset.price = finalPrice;
         opt.dataset.stock = stock;
         opt.dataset.size = v.size;
         opt.dataset.type = v.type;
         opt.dataset.prodid = product.id;
         opt.dataset.prodname = product.name;
-        opt.textContent = `${v.size} - ${v.type} (RM${v.price}) ${stock > 0 ? `Stok: ${stock}` : '(Habis)'}`;
+        opt.textContent = `${v.size} - ${v.type} (RM${finalPrice}${isPromo ? ' 🔥PROMO, asal RM'+v.price : ''}) ${stock > 0 ? `Stok: ${stock}` : '(Habis)'}`;
         opt.disabled = stock <= 0;
         varSelect.appendChild(opt);
     });
