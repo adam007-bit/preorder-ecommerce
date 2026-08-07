@@ -1399,8 +1399,60 @@ function applyFilters() {
    
     renderProducts(products);
 }
-function saveCart() { localStorage.setItem('velxera_cart', JSON.stringify(cart)); }
+function saveCart() {
+    localStorage.setItem('velxera_cart', JSON.stringify(cart));
+    syncCartToFirestore();
+}
 function loadCart() { const c = localStorage.getItem('velxera_cart'); if(c) cart = JSON.parse(c); else cart = []; updateCartUI(); }
+
+// ========== SYNC CART KE FIRESTORE (supaya cart tak hilang bila tukar browser/peranti) ==========
+let cartSyncTimer = null;
+function syncCartToFirestore() {
+    if (!currentUser || !currentUser.phone) return; // belum log masuk, simpan lokal sahaja buat masa ini
+    clearTimeout(cartSyncTimer);
+    cartSyncTimer = setTimeout(async () => {
+        try {
+            await setDoc(doc(db, "carts", currentUser.phone), {
+                items: cart,
+                updatedAt: new Date().toISOString()
+            });
+        } catch (err) {
+            console.error('Gagal sync cart ke server:', err);
+        }
+    }, 600); // debounce sikit supaya tak spam Firestore setiap kali qty berubah
+}
+
+// Tarik cart dari Firestore (server) dan gabungkan dengan cart lokal semasa log masuk
+async function pullCartFromFirestore() {
+    if (!currentUser || !currentUser.phone) return;
+    try {
+        const snap = await getDoc(doc(db, "carts", currentUser.phone));
+        if (snap.exists() && Array.isArray(snap.data().items) && snap.data().items.length > 0) {
+            const serverCart = snap.data().items;
+            if (!cart.length) {
+                // Tiada cart lokal (contoh: browser/peranti baru) -> guna terus cart dari server
+                cart = serverCart;
+            } else {
+                // Ada cart lokal DAN server -> gabungkan (elak hilang item dari mana-mana pihak)
+                serverCart.forEach(sItem => {
+                    const existing = cart.find(i => i.variationKey === sItem.variationKey);
+                    if (existing) {
+                        existing.qty = Math.max(existing.qty, sItem.qty);
+                    } else {
+                        cart.push(sItem);
+                    }
+                });
+            }
+            localStorage.setItem('velxera_cart', JSON.stringify(cart));
+            updateCartUI();
+        } else if (cart.length) {
+            // Server kosong tapi ada cart lokal -> push naik ke server
+            syncCartToFirestore();
+        }
+    } catch (err) {
+        console.error('Gagal tarik cart dari server:', err);
+    }
+}
 function updateCartUI() {
     const container = document.getElementById('cartItemsContainer');
     const summary = document.getElementById('cartSummary');
@@ -1531,6 +1583,7 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
     localStorage.setItem('velxera_user', JSON.stringify(currentUser));
     document.getElementById('loginStep1').style.display = 'none';
     document.getElementById('loginStep2').style.display = 'block';
+    await pullCartFromFirestore();
     setTimeout(() => {
         if (typeof window.bootstrap !== 'undefined' && window.bootstrap.Modal) {
             window.bootstrap.Modal.getInstance(document.getElementById('loginModal')).hide();
@@ -1546,6 +1599,7 @@ function checkUserSession() {
     if(saved) {
         currentUser = JSON.parse(saved);
         // Pastikan nama pengguna diisi ke borang checkout jika perlu
+        pullCartFromFirestore();
         loadUserOrders();
     } else {
         showLoginModal();
@@ -2594,7 +2648,7 @@ items: selectedItems.map(i => ({
         await generateAndDownloadPDF(orderId, customerData, selectedItems.map(i => ({ prodName: i.name, size: i.size, type: i.type, qty: i.qty, price: i.price })), grandTotal, checkoutShippingCost, shippingRegion, payLater ? "Bayar Kemudian" : "Pindahan Bank", payLater ? null : bankName, stickerValue);
        
         cart = cart.filter(item => item.selected === false);
-        saveCart();
+        saveCart(); // saveCart() turut sync cart terkini (item yang tinggal) ke Firestore
         updateCartUI();
         showToast('✅ Pesanan berjaya! Invois PDF dimuat turun. Admin akan proses.');
         if (typeof window.bootstrap !== 'undefined' && window.bootstrap.Modal) {
